@@ -1,0 +1,4 @@
+{
+    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "C_Cpp.default.compileCommands": "/home/rquarx/Projects/aurgh/target/compile_commands.json"
+}
