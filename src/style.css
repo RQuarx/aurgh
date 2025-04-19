@@ -1,0 +1,74 @@
+/* AURGH - Minimal styling that respects the system theme */
+
+/* Add subtle transitions for interactive elements */
+button, entry, combobox {
+    transition-property: border-color, background-color;
+    transition-duration: 0.2s;
+}
+
+/* Package info styling - using theme-compatible colors */
+.package-info {
+    padding: 8px;
+    margin: 4px;
+    border-radius: 4px;
+    border-left: 3px solid alpha(@theme_selected_bg_color, 0.7);
+    background-color: alpha(@theme_base_color, 0.7);
+}
+
+frame {
+    border-radius: 4px;
+    margin: 4px;
+}
+
+/* Make sure labels are visible */
+label {
+    color: @theme_text_color;
+}
+
+/* Ensure package info is readable */
+.package-info label {
+    margin-bottom: 2px;
+}
+
+/* Add some spacing between packages */
+grid > widget {
+    margin: 4px;
+}
+
+/* Info box styling */
+.info-box {
+    padding: 10px;
+    border-radius: 4px;
+    background-color: alpha(@theme_selected_bg_color, 0.1);
+}
+
+/* Search results container */
+.search-results-container {
+    padding: 8px;
+}
+
+/* Results count styling */
+.results-count {
+    margin-bottom: 8px;
+    margin-top: 4px;
+}
+
+/* Action buttons in package cards */
+.action-button {
+    padding: 4px;
+    min-height: 0;
+    margin: 2px;
+    color: @theme_fg_color;
+    background-color: transparent;
+}
+
+.action-button:hover {
+    background-color: alpha(@theme_selected_bg_color, 0.2);
+    border-radius: 4px;
+}
+
+/* Loading indicator */
+.loading-box {
+    padding: 20px;
+    opacity: 0.8;
+}

@@ -2,6 +2,7 @@
 #include <gtkmm-3.0/gtkmm.h>
 #include <json/value.h>
 #include <curl/curl.h>
+#include <algorithm>
 
 #include "tabs/packages.hh"
 #include "arg_parser.hh"
@@ -28,7 +29,20 @@ static const std::string_view APP_VERSION = "0.0.1";
 auto
 main(int32_t argc, char **argv) -> int32_t
 {
+    // Initialize GTK application
     auto app = Gtk::Application::create("org.rquarx.aur-graphical-helper");
+
+    // Ensure icon theme is properly initialized but respect system paths
+    auto icon_theme = Gtk::IconTheme::get_default();
+    auto current_paths = icon_theme->get_search_path();
+    // Only add paths if they're not already in the search path
+    if (std::find(current_paths.begin(), current_paths.end(), "/usr/share/icons") == current_paths.end()) {
+        current_paths.push_back("/usr/share/icons");
+    }
+    if (std::find(current_paths.begin(), current_paths.end(), "/usr/local/share/icons") == current_paths.end()) {
+        current_paths.push_back("/usr/local/share/icons");
+    }
+    icon_theme->set_search_path(current_paths);
     ArgParser  arg_parser(argc, argv);
 
     if (arg_parser.find_arg({ "-h", "--help" })) {

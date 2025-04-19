@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Background circle -->
+  <circle cx="24" cy="24" r="22" fill="#4a86cf" />
+  <circle cx="24" cy="24" r="20" fill="#3a76bf" />
+  
+  <!-- Arch-style logo -->
+  <path d="M24,8 C20,16 18,20 14,28 C16,26 18,25 24,23 C30,25 32,26 34,28 C30,20 28,16 24,8 Z" 
+        fill="white" stroke="white" stroke-width="1" />
+  
+  <!-- Package box -->
+  <rect x="16" y="28" width="16" height="10" rx="2" ry="2" fill="white" />
+  <rect x="18" y="30" width="12" height="2" fill="#3a76bf" />
+  <rect x="18" y="34" width="8" height="2" fill="#3a76bf" />
+</svg>

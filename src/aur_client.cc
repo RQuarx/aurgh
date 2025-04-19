@@ -59,11 +59,19 @@ AUR_Client::search(
 {
     std::string full_url = std::format("{}/search/{}", m_url, args);
     if (!by.empty()) {
-        full_url.append("?by" + by);
+        full_url.append("?by=" + by); // Fixed: added equals sign
     }
+
+    m_logger->log(Logger::Debug, "AUR search URL: {}", full_url.c_str());
 
     std::string read_buffer;
     perform_curl(full_url, read_buffer);
+
+    // Log a small part of the response for debugging
+    if (!read_buffer.empty()) {
+        std::string preview = read_buffer.substr(0, std::min(size_t(100), read_buffer.size()));
+        m_logger->log(Logger::Debug, "AUR response preview: {}", preview.c_str());
+    }
 
     std::istringstream iss(read_buffer);
     return get_json_from_stream(iss);
