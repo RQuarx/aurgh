@@ -4,3 +4,14 @@
 
 
 AURGH is an **[Arch User Repository](https://aur.archlinux.org/) Graphical Helper**.
+
+AURGH is an [Arch User Repository](https://aur.archlinux.org/) Graphical Helper.
+Made with [GTK3](https://www.gtk.org/) and C++ to deal with daily AUR shenanigans.
+
+
+## Features
+
+- [x] Basic searching of AUR packages.
+- [ ] Package information on each package list.
+- [ ] Downloading and installing AUR packages.
+- [ ] Basic AUR package management
