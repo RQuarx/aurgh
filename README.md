@@ -6,7 +6,10 @@ AURGH is an **[Arch User Repository](https://aur.archlinux.org/) Graphical Helpe
 <br>
 Made with [GTK3](https://www.gtk.org/) and C++ to deal with daily AUR shenanigans.
 <br>
-[![Build AURGH](https://github.com/RQuarx/aurgh/actions/workflows/check_build.yml/badge.svg)](https://github.com/RQuarx/aurgh/actions/workflows/check_build.yml)
+
+![Badge Workflow]
+[![Badge License]][License]
+![Badge Language]
 
 <div align=left>
 
@@ -16,3 +19,9 @@ Made with [GTK3](https://www.gtk.org/) and C++ to deal with daily AUR shenanigan
 - [ ] Package information on each package list.
 - [ ] Downloading and installing AUR packages.
 - [ ] Basic AUR package management
+
+[License]: LICENSE
+
+[Badge Workflow]: https://github.com/RQuarx/aurgh/actions/workflows/check_build.yml/badge.svg
+[Badge Language]: https://img.shields.io/github/languages/top/RQuarx/aurgh
+[Badge License]: https://img.shields.io/github/license/RQuarx/aurgh
