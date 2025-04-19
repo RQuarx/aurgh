@@ -4,7 +4,7 @@
 
 AURGH is an **[Arch User Repository](https://aur.archlinux.org/) Graphical Helper**.
 <br>
-Made with [GTK3](https://www.gtk.org/) and C++ to deal with daily AUR shenanigans.
+Made with [GTK3](https://www.gtk.org/) and C++23 to deal with daily AUR shenanigans.
 <br>
 
 ![Badge Workflow]
