@@ -3,5 +3,5 @@
 # AURGH
 
 <br>
-AURGH is an **[Arch User Repository](https://aur.archlinux.org/) Graphical Helper**.
+AURGH is an [Arch User Repository](https://aur.archlinux.org/) Graphical Helper.
 <br>
