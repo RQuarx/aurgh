@@ -1,0 +1,22 @@
+name: Build AURGH
+
+on: [push, pull_request]
+
+jobs:
+  clang:
+    name: "Build AURGH (meson)"
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux
+    steps:
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
+          pacman --noconfirm --noprogressbar -Syyu
+          pacman --noconfirm --noprogressbar -S base-devel gtkmm3 meson git glibmm-2.68 jsoncpp curl clang lld
+
+      - name: Build AURGH
+        run: |
+          CXX=clang++ CXX_LD=lld meson setup target
+          meson compile -C target
