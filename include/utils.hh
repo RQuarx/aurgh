@@ -5,6 +5,10 @@
 #include <optional>
 #include <string>
 #include <array>
+#include <gtkmm-3.0/gtkmm/widget.h>
+
+namespace Gtk { class Label; }
+
 
 
 namespace Str {
@@ -20,6 +24,14 @@ namespace Utils {
     ) -> std::optional<std::pair<std::string, int32_t>>;
     auto term_has_colors(size_t threshold_color_amount = 16) -> bool;
     auto write_callback(void *contents, size_t size, size_t nmemb, std::string &userp) -> size_t;
+}
+
+namespace GtkUtils {
+    void set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin);
+    void set_margin(Gtk::Widget &widget, std::array<int32_t, 2> margin);
+    void set_margin(Gtk::Widget &widget, int32_t margin);
+
+    auto create_label_markup(const std::string &markup) -> Gtk::Label*;
 }
 
 #endif /* utils.hh */

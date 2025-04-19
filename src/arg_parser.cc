@@ -77,12 +77,15 @@ ArgParser::option_arg(std::string &option, arg_pair arg) -> bool
 
 
 auto
-ArgParser::find_option_short(std::string &option, std::string_view short_arg) -> bool
+ArgParser::find_option_short(
+    std::string &option, std::string_view short_arg) -> bool
 {
     if (!m_arg_list.contains(Short)) return false;
 
-    char arg = short_arg.at(0);
-    for (size_t i = 0; i < m_arg_list.at(Short).size(); i++) {
+    const size_t args_amount = m_arg_list.at(Short).size();
+    const char arg           = short_arg.at(0);
+
+    for (size_t i = 0; i < args_amount; i++) {
         const auto &a = m_arg_list.at(Short).at(i);
         if (a.first) continue;
 
@@ -106,7 +109,7 @@ ArgParser::find_option_short(std::string &option, std::string_view short_arg) ->
 
         /* Case: -X value */
         for (const auto &c : a.second) {
-            if (c == arg && i + 1 < m_arg_list.at(Short).size()) {
+            if (c == arg && i + 1 < args_amount) {
                 const auto &next_arg = m_arg_list.at(Short).at(i + 1);
                 if (next_arg.first) {
                     option = next_arg.second;
@@ -122,11 +125,14 @@ ArgParser::find_option_short(std::string &option, std::string_view short_arg) ->
 
 
 auto
-ArgParser::find_option_long(std::string &option, std::string_view long_arg) -> bool
+ArgParser::find_option_long(
+    std::string &option, std::string_view long_arg) -> bool
 {
     if (!m_arg_list.contains(Long)) return false;
 
-    for (size_t i = 0; i < m_arg_list.at(Long).size(); i++) {
+    const size_t args_amount = m_arg_list.at(Long).size();
+
+    for (size_t i = 0; i < args_amount; i++) {
         const auto &a = m_arg_list.at(Long).at(i);
         if (a.first) continue;
 
@@ -134,7 +140,7 @@ ArgParser::find_option_long(std::string &option, std::string_view long_arg) -> b
         if (a.second.contains('=')) {
             size_t eq_pos = a.second.find_first_of('=');
 
-            std::pair<std::string_view, std::string_view> split_arg = {
+            arg_pair split_arg = {
                 a.second.substr(0, eq_pos), a.second.substr(eq_pos + 1)
             };
 
@@ -145,7 +151,7 @@ ArgParser::find_option_long(std::string &option, std::string_view long_arg) -> b
         }
 
         /* Case: --arg value */
-        if (a.second == long_arg.substr(2) && i + 1 < m_arg_list.at(Long).size()) {
+        if (a.second == long_arg.substr(2) && i + 1 < args_amount) {
             const auto &next_arg = m_arg_list.at(Long).at(i + 1);
 
             if (next_arg.first) {

@@ -29,3 +29,10 @@ Diagnostics:
             'bugprone-forward-declaration-namespace',
             'cppcoreguidelines-pro-bounds-pointer-arithmetic'
         ]
+
+InlayHints:
+    ParameterNames: No
+    BlockEnd: No
+    Designators: No
+    DeducedTypes: Yes
+    TypeNameLimit: 10

@@ -1,21 +1,19 @@
+#include <future>
+#include <thread>
 #include <json/json.h>
 #include "aur_client.hh"
 #include "logger.hh"
 
 
 AUR_Client::AUR_Client(Logger *logger, std::string_view url) :
-    m_url(url), m_curl(curl_easy_init()), m_logger(logger)
+    m_logger(logger)
 {
-    m_logger->log(Logger::Debug, "AUR Client instance successfully created");
+    if (!url.empty()) m_url = url;
 
-    if (m_curl == nullptr) {
-        m_logger->log(Logger::Error, "Failed to init easy curl");
-    }
+    m_logger->log(
+        Logger::Debug, "AUR Client instance successfully created"
+    );
 }
-
-
-AUR_Client::~AUR_Client()
-{ curl_easy_cleanup(m_curl); }
 
 
 auto
@@ -23,10 +21,19 @@ AUR_Client::perform_curl(
     const std::string &url, std::string &read_buffer
 ) -> CURLcode
 {
-    curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, Utils::write_callback);
-    curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &read_buffer);
-    return curl_easy_perform(m_curl);
+    CURL *curl = curl_easy_init();
+
+    if (curl == nullptr) {
+        m_logger->log(Logger::Error, "Failed to initialise CURL.");
+        return CURLE_FAILED_INIT;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Utils::write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
+    CURLcode res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+    return res;
 }
 
 
@@ -47,7 +54,8 @@ AUR_Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
 
 
 auto
-AUR_Client::search(const std::string &args, const std::string &by) -> Json::Value
+AUR_Client::search(
+    const std::string &args, const std::string &by) -> Json::Value
 {
     std::string full_url = std::format("{}/search/{}", m_url, args);
     if (!by.empty()) {
@@ -72,4 +80,20 @@ AUR_Client::info(const std::string &args) -> Json::Value
 
     std::istringstream iss(read_buffer);
     return get_json_from_stream(iss);
+}
+
+
+auto
+AUR_Client::get_search_by_keywords(
+    ) -> std::array<const std::string, SEARCH_BY_KEYWORDS>
+{
+    return {{
+        "name", "name-desc",
+        "depends", "checkdepends",
+        "optdepends", "makedepends",
+        "maintainer", "submitter",
+        "provides", "conflicts",
+        "replaces", "keywords",
+        "groups", "comaintainers"
+    }};;
 }

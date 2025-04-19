@@ -6,26 +6,50 @@
 #include <string>
 #include <curl/curl.h>
 
+static const size_t SEARCH_BY_KEYWORDS = 14;
+
 namespace Json { class Value; }
 class Logger;
 
 
-
+/**
+ * @class AUR_Client
+ * @brief A class made to fetch json fata from the Arch User Repository.
+ */
 class AUR_Client
 {
 public:
-    explicit AUR_Client(Logger *logger, std::string_view url = "https://aur.archlinux.org/rpc/v5");
-    ~AUR_Client();
+    /**
+     * @brief Constructs an AUR_Client class.
+     * @param logger A pointer to a Logger instance.
+     * @param url A custom AUR url, defaults to https://aur.archlinux.org/rpc/v5
+     */
+    explicit AUR_Client(Logger *logger, std::string_view url);
 
+    /**
+     * @brief Searches a package on the AUR.
+     * @param args the args that is given to url/search/...
+     * @param by What to search by.
+     * @returns A Json::Value object.
+     */
     auto search(const std::string &args, const std::string &by = "") -> Json::Value;
+
+    /**
+     * @brief Gets an information about a package.
+     * @param args the args that is given to url/info?arg[]=...
+     * @returns A Json::Value object.
+     */
     auto info(const std::string &args) -> Json::Value;
+
+    /**
+     * @brief Get the available "search by" keywords used for the search function.
+     * @returns an array of const std::string with the size of 14.
+     */
+    static auto get_search_by_keywords() -> std::array<const std::string, SEARCH_BY_KEYWORDS>;
 
 private:
     std::string_view m_url = "https://aur.archlinux.org/rpc/v5";
-
-    CURL *m_curl;
-
-    Logger *m_logger;
+    Logger          *m_logger;
 
     auto perform_curl(const std::string &url, std::string &read_buffer) -> CURLcode;
     auto get_json_from_stream(std::istringstream &iss) -> Json::Value;

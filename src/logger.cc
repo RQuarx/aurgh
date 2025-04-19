@@ -28,14 +28,16 @@ Logger::Logger(ArgParser &arg_parser) :
     }
 
     if (m_log_treshold == Level::None) m_log_treshold = Level::Warn;
-    log(Level::Debug, "Logger instace successfully created with a log level of {}.", static_cast<int32_t>(m_log_treshold));
+    log(
+        Level::Debug,
+        "Logger instace successfully created with a log level of {}.",
+        static_cast<int32_t>(m_log_treshold)
+    );
 }
 
 
 Logger::~Logger()
-{
-    if (m_log_file.is_open()) m_log_file.close();
-}
+{ if (m_log_file.is_open()) m_log_file.close(); }
 
 
 auto
@@ -106,7 +108,9 @@ Logger::log_to_file(Level log_level, std::string_view message)
     /* Log to file with jthread / multithreading thing */
     std::jthread([this, log_level, message]() {
         std::string_view label = m_labels.at(log_level).second;
-        std::println(m_log_file, "{} {} {}", Utils::get_current_time(), label, message);
+        std::println(
+            m_log_file, "{} {} {}", Utils::get_current_time(), label, message
+        );
     });
 }
 

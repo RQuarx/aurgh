@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <chrono>
 #include <format>
+#include <gtkmm-3.0/gtkmm/label.h>
 #include "utils.hh"
 
 using std::chrono::duration;
@@ -88,3 +89,41 @@ namespace Utils {
         return total_size;
     }
 } /* namespace Utils */
+
+
+namespace GtkUtils {
+    void
+    set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin)
+    {
+        widget.set_margin_top(margin.at(0));
+        widget.set_margin_right(margin.at(1));
+        widget.set_margin_bottom(margin.at(2));
+        widget.set_margin_left(margin.at(3));
+    }
+
+    void
+    set_margin(Gtk::Widget &widget, std::array<int32_t, 2> margin)
+    {
+        widget.set_margin_top(margin.at(0));
+        widget.set_margin_right(margin.at(1));
+        widget.set_margin_bottom(margin.at(0));
+        widget.set_margin_left(margin.at(1));
+    }
+
+    void
+    set_margin(Gtk::Widget &widget, int32_t margin)
+    {
+        widget.set_margin_top(margin);
+        widget.set_margin_right(margin);
+        widget.set_margin_bottom(margin);
+        widget.set_margin_left(margin);
+    }
+
+    auto
+    create_label_markup(const std::string &markup) -> Gtk::Label*
+    {
+        auto *label = Gtk::make_managed<Gtk::Label>();
+        label->set_markup(markup);
+        return label;
+    }
+} /* namespace GtkUtils */

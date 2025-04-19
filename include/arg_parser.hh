@@ -7,8 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "utils.hh"
-
 using arg_pair = std::pair<std::string_view, std::string_view>;
 
 
@@ -81,7 +79,8 @@ private:
         Long = 1,
     };
 
-    std::unordered_map<Type, std::vector<std::pair<bool, std::string_view>>> m_arg_list;
+    std::unordered_map<Type, std::vector<std::pair<bool, std::string_view>>>
+                     m_arg_list;
     std::string_view m_bin_path;
 
     /**
