@@ -2,8 +2,8 @@
 
 # AURGH
 
-
 AURGH is an **[Arch User Repository](https://aur.archlinux.org/) Graphical Helper**.
+<br>
 Made with [GTK3](https://www.gtk.org/) and C++ to deal with daily AUR shenanigans.
 
 <div align=left>
