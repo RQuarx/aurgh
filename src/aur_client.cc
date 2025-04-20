@@ -59,7 +59,7 @@ AUR_Client::search(
 {
     std::string full_url = std::format("{}/search/{}", m_url, args);
     if (!by.empty()) {
-        full_url.append("?by" + by);
+        full_url.append("?by=" + by);
     }
 
     std::string read_buffer;

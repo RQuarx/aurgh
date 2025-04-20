@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <thread>
 
-#include "arg_parser.hh"
 #include "logger.hh"
 
 

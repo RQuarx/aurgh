@@ -5,7 +5,9 @@
 #include "utils.hh"
 
 using std::chrono::duration;
-using std::chrono::milliseconds;
+using ms = std::chrono::milliseconds;
+using m = std::chrono::minutes;
+using s = std::chrono::seconds;
 
 
 namespace Str {
@@ -34,11 +36,9 @@ namespace Utils {
     {
         duration now = std::chrono::system_clock::now().time_since_epoch();
 
-        auto milliseconds =
-            std::chrono::duration_cast<std::chrono::milliseconds>(now) % 1000;
-        auto minutes =
-            std::chrono::duration_cast<std::chrono::minutes>(now) % 60;
-        auto seconds = now % 60;
+        ms milliseconds = std::chrono::duration_cast<ms>(now) % 1000;
+        m minutes = std::chrono::duration_cast<m>(now) % 60;
+        duration seconds = now % 60;
 
         return std::format(
             "{:02}:{:02}.{:03}",
@@ -71,6 +71,10 @@ namespace Utils {
     auto
     term_has_colors(size_t threshold_color_amount) -> bool
     {
+        if (std::string(std::getenv("COLORTERM")) == "truecolor") {
+            return true;
+        }
+
         auto result = run_command("tput colors 2> /dev/null");
         if (result != std::nullopt && result->second == EXIT_SUCCESS) {
             return (std::stoi(result->first) >= threshold_color_amount);

@@ -1,3 +1,7 @@
+#include <gtkmm-3.0/gtkmm/scrolledwindow.h>
+#include <gtkmm-3.0/gtkmm/comboboxtext.h>
+#include <gtkmm-3.0/gtkmm/searchentry.h>
+#include <gtkmm-3.0/gtkmm/spinner.h>
 #include <gtkmm-3.0/gtkmm/frame.h>
 #include "tabs/packages.hh"
 #include "aur_client.hh"
@@ -31,6 +35,7 @@ PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
     m_search_results->add(*info_box);
 
     results_box->pack_start(*m_search_results, true, true);
+    results_box->set_margin_top(5);
     pack_start(*results_box, true, true);
 
     show_all_children();
@@ -65,11 +70,67 @@ PackageTab::create_search_box() -> Gtk::Box*
 }
 
 
+auto
+PackageTab::create_package_card(const Json::Value &package) -> Gtk::Frame*
+{
+    auto *frame = Gtk::make_managed<Gtk::Frame>();
+    auto *card    = Gtk::make_managed<Gtk::Box>();
+    auto *info    = Gtk::make_managed<Gtk::Box>();
+    auto *desc  = Gtk::make_managed<Gtk::Label>();
+
+    auto *name       = Gtk::make_managed<Gtk::Label>();
+    auto *version    = Gtk::make_managed<Gtk::Label>();
+    auto *popularity = Gtk::make_managed<Gtk::Label>();
+
+    std::string markup = "<b>{}</b>";
+    if (package["OutOfDate"] != Json::Value::null) {
+        markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
+    }
+
+    name->set_markup(Utils::format(markup, package["Name"].asString()));
+
+    markup = "<sub>{}</sub>";
+    version->set_markup(Utils::format(markup, package["Version"].asString()));
+    popularity->set_markup(
+        Utils::format(markup,
+            std::format("[+{} ~{}]",
+                package["NumVotes"].asInt(),
+                std::roundf(package["Popularity"].asFloat() * 100) / 100
+            )
+        )
+    );
+
+    name->set_margin_right(5);
+    name->set_line_wrap();
+
+    version->set_margin_right(5);
+
+    info->set_halign(Gtk::ALIGN_START);
+    info->pack_start(*name);
+    info->pack_start(*version);
+    info->pack_start(*popularity);
+
+    desc->set_label(package["Description"].asString());
+    desc->set_halign(Gtk::ALIGN_START);
+    desc->set_line_wrap(true);
+
+    card->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    card->set_halign(Gtk::ALIGN_START);
+    card->pack_start(*info);
+    card->pack_start(*desc);
+    card->set_margin_left(5);
+
+    frame->add(*card);
+    GtkUtils::set_margin(*frame, 5);
+
+    return frame;
+}
+
+
 void
 PackageTab::on_search()
 {
     if (m_entry->get_text_length() < 3) return;
-    m_search_results->remove();
 
     std::string package_name = m_entry->get_text();
     std::string search_by = m_search_by_combo->get_active_text();
@@ -79,20 +140,29 @@ PackageTab::on_search()
         package_name, search_by
     );
 
-    auto aur_packages     = m_aur_client->search(package_name, search_by);
-    auto *frame  = Gtk::make_managed<Gtk::Frame>();
-    auto *packages = Gtk::make_managed<Gtk::Box>();
-    packages->set_spacing(10);
+    auto aur_packages = m_aur_client->search(package_name, search_by);
 
     if (aur_packages.empty()) return;
     if (aur_packages["type"].asString() == "error") return;
-    for (auto package : aur_packages["results"]) {
-        auto *name = Gtk::make_managed<Gtk::Button>(package["Name"].asString());
 
-        packages->pack_start(*name);
+    auto *frame  = Gtk::make_managed<Gtk::Frame>();
+    auto *packages = Gtk::make_managed<Gtk::Box>();
+
+    for (const auto& package : aur_packages["results"]) {
+        /* The cards will look something like
+            ┌──────────────────────────────────────┐
+            │ Name  Version [Votes Popularity]     │
+            │ Description                          │
+            └──────────────────────────────────────┘
+        */
+
+        packages->pack_start(*create_package_card(package));
     }
 
+    packages->set_orientation(Gtk::ORIENTATION_VERTICAL);
+
     frame->add(*packages);
+    m_search_results->remove();
     m_search_results->add(*frame);
     m_search_results->show_all_children();
 }

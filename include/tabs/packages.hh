@@ -2,12 +2,15 @@
 #ifndef TABS_PACKAGES_HH__
 #define TABS_PACKAGES_HH__
 
-#include <gtkmm-3.0/gtkmm/scrolledwindow.h>
-#include <gtkmm-3.0/gtkmm/comboboxtext.h>
-#include <gtkmm-3.0/gtkmm/searchentry.h>
 #include <gtkmm-3.0/gtkmm/box.h>
 #include <json/value.h>
 
+namespace Gtk {
+    class ScrolledWindow;
+    class ComboBoxText;
+    class SearchEntry;
+    class Frame;
+}
 class AUR_Client;
 class Logger;
 
@@ -27,6 +30,7 @@ private:
 
 protected:
     auto create_search_box() -> Gtk::Box*;
+    auto create_package_card(const Json::Value &package) -> Gtk::Frame*;
 
     void on_search();
 };

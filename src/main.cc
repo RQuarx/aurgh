@@ -1,6 +1,3 @@
-#include <cstdint>
-#include <gtkmm-3.0/gtkmm.h>
-#include <json/value.h>
 #include <curl/curl.h>
 
 #include "tabs/packages.hh"

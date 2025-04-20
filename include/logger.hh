@@ -6,11 +6,10 @@
 
 #include <unordered_map>
 #include <fstream>
+#include <mutex>
 #include <print>
+#include "arg_parser.hh"
 #include "utils.hh"
-
-
-class ArgParser;
 
 
 /**
@@ -63,6 +62,7 @@ public:
     */
     void log(Level log_level, std::string_view fmt, auto... args)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         std::string message = std::vformat(fmt, std::make_format_args(args...));
 
         m_previous_log_level = log_level;
@@ -86,18 +86,19 @@ public:
     auto get_previous_log_level() -> Level;
 
 private:
-    Level m_previous_log_level = None;
-    Level m_log_treshold = None;
-    std::ofstream m_log_file;
-    bool m_use_color;
-
-    const std::string m_log_arg = "{-l --log}";
-    static const inline std::unordered_map<Level, std::pair<std::string_view, std::string_view>> m_labels = {
+    static const inline std::unordered_map<Level, arg_pair> m_labels = {
         { Debug, { "\e[1;37m[\e[1;36mDEBUG\e[1;37m]:\e[0;0;0m", "[DEBUG]:" } },
         { Error, { "\e[1;37m[\e[1;31mERROR\e[1;37m]:\e[0;0;0m", "[ERROR]:" } },
         { Info,  { "\e[1;37m[\e[1;32mINFO\e[1;37m]:\e[0;0;0m ", "[INFO]: " } },
         { Warn,  { "\e[1;37m[\e[1;33mWARN\e[1;37m]:\e[0;0;0m ", "[WARN]: " } },
     };
+    const std::string m_log_arg = "{-l --log}";
+    Level m_previous_log_level  = None;
+    Level m_log_treshold        = None;
+
+    std::ofstream m_log_file;
+    std::mutex    m_mutex;
+    bool          m_use_color;
 
     /**
      * @brief Logs a message to a file.
