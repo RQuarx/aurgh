@@ -20,6 +20,16 @@ Made with [GTK3](https://www.gtk.org/) and C++23 to deal with daily AUR shenanig
 - [ ] Downloading and installing AUR packages.
 - [ ] Basic AUR package management
 
+## Dependencies
+
+| Package Name | Uses |
+|-|-|
+| **[meson](https://mesonbuild.com/)** | Build system |
+| **[clang](https://clang.llvm.org/)** | Compiler and Linker |
+| **[curl](https://curl.se/)** | Fetching data from the AUR |
+| **[JsonCpp](https://github.com/open-source-parsers/jsoncpp)** | Management of JSON data |
+| **[gtkmm-3.0](https://gtkmm.gnome.org/en/)** | C++ interface for GTK |
+
 [License]: LICENSE
 
 [Badge Workflow]: https://github.com/RQuarx/aurgh/actions/workflows/check_build.yml/badge.svg
