@@ -4,7 +4,7 @@
 
 AURGH is an **[Arch User Repository](https://aur.archlinux.org/) Graphical Helper**.
 <br>
-Made with [GTK3](https://www.gtk.org/) and C++23 to deal with daily AUR shenanigans.
+Built with [GTK3](https://www.gtk.org/) and modern C++23 to deal with daily AUR shenanigans.
 <br>
 
 ![Badge Workflow]
@@ -27,8 +27,14 @@ Made with [GTK3](https://www.gtk.org/) and C++23 to deal with daily AUR shenanig
 | **[meson](https://mesonbuild.com/)** | Build system |
 | **[clang](https://clang.llvm.org/)** | Compiler and Linker |
 | **[curl](https://curl.se/)** | Fetching data from the AUR |
-| **[JsonCpp](https://github.com/open-source-parsers/jsoncpp)** | Management of JSON data |
+| **[JsonCpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling |
 | **[gtkmm-3.0](https://gtkmm.gnome.org/en/)** | C++ interface for GTK |
+
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## License
+This project is licensed under the [GNU GPL v3 License](LICENSE).
 
 [License]: LICENSE
 
