@@ -19,7 +19,7 @@ static const std::string_view HELP_MSG =
 "\t-v, --version              Show application version\n";
 
 /* ! IMPORTANT APPLICATION DATA ! */
-static const std::string_view APP_VERSION = "0.0.1";
+static const std::string_view APP_VERSION = "0.0.2";
 
 
 auto
