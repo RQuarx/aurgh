@@ -48,6 +48,19 @@ namespace Str {
             return std::isdigit(c);
         });
     }
+
+
+    auto
+    trim(std::string_view str) -> std::string
+    {
+        size_t begin = str.find_first_not_of(" \t\n\r\f\v");
+        if (begin == std::string_view::npos) {
+            return "";
+        }
+
+        size_t end = str.find_last_not_of(" \t\n\r\f\v");
+        return std::string{str.substr(begin, end - begin + 1)};
+    }
 } /* namespace Str */
 
 

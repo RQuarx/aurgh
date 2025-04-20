@@ -21,6 +21,7 @@
 #ifndef UTILS_HH__
 #define UTILS_HH__
 
+#include <algorithm>
 #include <optional>
 #include <format>
 #include <string>
@@ -50,6 +51,8 @@ namespace Str {
      * @brief Checks if a string only consists of digits
      */
     auto is_digit(std::string_view str) -> bool;
+
+    auto trim(std::string_view str) -> std::string;
 } /* namespace Str */
 
 /**
@@ -57,6 +60,8 @@ namespace Str {
  * @brief A namespace containing usefull utilities
  */
 namespace Utils {
+    using str_pair = std::pair<std::string, std::string>;
+
     static const size_t DEFAULT_COLOR_THRESHOLD = 16;
     static const size_t DEFAULT_BUFFER_SIZE     = 256;
 
@@ -103,6 +108,15 @@ namespace Utils {
     format(std::string_view fmt, T_Args&&... args) -> std::string
     {
         return std::vformat(fmt, std::make_format_args(args...));
+    }
+
+    template<typename T>
+    auto
+    find(const std::vector<T> &vec, T obj) -> bool
+    {
+        return std::ranges::any_of(vec, [&obj](const T &o){
+            return o == obj;
+        });
     }
 } /* namespace Utils */
 

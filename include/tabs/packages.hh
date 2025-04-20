@@ -23,6 +23,7 @@
 
 #include <gtkmm-3.0/gtkmm/box.h>
 #include <json/value.h>
+#include "utils.hh"
 
 namespace Gtk {
     class ScrolledWindow;
@@ -48,12 +49,17 @@ private:
     Logger     *m_logger;
 
 protected:
-    auto create_search_box()                             -> Gtk::Box*;
-    static
-    auto create_package_card(const Json::Value &package) -> Gtk::Frame*;
+    auto create_search_box() -> Gtk::Box*;
+    auto create_package_card(
+        const Json::Value &package,
+        const std::vector<Utils::str_pair> &installed_packages
+    ) -> Gtk::Frame*;
 
     void on_search();
     void on_download_clicked();
+
+
+    static auto get_installed_aur_packages() -> std::vector<Utils::str_pair>;
 };
 
 #endif /* tabs/packages.hh */

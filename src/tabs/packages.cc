@@ -20,7 +20,6 @@
 #include <gtkmm-3.0/gtkmm/scrolledwindow.h>
 #include <gtkmm-3.0/gtkmm/comboboxtext.h>
 #include <gtkmm-3.0/gtkmm/searchentry.h>
-#include <gtkmm-3.0/gtkmm/spinner.h>
 #include <gtkmm-3.0/gtkmm/frame.h>
 #include "tabs/packages.hh"
 #include "aur_client.hh"
@@ -90,33 +89,38 @@ PackageTab::create_search_box() -> Gtk::Box*
 
 
 auto
-PackageTab::create_package_card(const Json::Value &package) -> Gtk::Frame*
+PackageTab::create_package_card(
+    const Json::Value &package,
+    const std::vector<Utils::str_pair> &installed_packages
+) -> Gtk::Frame*
 {
-    auto *frame      = Gtk::make_managed<Gtk::Frame>();
-    auto *card         = Gtk::make_managed<Gtk::Box>();
-    auto *basic_info   = Gtk::make_managed<Gtk::Box>();
-    auto *spacer       = Gtk::make_managed<Gtk::Box>();
-    auto *full_info    = Gtk::make_managed<Gtk::Box>();
+    auto *frame          = Gtk::make_managed<Gtk::Frame>();
+    auto *card             = Gtk::make_managed<Gtk::Box>();
 
-    auto *version    = Gtk::make_managed<Gtk::Label>();
-    auto *popularity = Gtk::make_managed<Gtk::Label>();
-    auto *desc       = Gtk::make_managed<Gtk::Label>();
+    auto *basic_info       = Gtk::make_managed<Gtk::Box>();
+    auto *full_info        = Gtk::make_managed<Gtk::Box>();
+    auto *version        = Gtk::make_managed<Gtk::Label>();
+    auto *popularity     = Gtk::make_managed<Gtk::Label>();
+    auto *desc           = Gtk::make_managed<Gtk::Label>();
 
-    auto *download  = Gtk::make_managed<Gtk::Button>();
+    auto *action_button = Gtk::make_managed<Gtk::Button>();
 
     std::string markup = "<b>{}</b>";
     if (package["OutOfDate"] != Json::Value::null) {
         markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
     }
 
+    std::string package_name = Str::trim(package["Name"].asString());
+    std::string package_ver  = Str::trim(package["Version"].asString());
+
     Gtk::Box *name = GtkUtils::create_label_icon(
         "package-x-generic-symbolic",
-        Utils::format(markup, package["Name"].asString()),
+        Utils::format(markup, package_name),
         Gtk::ICON_SIZE_MENU
     );
 
     markup = "<sub>{}</sub>";
-    version->set_markup(Utils::format(markup, package["Version"].asString()));
+    version->set_markup(Utils::format(markup, package_ver));
     popularity->set_markup(
         Utils::format(markup,
             std::format("[+{} ~{}]",
@@ -126,38 +130,33 @@ PackageTab::create_package_card(const Json::Value &package) -> Gtk::Frame*
         )
     );
 
-    name->set_margin_right(5);
-
-    version->set_margin_right(5);
-
+    basic_info->set_spacing(5);
     basic_info->set_halign(Gtk::ALIGN_START);
-    basic_info->pack_start(*name);
-    basic_info->pack_start(*version);
-    basic_info->pack_start(*popularity);
+    basic_info->pack_start(*name, false, false);
+    basic_info->pack_start(*version, false, false);
+    basic_info->pack_start(*popularity, false, false);
 
     desc->set_label(package["Description"].asString());
     desc->set_halign(Gtk::ALIGN_START);
     desc->set_line_wrap(true);
 
-    download->set_image_from_icon_name("document-download");
-    download->set_hexpand(true);
-    download->set_valign(Gtk::ALIGN_CENTER);
-    download->set_halign(Gtk::ALIGN_END);
+    action_button->set_image_from_icon_name(
+        Utils::find(installed_packages, { package_name, package_ver })
+        ? "edit-delete"
+        : "document-download"
+    );
+    action_button->set_valign(Gtk::ALIGN_CENTER);
+    action_button->set_halign(Gtk::ALIGN_END);
 
     full_info->set_orientation(Gtk::ORIENTATION_VERTICAL);
-    full_info->set_halign(Gtk::ALIGN_START);
-    full_info->pack_start(*basic_info);
-    full_info->pack_start(*desc);
+    full_info->pack_start(*basic_info, true, true);
+    full_info->pack_start(*desc, true, true);
     full_info->set_margin_left(5);
-    full_info->set_hexpand(true);
 
-    spacer->set_hexpand(true);
-
-    card->set_halign(Gtk::ALIGN_START);
-    card->set_hexpand(true);
-    card->pack_start(*full_info, Gtk::PACK_SHRINK);
-    card->pack_start(*spacer, true, true);
-    card->pack_start(*download, Gtk::PACK_SHRINK);
+    card->set_spacing(5);
+    card->pack_start(*full_info, true, true);
+    card->pack_end(*action_button, true, true);
+    GtkUtils::set_margin(*card, 5);
 
     frame->add(*card);
     GtkUtils::set_margin(*frame, 5);
@@ -195,7 +194,7 @@ PackageTab::on_search()
             └──────────────────────────────────────┘
         */
 
-        packages->pack_start(*create_package_card(package));
+        packages->pack_start(*create_package_card(package, get_installed_aur_packages()), false, false);
     }
 
     packages->set_orientation(Gtk::ORIENTATION_VERTICAL);
@@ -205,4 +204,21 @@ PackageTab::on_search()
     m_search_results->remove();
     m_search_results->add(*frame);
     m_search_results->show_all_children();
+}
+
+
+auto
+PackageTab::get_installed_aur_packages(
+    ) -> std::vector<Utils::str_pair>
+{
+    std::vector<Utils::str_pair> installed_packages(10);
+    std::istringstream iss(Utils::run_command("pacman -Qm", 512)->first);
+    std::string line;
+
+    while (std::getline(iss, line)) {
+        auto package = Str::split(line, line.find(' '));
+        installed_packages.emplace_back(Str::trim(package.at(0)), Str::trim(package.at(1)));
+    }
+
+    return installed_packages;
 }
