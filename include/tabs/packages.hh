@@ -29,10 +29,12 @@ private:
     Logger     *m_logger;
 
 protected:
-    auto create_search_box() -> Gtk::Box*;
+    auto create_search_box()                             -> Gtk::Box*;
+    static
     auto create_package_card(const Json::Value &package) -> Gtk::Frame*;
 
     void on_search();
+    void on_download_clicked();
 };
 
 #endif /* tabs/packages.hh */

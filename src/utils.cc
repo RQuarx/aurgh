@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <chrono>
 #include <format>
+#include <gtkmm-3.0/gtkmm/image.h>
 #include <gtkmm-3.0/gtkmm/label.h>
+#include <gtkmm-3.0/gtkmm/box.h>
 #include "utils.hh"
 
 using std::chrono::duration;
@@ -129,5 +131,24 @@ namespace GtkUtils {
         auto *label = Gtk::make_managed<Gtk::Label>();
         label->set_markup(markup);
         return label;
+    }
+
+    auto
+    create_label_icon(
+        const std::string &icon,
+        const std::string &markup,
+        Gtk::IconSize icon_size
+    ) -> Gtk::Box*
+    {
+        Gtk::Label *label = create_label_markup(markup);
+        label->set_margin_left(5);
+
+        auto *image = Gtk::make_managed<Gtk::Image>();
+        image->set_from_icon_name(icon, icon_size);
+
+        auto *box = Gtk::make_managed<Gtk::Box>();
+        box->pack_start(*image);
+        box->pack_start(*label);
+        return box;
     }
 } /* namespace GtkUtils */

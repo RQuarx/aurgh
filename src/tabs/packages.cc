@@ -73,21 +73,28 @@ PackageTab::create_search_box() -> Gtk::Box*
 auto
 PackageTab::create_package_card(const Json::Value &package) -> Gtk::Frame*
 {
-    auto *frame = Gtk::make_managed<Gtk::Frame>();
-    auto *card    = Gtk::make_managed<Gtk::Box>();
-    auto *info    = Gtk::make_managed<Gtk::Box>();
-    auto *desc  = Gtk::make_managed<Gtk::Label>();
+    auto *frame      = Gtk::make_managed<Gtk::Frame>();
+    auto *card         = Gtk::make_managed<Gtk::Box>();
+    auto *basic_info   = Gtk::make_managed<Gtk::Box>();
+    auto *spacer       = Gtk::make_managed<Gtk::Box>();
+    auto *full_info    = Gtk::make_managed<Gtk::Box>();
 
-    auto *name       = Gtk::make_managed<Gtk::Label>();
     auto *version    = Gtk::make_managed<Gtk::Label>();
     auto *popularity = Gtk::make_managed<Gtk::Label>();
+    auto *desc       = Gtk::make_managed<Gtk::Label>();
+
+    auto *download  = Gtk::make_managed<Gtk::Button>();
 
     std::string markup = "<b>{}</b>";
     if (package["OutOfDate"] != Json::Value::null) {
         markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
     }
 
-    name->set_markup(Utils::format(markup, package["Name"].asString()));
+    Gtk::Box *name = GtkUtils::create_label_icon(
+        "package-x-generic-symbolic",
+        Utils::format(markup, package["Name"].asString()),
+        Gtk::ICON_SIZE_MENU
+    );
 
     markup = "<sub>{}</sub>";
     version->set_markup(Utils::format(markup, package["Version"].asString()));
@@ -101,24 +108,37 @@ PackageTab::create_package_card(const Json::Value &package) -> Gtk::Frame*
     );
 
     name->set_margin_right(5);
-    name->set_line_wrap();
 
     version->set_margin_right(5);
 
-    info->set_halign(Gtk::ALIGN_START);
-    info->pack_start(*name);
-    info->pack_start(*version);
-    info->pack_start(*popularity);
+    basic_info->set_halign(Gtk::ALIGN_START);
+    basic_info->pack_start(*name);
+    basic_info->pack_start(*version);
+    basic_info->pack_start(*popularity);
 
     desc->set_label(package["Description"].asString());
     desc->set_halign(Gtk::ALIGN_START);
     desc->set_line_wrap(true);
 
-    card->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    download->set_image_from_icon_name("document-download");
+    download->set_hexpand(true);
+    download->set_valign(Gtk::ALIGN_CENTER);
+    download->set_halign(Gtk::ALIGN_END);
+
+    full_info->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    full_info->set_halign(Gtk::ALIGN_START);
+    full_info->pack_start(*basic_info);
+    full_info->pack_start(*desc);
+    full_info->set_margin_left(5);
+    full_info->set_hexpand(true);
+
+    spacer->set_hexpand(true);
+
     card->set_halign(Gtk::ALIGN_START);
-    card->pack_start(*info);
-    card->pack_start(*desc);
-    card->set_margin_left(5);
+    card->set_hexpand(true);
+    card->pack_start(*full_info, Gtk::PACK_SHRINK);
+    card->pack_start(*spacer, true, true);
+    card->pack_start(*download, Gtk::PACK_SHRINK);
 
     frame->add(*card);
     GtkUtils::set_margin(*frame, 5);
@@ -152,7 +172,7 @@ PackageTab::on_search()
         /* The cards will look something like
             ┌──────────────────────────────────────┐
             │ Name  Version [Votes Popularity]     │
-            │ Description                          │
+            │ Description                        + │
             └──────────────────────────────────────┘
         */
 
@@ -161,6 +181,7 @@ PackageTab::on_search()
 
     packages->set_orientation(Gtk::ORIENTATION_VERTICAL);
 
+    frame->set_label("Packages");
     frame->add(*packages);
     m_search_results->remove();
     m_search_results->add(*frame);

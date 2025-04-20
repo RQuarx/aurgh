@@ -32,7 +32,8 @@ public:
      * @param by What to search by.
      * @returns A Json::Value object.
      */
-    auto search(const std::string &args, const std::string &by = "") -> Json::Value;
+    auto search(
+        const std::string &args, const std::string &by = "") -> Json::Value;
 
     /**
      * @brief Gets an information about a package.
@@ -45,7 +46,8 @@ public:
      * @brief Get the available "search by" keywords used for the search function.
      * @returns an array of const std::string with the size of 14.
      */
-    static auto get_search_by_keywords() -> std::array<const std::string, SEARCH_BY_KEYWORDS>;
+    static auto get_search_by_keywords(
+        ) -> std::array<const std::string, SEARCH_BY_KEYWORDS>;
 
 private:
     std::string_view m_url = "https://aur.archlinux.org/rpc/v5";

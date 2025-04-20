@@ -6,8 +6,13 @@
 #include <format>
 #include <string>
 #include <array>
+#include <gtkmm-3.0/gtkmm/enums.h>
 
-namespace Gtk { class Label; class Widget; }
+namespace Gtk {
+    class Widget;
+    class Label;
+    class Box;
+}
 
 /**
  * @namespace Str
@@ -35,6 +40,13 @@ namespace Str {
 namespace Utils {
     static const size_t DEFAULT_COLOR_THRESHOLD = 16;
     static const size_t DEFAULT_BUFFER_SIZE     = 256;
+
+    struct command_out {
+        std::string stdout;
+        std::string stderr;
+        int32_t     return_code;
+        pid_t       pid;
+    };
 
     /**
      * @brief Returns the current time as "minutes:seconds:miliseconds".
@@ -85,6 +97,11 @@ namespace GtkUtils {
     void set_margin(Gtk::Widget &widget, int32_t margin);
 
     auto create_label_markup(const std::string &markup) -> Gtk::Label*;
-}
+    auto create_label_icon(
+        const std::string &icons,
+        const std::string &markup,
+        Gtk::IconSize icon_size
+    ) -> Gtk::Box*;
+} /* namespace GtkUtils */
 
 #endif /* utils.hh */
