@@ -2,7 +2,7 @@
 
 # AURGH
 
-AURGH is an **![AUR] Graphical Helper**.
+AURGH is an **[Arch User Repository](https://aur.archlinux.org/) Graphical Helper**.
 <br>
 Made with [GTK3](https://www.gtk.org/) and C++23 to deal with daily AUR shenanigans.
 <br>
@@ -20,7 +20,6 @@ Made with [GTK3](https://www.gtk.org/) and C++23 to deal with daily AUR shenanig
 - [ ] Downloading and installing AUR packages.
 - [ ] Basic AUR package management
 
-[AUR]: https://aur.archlinux.org/
 [License]: LICENSE
 
 [Badge Workflow]: https://github.com/RQuarx/aurgh/actions/workflows/check_build.yml/badge.svg
