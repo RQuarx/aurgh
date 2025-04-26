@@ -30,9 +30,6 @@ Built with [GTK3](https://www.gtk.org/) and modern C++23 to deal with daily AUR 
 | **[JsonCpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling |
 | **[gtkmm-3.0](https://gtkmm.gnome.org/en/)** | C++ interface for GTK |
 
-## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md)
-
 ## License
 This project is licensed under the [GNU GPL v3 License](LICENSE).
 

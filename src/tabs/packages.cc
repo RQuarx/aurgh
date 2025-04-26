@@ -17,9 +17,11 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <thread>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/searchentry.h>
+#include <gtkmm/spinner.h>
 #include <gtkmm/frame.h>
 #include <glibmm/main.h>
 #include "tabs/packages.hh"
@@ -32,6 +34,7 @@ PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
     m_search_results(Gtk::make_managed<Gtk::ScrolledWindow>()),
     m_search_by_combo(Gtk::make_managed<Gtk::ComboBoxText>()),
     m_entry(Gtk::make_managed<Gtk::SearchEntry>()),
+    m_spinner(Gtk::make_managed<Gtk::Spinner>()),
     m_search_box(Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_VERTICAL, 5)),
     m_aur_client(aur_client),
     m_logger(logger)
@@ -52,6 +55,8 @@ PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
     m_search_box->pack_start(*label);
     m_search_box->set_halign(Gtk::ALIGN_CENTER);
     m_search_results->add(*m_search_box);
+    m_search_results->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
+    m_search_results->set_placement(Gtk::CORNER_TOP_LEFT);
 
     results_box->pack_start(*m_search_results, true, true);
     results_box->set_margin_top(5);
@@ -186,23 +191,34 @@ PackageTab::on_search()
         package_name, search_by
     );
 
-    auto aur_packages = m_aur_client->search(package_name, search_by);
-
-    if (aur_packages.empty()) return;
-    if (aur_packages["type"].asString() == "error") return;
-    if (m_search_box->get_halign() == Gtk::ALIGN_CENTER) {
-        m_search_box->set_halign(Gtk::ALIGN_START);
-    }
-
     for (auto *child : m_search_box->get_children()) {
         m_search_box->remove(*child);
     }
 
-    for (const auto &package : aur_packages["results"]) {
-        m_package_queue.push(package);
-    }
+    m_spinner->start();
+    m_search_box->pack_start(*m_spinner);
+    m_search_box->show_all_children();
 
-    process_next_package(get_installed_aur_packages());
+    std::thread([this, package_name, search_by](){
+        auto aur_packages = m_aur_client->search(package_name, search_by);
+
+        m_dispatcher.connect([this, aur_packages](){
+            m_spinner->stop();
+            m_search_box->remove(*m_spinner);
+
+            if (aur_packages.empty()) return;
+            if (aur_packages["type"].asString() == "error") return;
+
+            for (const auto &package : aur_packages["results"]) {
+                m_package_queue.push(package);
+            }
+
+            process_next_package(get_installed_aur_packages());
+        });
+
+        m_dispatcher.emit();
+    }).detach();
+
 }
 
 
@@ -210,7 +226,11 @@ void
 PackageTab::process_next_package(
     const std::vector<Utils::str_pair> &installed_packages)
 {
-    if (m_package_queue.empty()) return;
+    if (m_package_queue.empty()) {
+        m_spinner->stop();
+        m_search_box->remove(*m_spinner);
+        return;
+    }
 
     auto package = m_package_queue.front();
     m_package_queue.pop();

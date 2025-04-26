@@ -23,6 +23,7 @@
 
 #include <queue>
 #include <gtkmm-3.0/gtkmm/box.h>
+#include <glibmm/dispatcher.h>
 #include <json/value.h>
 #include "utils.hh"
 
@@ -30,12 +31,17 @@ namespace Gtk {
     class ScrolledWindow;
     class ComboBoxText;
     class SearchEntry;
+    class Spinner;
     class Frame;
 }
 class AUR_Client;
 class Logger;
 
 
+/**
+ @class PackageTab (Gtk::Box)
+ @brief A tab for AUR package management
+ */
 class PackageTab : public Gtk::Box
 {
 public:
@@ -45,7 +51,10 @@ private:
     Gtk::ScrolledWindow *m_search_results;
     Gtk::ComboBoxText   *m_search_by_combo;
     Gtk::SearchEntry    *m_entry;
+    Gtk::Spinner        *m_spinner;
     Gtk::Box            *m_search_box;
+
+    Glib::Dispatcher m_dispatcher;
 
     AUR_Client *m_aur_client;
     Logger     *m_logger;

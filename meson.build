@@ -22,7 +22,9 @@ gtkmm_dep = dependency('gtkmm-3.0')
 glibmm_dep = dependency('glibmm-2.4')
 curl_dep = dependency('libcurl')
 jsoncpp_dep = dependency('jsoncpp')
+# libuv_dep = dependency('libuv')
 
+# deps = [gtkmm_dep, glibmm_dep, curl_dep, jsoncpp_dep, libuv_dep]
 deps = [gtkmm_dep, glibmm_dep, curl_dep, jsoncpp_dep]
 
 cpp_args = [

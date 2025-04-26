@@ -53,6 +53,8 @@ namespace Str {
     auto is_digit(std::string_view str) -> bool;
 
     auto trim(std::string_view str) -> std::string;
+
+    auto make_argv(const std::string &cmd) -> std::vector<const char*>;
 } /* namespace Str */
 
 /**
@@ -64,13 +66,6 @@ namespace Utils {
 
     static const size_t DEFAULT_COLOR_THRESHOLD = 16Z;
     static const size_t DEFAULT_BUFFER_SIZE     = 256Z;
-
-    struct command_out {
-        std::string stdout;
-        std::string stderr;
-        int32_t     return_code;
-        pid_t       pid;
-    };
 
     /**
      * @brief Returns the current time as "minutes:seconds:miliseconds".

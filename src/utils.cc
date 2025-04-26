@@ -61,6 +61,22 @@ namespace Str {
         size_t end = str.find_last_not_of(" \t\n\r\f\v");
         return std::string{str.substr(begin, end - begin + 1)};
     }
+
+
+    auto
+    make_argv(const std::string &cmd) -> std::vector<const char*>
+    {
+        std::vector<const char*> argv(cmd.length() / 2);
+        std::istringstream       iss(cmd);
+        std::string              token;
+
+        while (iss >> token) {
+            argv.push_back(token.c_str());
+        }
+        argv.push_back(nullptr);
+
+        return argv;
+    }
 } /* namespace Str */
 
 
@@ -70,8 +86,8 @@ namespace Utils {
     {
         duration now = std::chrono::system_clock::now().time_since_epoch();
 
-        ms milliseconds = std::chrono::duration_cast<ms>(now) % 1000;
-        m minutes = std::chrono::duration_cast<m>(now) % 60;
+        ms milliseconds  = std::chrono::duration_cast<ms>(now) % 1000;
+        m minutes        = std::chrono::duration_cast<m>(now) % 60;
         duration seconds = now % 60;
 
         return std::format(
@@ -87,7 +103,7 @@ namespace Utils {
     ) -> std::optional<std::pair<std::string, int32_t>>
     {
         std::vector<char> buffer(buffer_size);
-        std::string result;
+        std::string       result;
 
         std::unique_ptr<FILE, decltype(&pclose)> pipe(
             popen((cmd + " 2>&1").c_str(), "r"), pclose
@@ -172,13 +188,14 @@ namespace GtkUtils {
         Gtk::IconSize icon_size
     ) -> Gtk::Box*
     {
-        Gtk::Label *label = create_label_markup(markup);
+        Gtk::Label *label    = create_label_markup(markup);
+        auto *image = Gtk::make_managed<Gtk::Image>();
+        auto *box     = Gtk::make_managed<Gtk::Box>();
+
         label->set_margin_left(5);
 
-        auto *image = Gtk::make_managed<Gtk::Image>();
         image->set_from_icon_name(icon, icon_size);
 
-        auto *box = Gtk::make_managed<Gtk::Box>();
         box->pack_start(*image);
         box->pack_start(*label);
         return box;
