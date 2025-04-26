@@ -1,26 +1,27 @@
 /**
  * @file tabs/packages.cc
  *
- * This file is part of AURGH
+ * This file is part of aurgh
  *
- * AURGH is free software: you can redistribute it and/or modify it
+ * aurgh is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
  *
- * AURGH is distributed in the hope that it will be useful, but WITHOUT
+ * aurgh is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar. If not, see <https://www.gnu.org/licenses/>.
+ * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <gtkmm-3.0/gtkmm/scrolledwindow.h>
-#include <gtkmm-3.0/gtkmm/comboboxtext.h>
-#include <gtkmm-3.0/gtkmm/searchentry.h>
-#include <gtkmm-3.0/gtkmm/frame.h>
+#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/searchentry.h>
+#include <gtkmm/frame.h>
+#include <glibmm/main.h>
 #include "tabs/packages.hh"
 #include "aur_client.hh"
 #include "logger.hh"
@@ -31,6 +32,7 @@ PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
     m_search_results(Gtk::make_managed<Gtk::ScrolledWindow>()),
     m_search_by_combo(Gtk::make_managed<Gtk::ComboBoxText>()),
     m_entry(Gtk::make_managed<Gtk::SearchEntry>()),
+    m_search_box(Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_VERTICAL, 5)),
     m_aur_client(aur_client),
     m_logger(logger)
 {
@@ -47,10 +49,9 @@ PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
 
     Gtk::Label *label = GtkUtils::create_label_markup("<b>Search to view AUR packages</b>");
     label->set_opacity(0.5);
-    auto *info_box = Gtk::make_managed<Gtk::Box>(Gtk::ORIENTATION_HORIZONTAL, 5);
-    info_box->pack_start(*label);
-    info_box->set_halign(Gtk::ALIGN_CENTER);
-    m_search_results->add(*info_box);
+    m_search_box->pack_start(*label);
+    m_search_box->set_halign(Gtk::ALIGN_CENTER);
+    m_search_results->add(*m_search_box);
 
     results_box->pack_start(*m_search_results, true, true);
     results_box->set_margin_top(5);
@@ -94,6 +95,13 @@ PackageTab::create_package_card(
     const std::vector<Utils::str_pair> &installed_packages
 ) -> Gtk::Frame*
 {
+    /* The cards will look something like
+        ┌──────────────────────────────────────┐
+        │ Name  Version [Votes Popularity]     │
+        │ Description                        + │
+        └──────────────────────────────────────┘
+    */
+
     auto *frame          = Gtk::make_managed<Gtk::Frame>();
     auto *card             = Gtk::make_managed<Gtk::Box>();
 
@@ -182,28 +190,40 @@ PackageTab::on_search()
 
     if (aur_packages.empty()) return;
     if (aur_packages["type"].asString() == "error") return;
-
-    auto *frame  = Gtk::make_managed<Gtk::Frame>();
-    auto *packages = Gtk::make_managed<Gtk::Box>();
-
-    for (const auto& package : aur_packages["results"]) {
-        /* The cards will look something like
-            ┌──────────────────────────────────────┐
-            │ Name  Version [Votes Popularity]     │
-            │ Description                        + │
-            └──────────────────────────────────────┘
-        */
-
-        packages->pack_start(*create_package_card(package, get_installed_aur_packages()), false, false);
+    if (m_search_box->get_halign() == Gtk::ALIGN_CENTER) {
+        m_search_box->set_halign(Gtk::ALIGN_START);
     }
 
-    packages->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    for (auto *child : m_search_box->get_children()) {
+        m_search_box->remove(*child);
+    }
 
-    frame->set_label("Packages");
-    frame->add(*packages);
-    m_search_results->remove();
-    m_search_results->add(*frame);
-    m_search_results->show_all_children();
+    for (const auto &package : aur_packages["results"]) {
+        m_package_queue.push(package);
+    }
+
+    process_next_package(get_installed_aur_packages());
+}
+
+
+void
+PackageTab::process_next_package(
+    const std::vector<Utils::str_pair> &installed_packages)
+{
+    if (m_package_queue.empty()) return;
+
+    auto package = m_package_queue.front();
+    m_package_queue.pop();
+
+    Gtk::Frame *card = create_package_card(package, installed_packages);
+
+    m_search_box->pack_start(*card, true, true);
+    m_search_box->show_all_children();
+
+    Glib::signal_idle().connect_once(sigc::bind(
+        sigc::mem_fun(*this, &PackageTab::process_next_package),
+        installed_packages
+    ));
 }
 
 
@@ -217,7 +237,10 @@ PackageTab::get_installed_aur_packages(
 
     while (std::getline(iss, line)) {
         auto package = Str::split(line, line.find(' '));
-        installed_packages.emplace_back(Str::trim(package.at(0)), Str::trim(package.at(1)));
+        installed_packages.emplace_back(
+            Str::trim(package.at(0)),
+            Str::trim(package.at(1))
+        );
     }
 
     return installed_packages;

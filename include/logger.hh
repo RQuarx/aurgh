@@ -1,20 +1,20 @@
 /**
  * @file logger.hh
  *
- * This file is part of AURGH
+ * This file is part of aurgh
  *
- * AURGH is free software: you can redistribute it and/or modify it
+ * aurgh is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
  *
- * AURGH is distributed in the hope that it will be useful, but WITHOUT
+ * aurgh is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar. If not, see <https://www.gnu.org/licenses/>.
+ * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #pragma once
@@ -23,7 +23,6 @@
 
 #include <unordered_map>
 #include <fstream>
-#include <mutex>
 #include <print>
 #include "arg_parser.hh"
 #include "utils.hh"
@@ -56,8 +55,9 @@ public:
 
     /**
      * @brief Construct the Logger class
-     * @param arg_parser A pointer to an Arg::Parser instance for command-line argument parsing.
-    */
+     * @param arg_parser A pointer to an Arg::Parser instance for command-line
+     * argument parsing.
+     */
     explicit Logger(ArgParser &arg_parser);
 
     /**
@@ -77,9 +77,9 @@ public:
      * then outputs the message to the appropriate stream (stdout or stderr) based on the log level.
      * If a log file is open, the message is also written to the log file.
     */
-    void log(Level log_level, std::string_view fmt, auto... args)
+    template<typename... T_Args>
+    void log(Level log_level, std::string_view fmt, T_Args&&... args)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
         std::string message = std::vformat(fmt, std::make_format_args(args...));
 
         m_previous_log_level = log_level;
@@ -114,7 +114,6 @@ private:
     Level m_log_treshold        = None;
 
     std::ofstream m_log_file;
-    std::mutex    m_mutex;
     bool          m_use_color;
 
     /**

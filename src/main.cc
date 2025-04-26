@@ -1,20 +1,20 @@
 /**
  * @file main.cc
  *
- * This file is part of AURGH
+ * This file is part of aurgh
  *
- * AURGH is free software: you can redistribute it and/or modify it
+ * aurgh is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
  *
- * AURGH is distributed in the hope that it will be useful, but WITHOUT
+ * aurgh is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Foobar. If not, see <https://www.gnu.org/licenses/>.
+ * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <curl/curl.h>
@@ -62,17 +62,14 @@ main(int32_t argc, char **argv) -> int32_t
     /* Removes -l, --log arg from argv so gtk doesnt complain */
     if (arg_parser.find_arg({ "-l", "--log" })) {
         for (int32_t i = 0; i < argc; i++) {
-            if (
-                (argv[i][0] == '-' && argv[i][1] == 'l') ||
-                (argv[i][2] == 'l' && argv[i][3] == 'o' && argv[i][4] == 'g')
-            ) {
-                argv[i] = nullptr;
+            std::string_view arg = argv[i];
 
+            if (arg.starts_with("--log")
+                || (arg.starts_with('-') && arg.contains('l'))
+            ) {
                 for (int32_t j = i; j < argc - 1; j++) {
                     argv[j] = argv[j + 1];
-                    argv[j + 1] = nullptr;
                 }
-
                 argc--;
                 break;
             }
