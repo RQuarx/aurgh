@@ -30,7 +30,9 @@ deps = [gtkmm_dep, glibmm_dep, curl_dep, jsoncpp_dep]
 cpp_args = [
     '-g',
     '-Wall',
-    '-Wextra'
+    '-Wextra',
+    '-DGDK_DISABLE_DEPRECATED',
+    '-DGTK_DISABLE_DEPRECATED'
 ]
 
 

@@ -27,6 +27,9 @@
 #include <string>
 #include <array>
 #include <gtkmm-3.0/gtkmm/enums.h>
+#include <curl/curl.h>
+#include <json/reader.h>
+#include <json/value.h>
 
 namespace Gtk {
     class Widget;
@@ -64,8 +67,8 @@ namespace Str {
 namespace Utils {
     using str_pair = std::pair<std::string, std::string>;
 
-    static const size_t DEFAULT_COLOR_THRESHOLD = 16Z;
-    static const size_t DEFAULT_BUFFER_SIZE     = 256Z;
+    static const size_t DEFAULT_COLOR_THRESHOLD = 16UZ;
+    static const size_t DEFAULT_BUFFER_SIZE     = 256UZ;
 
     /**
      * @brief Returns the current time as "minutes:seconds:miliseconds".
@@ -98,6 +101,12 @@ namespace Utils {
         void *contents, size_t size, size_t nmemb, std::string &userp
     ) -> size_t;
 
+    /**
+     * @brief Returns a quote from https://quotes-api-self.vercel.app/quote
+     */
+    auto get_quote(size_t max_len) -> std::string;
+
+
     template<typename... T_Args>
     auto format(std::string_view fmt, T_Args&&... args) -> std::string
     {
@@ -121,8 +130,15 @@ namespace Utils {
  * @brief A namespace containing utilities for the Gtkmm-3.0 library.
  */
 namespace GtkUtils {
+    enum Orientation : uint8_t {
+        V,
+        VERTICAL,
+        H,
+        HORIZONTAL
+    };
+
     void set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin);
-    void set_margin(Gtk::Widget &widget, std::array<int32_t, 2> margin);
+    void set_margin(Gtk::Widget &widget, int32_t margin_y, int32_t margin_x);
     void set_margin(Gtk::Widget &widget, int32_t margin);
 
     auto create_label_markup(const std::string &markup) -> Gtk::Label*;
@@ -131,6 +147,8 @@ namespace GtkUtils {
         const std::string &markup,
         Gtk::IconSize icon_size
     ) -> Gtk::Box*;
+
+    auto create_box(Orientation orientation, int32_t spacing) -> Gtk::Box*;
 } /* namespace GtkUtils */
 
 #endif /* utils.hh */

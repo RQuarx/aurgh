@@ -26,6 +26,7 @@
 #include <curl/curl.h>
 
 static const size_t SEARCH_BY_KEYWORDS = 14;
+static const size_t SORT_BY_KEYWORDS = 7;
 
 namespace Json { class Value; }
 class Logger;
@@ -68,11 +69,19 @@ public:
     static auto get_search_by_keywords(
         ) -> std::array<const std::string, SEARCH_BY_KEYWORDS>;
 
+    /**
+     * @brief Get the available "sort by" keywords used for the search function.
+     * @returns an array of const std::string with the size of 7.
+     */
+    static auto get_sort_by_keywords(
+        ) -> std::array<const std::string, SORT_BY_KEYWORDS>;
+
 private:
     std::string_view m_url = "https://aur.archlinux.org/rpc/v5";
     Logger          *m_logger;
 
-    auto perform_curl(const std::string &url, std::string &read_buffer) -> CURLcode;
+    auto perform_curl(
+        const std::string &url, std::string &read_buffer) -> CURLcode;
     auto get_json_from_stream(std::istringstream &iss) -> Json::Value;
 };
 

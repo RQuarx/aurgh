@@ -142,6 +142,46 @@ namespace Utils {
         userp.append(static_cast<char*>(contents), total_size);
         return total_size;
     }
+
+
+    auto
+    get_quote(size_t max_len) -> std::string
+    {
+        CURL *curl = curl_easy_init();
+        if (curl == nullptr) return R"({"quote":"Unable to fetch quotes"})";
+
+        std::string read_buffer;
+        Json::Reader reader;
+        Json::Value val;
+        std::string quote;
+
+        while (true) {
+            read_buffer.clear();
+
+            curl_easy_setopt(curl, CURLOPT_URL, "https://quotes-api-self.vercel.app/quote");
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Utils::write_callback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
+
+            CURLcode res = curl_easy_perform(curl);
+            if (res != CURLE_OK) {
+                curl_easy_cleanup(curl);
+                return R"({"quote":"Failed to fetch quote"})";
+            }
+
+            if (!reader.parse(read_buffer, val)) {
+                curl_easy_cleanup(curl);
+                return R"({"quote":"Failed to parse response"})";
+            }
+
+            quote = val["quote"].asString();
+            if (quote.length() <= max_len) {
+                break;
+            }
+        }
+
+        curl_easy_cleanup(curl);
+        return quote;
+    }
 } /* namespace Utils */
 
 
@@ -156,12 +196,12 @@ namespace GtkUtils {
     }
 
     void
-    set_margin(Gtk::Widget &widget, std::array<int32_t, 2> margin)
+    set_margin(Gtk::Widget &widget, int32_t margin_y, int32_t margin_x)
     {
-        widget.set_margin_top(margin.at(0));
-        widget.set_margin_right(margin.at(1));
-        widget.set_margin_bottom(margin.at(0));
-        widget.set_margin_left(margin.at(1));
+        widget.set_margin_top(margin_y);
+        widget.set_margin_right(margin_x);
+        widget.set_margin_bottom(margin_y);
+        widget.set_margin_left(margin_x);
     }
 
     void
@@ -199,5 +239,17 @@ namespace GtkUtils {
         box->pack_start(*image);
         box->pack_start(*label);
         return box;
+    }
+
+    auto
+    create_box(Orientation orientation, int32_t spacing) -> Gtk::Box*
+    {
+        Gtk::Orientation o = (
+            orientation == V || orientation == VERTICAL
+            ? Gtk::ORIENTATION_VERTICAL
+            : Gtk::ORIENTATION_HORIZONTAL
+        );
+
+        return Gtk::make_managed<Gtk::Box>(o, spacing);
     }
 } /* namespace GtkUtils */

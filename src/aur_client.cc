@@ -113,5 +113,19 @@ AUR_Client::get_search_by_keywords(
         "provides", "conflicts",
         "replaces", "keywords",
         "groups", "comaintainers"
-    }};;
+    }};
+}
+
+
+auto
+AUR_Client::get_sort_by_keywords(
+    ) -> std::array<const std::string, SORT_BY_KEYWORDS>
+{
+    return {{
+        "Name",
+        "NumVotes",
+        "Popularity",
+        "Maintainer",
+        "LastModified"
+    }};
 }
