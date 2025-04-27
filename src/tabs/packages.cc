@@ -88,12 +88,9 @@ PackageTab::create_search_box() -> Gtk::Box*
     auto *main_box          = Gtk::make_managed<Gtk::Box>();
     auto *search_by_frame = Gtk::make_managed<Gtk::Frame>();
     auto *sort_by_frame   = Gtk::make_managed<Gtk::Frame>();
-
     auto *sort_by_box     = Gtk::make_managed<Gtk::Box>();
-    auto *reverse_box     = Gtk::make_managed<Gtk::Box>();
-    auto *reverse_label = Gtk::make_managed<Gtk::Label>();
 
-    auto *entry_box         = Gtk::make_managed<Gtk::Box>();
+    auto *entry_box   = Gtk::make_managed<Gtk::Box>();
     auto *misc_box    = Gtk::make_managed<Gtk::Box>();
     auto *menu        = Gtk::make_managed<Gtk::Box>();
     auto *menu_icon = Gtk::make_managed<Gtk::Image>();
@@ -116,19 +113,16 @@ PackageTab::create_search_box() -> Gtk::Box*
     m_sort_by->set_active_text(sort_by_keywords.at(0));
     GtkUtils::set_margin(*m_sort_by, m_default_spacing);
 
-    reverse_label->set_halign(Gtk::ALIGN_CENTER);
-    reverse_label->set_label("Reverse");
-
     m_reverse_sort->signal_clicked().connect([this](){ on_search(); });
+    m_reverse_sort->set_tooltip_text("Reverse sort");
     m_reverse_sort->set_halign(Gtk::ALIGN_CENTER);
-
-    reverse_box->pack_start(*reverse_label);
-    reverse_box->pack_start(*m_reverse_sort);
-    reverse_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    m_reverse_sort->set_valign(Gtk::ALIGN_CENTER);
+    GtkUtils::set_margin(*m_reverse_sort, { 0, m_default_spacing, 0, 0 });
 
     sort_by_box->pack_start(*m_sort_by);
-    sort_by_box->pack_start(*reverse_box);
+    sort_by_box->pack_start(*m_reverse_sort);
     sort_by_box->set_spacing(m_default_spacing);
+    sort_by_box->set_valign(Gtk::ALIGN_START);
 
     sort_by_frame->set_label("Sort by");
     sort_by_frame->add(*sort_by_box);
