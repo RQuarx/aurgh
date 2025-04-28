@@ -18,6 +18,7 @@
  */
 
 #include <json/json.h>
+
 #include "aur_client.hh"
 #include "logger.hh"
 

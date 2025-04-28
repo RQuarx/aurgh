@@ -1,0 +1,68 @@
+/**
+ * @file package/card.hh
+ *
+ * This file is part of aurgh
+ *
+ * aurgh is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * aurgh is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+#ifndef PACKAGE_CARD_HH__
+#define PACKAGE_CARD_HH__
+
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include <gtkmm/frame.h>
+
+namespace Utils { using str_pair = std::pair<std::string, std::string>; }
+namespace Json { class Value; }
+namespace Gtk {
+    class Button;
+    class Box;
+}
+
+
+class Card : public Gtk::Frame
+{
+public:
+    explicit Card(
+        const Json::Value &package,
+        const std::vector<Utils::str_pair> &installed_aur_packages,
+        int32_t spacing = 5
+    );
+
+private:
+    std::vector<Utils::str_pair> m_installed_package;
+    int32_t m_default_spacing;
+
+    void create_info_box(Gtk::Box &box, const Json::Value &package) const;
+
+    void create_package_name(Gtk::Box &box, const std::string &markup) const;
+    void create_action_button(
+        Gtk::Button &button, const Utils::str_pair &package) const;
+    void create_popularity_frame(
+        Gtk::Frame &frame, const Json::Value &package) const;
+
+    /**
+     @brief Searches for a package inside installed_aur_package
+     @returns -1 on none, 0 on all, 1 on name.
+     */
+    auto find_package(
+        const Utils::str_pair &package
+    ) const -> int8_t;
+};
+
+#endif /* package/card.hh */

@@ -26,8 +26,6 @@
 #include <string>
 #include <vector>
 
-using arg_pair = std::pair<std::string_view, std::string_view>;
-
 
 /**
  * @class ArgParser
@@ -44,6 +42,7 @@ using arg_pair = std::pair<std::string_view, std::string_view>;
  */
 class ArgParser
 {
+    using arg_pair = std::pair<std::string_view, std::string_view>;
 public:
     /**
      * @brief Constructs a ArgParser class.

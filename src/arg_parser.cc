@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+
 #include "arg_parser.hh"
 #include "utils.hh"
 

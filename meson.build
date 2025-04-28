@@ -9,23 +9,24 @@ project(
 )
 
 src = files(
-    'src/tabs/packages.cc',
+    'src/package/card.cc',
+    'src/package/tab.cc',
+
     'src/arg_parser.cc',
     'src/aur_client.cc',
     'src/logger.cc',
     'src/main.cc',
-    'src/utils.cc',
-    'src/window.cc'
+    'src/utils.cc'
 )
 
 gtkmm_dep = dependency('gtkmm-3.0')
 glibmm_dep = dependency('glibmm-2.4')
 curl_dep = dependency('libcurl')
 jsoncpp_dep = dependency('jsoncpp')
-# libuv_dep = dependency('libuv')
+libuv_dep = dependency('libuv')
 
-# deps = [gtkmm_dep, glibmm_dep, curl_dep, jsoncpp_dep, libuv_dep]
-deps = [gtkmm_dep, glibmm_dep, curl_dep, jsoncpp_dep]
+deps = [gtkmm_dep, glibmm_dep, curl_dep, jsoncpp_dep, libuv_dep]
+# deps = [gtkmm_dep, glibmm_dep, curl_dep, jsoncpp_dep]
 
 cpp_args = [
     '-g',
@@ -34,7 +35,6 @@ cpp_args = [
     '-DGDK_DISABLE_DEPRECATED',
     '-DGTK_DISABLE_DEPRECATED'
 ]
-
 
 executable(
     'aurgh',

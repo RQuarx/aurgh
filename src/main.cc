@@ -17,13 +17,13 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <gtkmm/window.h>
 #include <curl/curl.h>
 
-#include "tabs/packages.hh"
+#include "package/tab.hh"
 #include "arg_parser.hh"
 #include "aur_client.hh"
 #include "logger.hh"
-#include "window.hh"
 
 static const std::string_view HELP_MSG =
 "Usage:\n\taurgh [OPTION…]\n\n" \
@@ -38,7 +38,7 @@ static const std::string_view HELP_MSG =
 "\t-v, --version              Show application version\n";
 
 /* ! IMPORTANT APPLICATION DATA ! */
-static const std::string_view APP_VERSION = "0.0.8";
+static const std::string_view APP_VERSION = "0.0.9";
 
 
 auto
@@ -57,7 +57,9 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_SUCCESS;
     }
 
-    Logger logger(arg_parser);
+    Logger      logger(arg_parser);
+    AUR_Client  aur_client(&logger, "");
+    Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
 
     /* Removes -l, --log arg from argv so gtk doesnt complain */
     if (arg_parser.find_arg({ "-l", "--log" })) {
@@ -81,8 +83,11 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_FAILURE;
     }
 
-    AUR_Client aur_client(&logger, "");
-    AURWindow  window({ Gtk::make_managed<PackageTab>(&aur_client, &logger), Gtk::make_managed<Gtk::Box>() }, &logger);
+    auto *package_tab = Gtk::make_managed<PackageTab>(&aur_client, &logger);
+
+    window.set_title("AUR Graphical Helper");
+    window.add(*package_tab);
+    window.show_all();
 
     return app->run(window, argc, argv);
 }

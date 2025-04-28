@@ -23,6 +23,7 @@
 
 #include <string_view>
 #include <string>
+
 #include <curl/curl.h>
 
 static const size_t SEARCH_BY_KEYWORDS = 14;

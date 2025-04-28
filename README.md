@@ -28,10 +28,11 @@ Built with [GTK3](https://www.gtk.org/) and modern C++23 to deal with daily AUR 
 | **[clang](https://clang.llvm.org/)** | Compiler and Linker |
 | **[curl](https://curl.se/)** | Fetching data from the AUR |
 | **[JsonCpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling |
+| **[libuv](https://libuv.org/)** | Asynchronous I/O |
 | **[gtkmm-3.0](https://gtkmm.gnome.org/en/)** | C++ interface for GTK |
 
 ## License
-This project is licensed under the [GNU GPL v3 License](LICENSE).
+This project is licensed under the [GNU General Public License v3](LICENSE).
 
 [License]: LICENSE
 

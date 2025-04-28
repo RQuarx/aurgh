@@ -20,9 +20,12 @@
 #include <algorithm>
 #include <chrono>
 #include <format>
-#include <gtkmm-3.0/gtkmm/image.h>
-#include <gtkmm-3.0/gtkmm/label.h>
-#include <gtkmm-3.0/gtkmm/box.h>
+
+#include <gtkmm/widget.h>
+#include <json/reader.h>
+#include <json/value.h>
+#include <curl/curl.h>
+
 #include "utils.hh"
 
 using std::chrono::duration;
@@ -211,45 +214,5 @@ namespace GtkUtils {
         widget.set_margin_right(margin);
         widget.set_margin_bottom(margin);
         widget.set_margin_left(margin);
-    }
-
-    auto
-    create_label_markup(const std::string &markup) -> Gtk::Label*
-    {
-        auto *label = Gtk::make_managed<Gtk::Label>();
-        label->set_markup(markup);
-        return label;
-    }
-
-    auto
-    create_label_icon(
-        const std::string &icon,
-        const std::string &markup,
-        Gtk::IconSize icon_size
-    ) -> Gtk::Box*
-    {
-        Gtk::Label *label    = create_label_markup(markup);
-        auto *image = Gtk::make_managed<Gtk::Image>();
-        auto *box     = Gtk::make_managed<Gtk::Box>();
-
-        label->set_margin_left(5);
-
-        image->set_from_icon_name(icon, icon_size);
-
-        box->pack_start(*image);
-        box->pack_start(*label);
-        return box;
-    }
-
-    auto
-    create_box(Orientation orientation, int32_t spacing) -> Gtk::Box*
-    {
-        Gtk::Orientation o = (
-            orientation == V || orientation == VERTICAL
-            ? Gtk::ORIENTATION_VERTICAL
-            : Gtk::ORIENTATION_HORIZONTAL
-        );
-
-        return Gtk::make_managed<Gtk::Box>(o, spacing);
     }
 } /* namespace GtkUtils */

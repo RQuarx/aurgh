@@ -1,5 +1,5 @@
 /**
- * @file tabs/packages.hh
+ * @file package/tab.hh
  *
  * This file is part of aurgh
  *
@@ -18,13 +18,16 @@
  */
 
 #pragma once
-#ifndef TABS_PACKAGES_HH__
-#define TABS_PACKAGES_HH__
+#ifndef PACKAGE_TAB_HH__
+#define PACKAGE_TAB_HH__
 
 #include <queue>
-#include <gtkmm/box.h>
+
 #include <glibmm/dispatcher.h>
 #include <json/value.h>
+#include <gtkmm/box.h>
+
+#include "package/card.hh"
 #include "utils.hh"
 
 namespace Gtk {
@@ -54,7 +57,7 @@ private:
     Gtk::ScrolledWindow *m_search_results;
     Gtk::ComboBoxText   *m_search_by;
     Gtk::ComboBoxText   *m_sort_by;
-    Gtk::CheckButton   *m_reverse_sort;
+    Gtk::CheckButton    *m_reverse_sort;
     Gtk::SearchEntry    *m_entry;
     Gtk::Spinner        *m_spinner;
     Gtk::Label          *m_quote_label;
@@ -73,10 +76,6 @@ private:
 
 protected:
     auto create_search_box() -> Gtk::Box*;
-    auto create_package_card(
-        const Json::Value &package,
-        const std::vector<Utils::str_pair> &installed_packages
-    ) const -> Gtk::Frame*;
 
     void on_search();
     void on_dispatch_search_ready();
@@ -88,4 +87,4 @@ protected:
     auto sort_packages(Json::Value packages) -> std::vector<Json::Value>;
 };
 
-#endif /* tabs/packages.hh */
+#endif /* package/tab.hh */

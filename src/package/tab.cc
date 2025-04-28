@@ -1,5 +1,5 @@
 /**
- * @file tabs/packages.cc
+ * @file package/tab.cc
  *
  * This file is part of aurgh
  *
@@ -18,9 +18,18 @@
  */
 
 #include <thread>
-#include <gtkmm.h>
+
+#include <gtkmm/scrolledwindow.h>
+#include <gtkmm/comboboxtext.h>
+#include <gtkmm/checkbutton.h>
+#include <gtkmm/searchentry.h>
+#include <gtkmm/spinner.h>
+#include <gtkmm/label.h>
+#include <gtkmm/image.h>
 #include <glibmm/main.h>
-#include "tabs/packages.hh"
+
+#include "package/card.hh"
+#include "package/tab.hh"
 #include "aur_client.hh"
 #include "logger.hh"
 #include "utils.hh"
@@ -163,88 +172,6 @@ PackageTab::create_search_box() -> Gtk::Box*
 }
 
 
-auto
-PackageTab::create_package_card(
-    const Json::Value &package,
-    const std::vector<Utils::str_pair> &installed_packages
-) const -> Gtk::Frame*
-{
-    auto *frame          = Gtk::make_managed<Gtk::Frame>();
-    auto *card             = Gtk::make_managed<Gtk::Box>();
-
-    auto *basic_info       = Gtk::make_managed<Gtk::Box>();
-    auto *full_info        = Gtk::make_managed<Gtk::Box>();
-    auto *version        = Gtk::make_managed<Gtk::Label>();
-    auto *popularity     = Gtk::make_managed<Gtk::Label>();
-    auto *desc           = Gtk::make_managed<Gtk::Label>();
-
-    auto *action_button = Gtk::make_managed<Gtk::Button>();
-
-    std::string markup = "<b>{}</b>";
-    if (package["OutOfDate"] != Json::Value::null) {
-        markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
-    }
-
-    std::string package_name = Str::trim(package["Name"].asString());
-    std::string package_ver  = Str::trim(package["Version"].asString());
-
-    Gtk::Box *name = GtkUtils::create_label_icon(
-        "package-x-generic-symbolic",
-        Utils::format(markup, package_name),
-        Gtk::ICON_SIZE_MENU
-    );
-
-    markup = "<sub>{}</sub>";
-    version->set_markup(Utils::format(markup, package_ver));
-    popularity->set_markup(
-        Utils::format(markup,
-            std::format("[+{} ~{}]",
-                package["NumVotes"].asInt(),
-                std::roundf(package["Popularity"].asFloat() * 100) / 100
-            )
-        )
-    );
-
-    basic_info->set_spacing(m_default_spacing);
-    basic_info->set_halign(Gtk::ALIGN_START);
-    basic_info->pack_start(*name, false, false);
-    basic_info->pack_start(*version, false, false);
-    basic_info->pack_start(*popularity, false, false);
-
-    desc->set_label(package["Description"].asString());
-    desc->set_halign(Gtk::ALIGN_START);
-    desc->set_line_wrap(true);
-
-    action_button->set_image_from_icon_name(
-        Utils::find(installed_packages, { package_name, package_ver })
-        ? "edit-delete"
-        : "document-download"
-    );
-    action_button->set_valign(Gtk::ALIGN_CENTER);
-    action_button->set_halign(Gtk::ALIGN_END);
-    GtkUtils::set_margin(*action_button, m_default_spacing);
-
-    full_info->set_orientation(Gtk::ORIENTATION_VERTICAL);
-    full_info->pack_start(*basic_info, true, true);
-    full_info->pack_start(*desc, true, true);
-    full_info->set_margin_left(m_default_spacing);
-
-    card->set_spacing(m_default_spacing);
-    card->pack_start(*full_info, true, true);
-    card->pack_end(*action_button, true, true);
-    GtkUtils::set_margin(*card, m_default_spacing);
-
-    frame->add(*card);
-    frame->set_halign(Gtk::ALIGN_FILL);
-    frame->set_valign(Gtk::ALIGN_START);
-    frame->set_vexpand(false);
-    frame->set_hexpand(true);
-    GtkUtils::set_margin(*frame, m_default_spacing);
-
-    return frame;
-}
-
-
 void
 PackageTab::on_search()
 {
@@ -326,7 +253,7 @@ PackageTab::process_next_package(
     auto package = m_package_queue.front();
     m_package_queue.pop();
 
-    Gtk::Frame *card = create_package_card(package, installed_packages);
+    auto *card = Gtk::make_managed<Card>(package, installed_packages);
 
     m_result_box->pack_start(*card, true, true);
     m_result_box->show_all_children();
@@ -369,7 +296,8 @@ PackageTab::sort_packages(Json::Value packages) -> std::vector<Json::Value>
 
     std::string sort_by = m_sort_by->get_active_text();
 
-    std::ranges::sort(package, [this, &sort_by](const Json::Value &a, const Json::Value &b){
+    std::ranges::sort(package,
+        [this, &sort_by](const Json::Value &a, const Json::Value &b){
         if (a[sort_by].isInt()) {
 
             if (m_reverse_sort->get_active()) {

@@ -25,11 +25,8 @@
 #include <optional>
 #include <format>
 #include <string>
+#include <vector>
 #include <array>
-#include <gtkmm-3.0/gtkmm/enums.h>
-#include <curl/curl.h>
-#include <json/reader.h>
-#include <json/value.h>
 
 namespace Gtk {
     class Widget;
@@ -119,9 +116,10 @@ namespace Utils {
     auto
     find(const std::vector<T> &vec, T obj) -> bool
     {
-        return std::ranges::any_of(vec, [&obj](const T &o){
-            return o == obj;
-        });
+        return std::ranges::find(vec, obj) != vec.end();
+        // return std::ranges::find(vec, [&obj](const T &o){
+        //     return o == obj;
+        // });
     }
 } /* namespace Utils */
 
@@ -130,25 +128,9 @@ namespace Utils {
  * @brief A namespace containing utilities for the Gtkmm-3.0 library.
  */
 namespace GtkUtils {
-    enum Orientation : uint8_t {
-        V,
-        VERTICAL,
-        H,
-        HORIZONTAL
-    };
-
     void set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin);
     void set_margin(Gtk::Widget &widget, int32_t margin_y, int32_t margin_x);
     void set_margin(Gtk::Widget &widget, int32_t margin);
-
-    auto create_label_markup(const std::string &markup) -> Gtk::Label*;
-    auto create_label_icon(
-        const std::string &icons,
-        const std::string &markup,
-        Gtk::IconSize icon_size
-    ) -> Gtk::Box*;
-
-    auto create_box(Orientation orientation, int32_t spacing) -> Gtk::Box*;
 } /* namespace GtkUtils */
 
 #endif /* utils.hh */

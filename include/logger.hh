@@ -24,8 +24,10 @@
 #include <unordered_map>
 #include <fstream>
 #include <print>
-#include "arg_parser.hh"
+
 #include "utils.hh"
+
+class ArgParser;
 
 
 /**
@@ -38,6 +40,7 @@
 */
 class Logger
 {
+    using label_pair = std::pair<std::string_view, std::string_view>;
 public:
     /**
      * @enum Level
@@ -103,7 +106,7 @@ public:
     auto get_previous_log_level() -> Level;
 
 private:
-    static const inline std::unordered_map<Level, arg_pair> m_labels = {
+    static const inline std::unordered_map<Level, label_pair> m_labels = {
         { Debug, { "\e[1;37m[\e[1;36mDEBUG\e[1;37m]:\e[0;0;0m", "[DEBUG]:" } },
         { Error, { "\e[1;37m[\e[1;31mERROR\e[1;37m]:\e[0;0;0m", "[ERROR]:" } },
         { Info,  { "\e[1;37m[\e[1;32mINFO\e[1;37m]:\e[0;0;0m ", "[INFO]: " } },

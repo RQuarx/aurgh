@@ -1,0 +1,193 @@
+/**
+ * @file package/card.cc
+ *
+ * This file is part of aurgh
+ *
+ * aurgh is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * aurgh is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include <gtkmm/button.h>
+#include <gtkmm/image.h>
+#include <gtkmm/label.h>
+#include <gtkmm/box.h>
+#include <json/value.h>
+
+#include "package/card.hh"
+#include "gtkmm/separator.h"
+#include "utils.hh"
+
+
+Card::Card(
+    const Json::Value &package,
+    const std::vector<Utils::str_pair> &installed_aur_packages,
+    int32_t spacing
+) :
+    m_installed_package(installed_aur_packages),
+    m_default_spacing(spacing)
+{
+    auto *card             = Gtk::make_managed<Gtk::Box>();
+    auto *info             = Gtk::make_managed<Gtk::Box>();
+
+    auto *action_button = Gtk::make_managed<Gtk::Button>();
+
+    std::string markup = "<b>{}</b>";
+    if (package["OutOfDate"] != Json::Value::null) {
+        markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
+    }
+
+    create_info_box(*info, package);
+
+    std::string pkg_name = Str::trim(package["Name"].asString());
+    std::string pkg_ver  = Str::trim(package["Version"].asString());
+
+    create_action_button(*action_button, { pkg_name, pkg_ver });
+
+    card->set_spacing(m_default_spacing);
+    card->pack_start(*info, true, true);
+    card->pack_end(*action_button, true, true);
+    GtkUtils::set_margin(*card, m_default_spacing);
+
+    add(*card);
+    set_valign(Gtk::ALIGN_START);
+    set_halign(Gtk::ALIGN_FILL);
+    set_vexpand(false);
+    set_hexpand(true);
+    GtkUtils::set_margin(*this, m_default_spacing);
+}
+
+
+void
+Card::create_info_box(Gtk::Box &box, const Json::Value &package) const
+{
+    auto *summary_info = Gtk::make_managed<Gtk::Box>();
+
+    auto *name         = Gtk::make_managed<Gtk::Box>();
+    auto *popularity = Gtk::make_managed<Gtk::Frame>();
+    auto *version    = Gtk::make_managed<Gtk::Label>();
+    auto *desc       = Gtk::make_managed<Gtk::Label>();
+
+    std::string markup = "<b>{}</b>";
+    if (package["OutOfDate"] != Json::Value::null) {
+        markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
+    }
+
+    create_package_name(*name, Utils::format(markup, package["Name"].asString()));
+    create_popularity_frame(*popularity, package);
+    version->set_text(package["Version"].asString());
+
+    summary_info->pack_start(*name);
+    summary_info->pack_start(*version);
+    summary_info->pack_start(*popularity);
+    summary_info->set_spacing(m_default_spacing);
+    summary_info->set_halign(Gtk::ALIGN_START);
+    summary_info->set_valign(Gtk::ALIGN_START);
+
+    desc->set_label(package["Description"].asString());
+    desc->set_halign(Gtk::ALIGN_START);
+    desc->set_line_wrap(true);
+
+    box.pack_start(*summary_info, true, true);
+    box.pack_start(*desc, true, true);
+    box.set_orientation(Gtk::ORIENTATION_VERTICAL);
+    box.set_margin_left(m_default_spacing);
+}
+
+
+void
+Card::create_package_name(Gtk::Box &box, const std::string &markup) const
+{
+    auto *img  = Gtk::make_managed<Gtk::Image>();
+    auto *name = Gtk::make_managed<Gtk::Label>();
+
+    name->set_margin_left(m_default_spacing);
+    name->set_markup(markup);
+
+    img->set_from_icon_name("package-x-generic-symbolic", Gtk::ICON_SIZE_MENU);
+
+    box.pack_start(*img);
+    box.pack_start(*name);
+}
+
+
+void
+Card::create_popularity_frame(
+    Gtk::Frame &frame, const Json::Value &package) const
+{
+    const std::string_view markup = "<sub>{}</sub>";
+
+    uint32_t votes   = package["NumVotes"].asUInt();
+    float popularity = std::roundf(package["Popularity"].asFloat() * 100) / 100;
+
+    auto *box                = Gtk::make_managed<Gtk::Box>();
+    auto *votes_label      = Gtk::make_managed<Gtk::Label>();
+    auto *sep                       = Gtk::make_managed<Gtk::Separator>();
+    auto *popularity_label = Gtk::make_managed<Gtk::Label>();
+
+    popularity_label->set_markup(Utils::format(markup, popularity));
+    popularity_label->set_tooltip_text("Popularity");
+
+    sep->set_orientation(Gtk::ORIENTATION_VERTICAL);
+
+    votes_label->set_markup(Utils::format(markup, votes));
+    votes_label->set_tooltip_text("Number of votes");
+
+    box->pack_start(*popularity_label);
+    box->pack_start(*sep);
+    box->pack_start(*votes_label);
+    box->set_spacing(m_default_spacing);
+    GtkUtils::set_margin(*box, 0, m_default_spacing);
+
+    frame.add(*box);
+    frame.set_margin_left(m_default_spacing);
+}
+
+
+void
+Card::create_action_button(
+    Gtk::Button &button, const Utils::str_pair &package) const
+{
+    std::string icon_name;
+
+    int8_t result = find_package(package);
+
+    if (result == -1) {
+        icon_name = "document-save-symbolic";
+    } else if (result == 0) {
+        icon_name = "edit-delete-symbolic";
+    } else {
+        icon_name = "view-refresh-symbolic";
+    }
+
+    button.set_image_from_icon_name(icon_name);
+    button.set_valign(Gtk::ALIGN_CENTER);
+    button.set_halign(Gtk::ALIGN_END);
+    GtkUtils::set_margin(button, m_default_spacing);
+}
+
+
+auto
+Card::find_package(
+    const Utils::str_pair &package
+) const -> int8_t
+{
+    std::vector<std::string> version;
+    std::vector<std::string> name;
+
+    version.reserve(m_installed_package.size());
+    name.reserve(m_installed_package.size());
+
+    if (Utils::find(m_installed_package, package)) return 0;
+    if (Utils::find(name, package.first)) return 1;
+    return -1;
+}
