@@ -21,27 +21,54 @@
 #ifndef PROCESS_HH__
 #define PROCESS_HH__
 
+#include <atomic>
 #include <string>
+#include <thread>
+#include <array>
+#include <uv.h>
 
 class Logger;
 
 
-class Process
-{
+class Process {
 public:
-    explicit Process(const std::string &cmd, Logger *logger);
+    Process(std::string cmd, const std::string &cwd, Logger *logger);
+    ~Process();
 
-    /**
-     * @brief Stops the process from running.
-     * @returns -1 if the process is stopped,
-     *      or a return code if the process already ends.
-     */
-    auto stop() -> int32_t;
+    auto stop() -> int64_t;
+
+    [[nodiscard]]
+    auto is_running() const -> bool;
 
 private:
-    Logger          *m_logger;
-    pid_t            m_pid;
-    std::string_view m_cmd;
+    uv_loop_t*           m_loop;
+    uv_process_t         m_proc{};
+    uv_process_options_t m_options{};
+    uv_signal_t          m_kill_signal{};
+    uv_async_t           m_stop_async{};
+
+    Logger* m_logger;
+
+    std::atomic<bool>    m_running;
+    std::atomic<int64_t> m_exit_code{0};
+    std::thread          m_event_thread;
+
+    std::string          m_cmd;
+    std::string          m_cwd;
+    std::array<const char*, 4> m_args = {
+        "/bin/bash",
+        "-c",
+        nullptr,
+        nullptr
+    };
+
+    void run_event_loop();
+
+    static Process *m_instance;
+
+    static void on_exit(uv_process_t* req, int64_t exit_status, int32_t term_signal);
+    static void on_signal(uv_signal_t* handle, int32_t signum);
+    static void async_stop_callback(uv_async_t* handle);
 };
 
 #endif /* process.hh */

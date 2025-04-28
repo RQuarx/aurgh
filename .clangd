@@ -27,7 +27,9 @@ Diagnostics:
             'cppcoreguidelines-pro-type-reinterpret-cast',
             'cppcoreguidelines-narrowing-conversions',
             'bugprone-forward-declaration-namespace',
-            'cppcoreguidelines-pro-bounds-pointer-arithmetic'
+            'cppcoreguidelines-pro-bounds-pointer-arithmetic',
+            'cppcoreguidelines-special-member-functions',
+            'cppcoreguidelines-missing-std-forward'
         ]
 
 InlayHints:

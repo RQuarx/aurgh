@@ -23,6 +23,7 @@
 #include "package/tab.hh"
 #include "arg_parser.hh"
 #include "aur_client.hh"
+#include "process.hh"
 #include "logger.hh"
 
 static const std::string_view HELP_MSG =
@@ -83,11 +84,14 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_FAILURE;
     }
 
+    auto proc = Process("echo \"Process class with libuv works!\"", "", &logger);
     auto *package_tab = Gtk::make_managed<PackageTab>(&aur_client, &logger);
 
     window.set_title("AUR Graphical Helper");
     window.add(*package_tab);
     window.show_all();
+
+    proc.stop();
 
     return app->run(window, argc, argv);
 }

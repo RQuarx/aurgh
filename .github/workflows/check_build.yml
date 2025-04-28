@@ -15,9 +15,9 @@ jobs:
         run: |
           sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
           pacman --noconfirm --noprogressbar -Syyu
-          pacman --noconfirm --noprogressbar -S base-devel gtkmm3 meson git glibmm-2.68 jsoncpp curl clang lld
+          pacman --noconfirm --noprogressbar --needed -S - < required.txt
 
       - name: Build AURGH
         run: |
-          CXX=clang++ CXX_LD=lld meson setup target
-          meson compile -C target
+          make setup
+          make compile

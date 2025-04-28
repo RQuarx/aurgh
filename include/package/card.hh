@@ -37,11 +37,12 @@ namespace Gtk {
 
 class Card : public Gtk::Frame
 {
+    static const inline int32_t DEFAULT_SPACING = 5;
 public:
     explicit Card(
         const Json::Value &package,
         const std::vector<Utils::str_pair> &installed_aur_packages,
-        int32_t spacing = 5
+        int32_t spacing = DEFAULT_SPACING
     );
 
 private:

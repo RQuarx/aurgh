@@ -115,12 +115,7 @@ namespace Utils {
     template<typename T>
     auto
     find(const std::vector<T> &vec, T obj) -> bool
-    {
-        return std::ranges::find(vec, obj) != vec.end();
-        // return std::ranges::find(vec, [&obj](const T &o){
-        //     return o == obj;
-        // });
-    }
+    { return std::ranges::find(vec, obj) != vec.end(); }
 } /* namespace Utils */
 
 /**
