@@ -1,10 +1,11 @@
 meson
 clang
 lld
-curl
 jsoncpp
 libuv
 gtkmm3
 glibmm
 git
 make
+pkg-config
+cmake
