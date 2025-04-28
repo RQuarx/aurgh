@@ -16,6 +16,7 @@ src = files(
     'src/aur_client.cc',
     'src/logger.cc',
     'src/main.cc',
+    'src/process.cc',
     'src/utils.cc'
 )
 
