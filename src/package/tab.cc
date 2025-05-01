@@ -59,15 +59,15 @@ PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
 
     m_logger->log(Logger::Debug, "Creating packages tab");
 
+    auto *frame     = Gtk::make_managed<Gtk::Frame>();
+    auto *results_box = Gtk::make_managed<Gtk::Box>();
+    auto *label     = Gtk::make_managed<Gtk::Label>();
+
     GtkUtils::set_margin(*this, m_default_spacing);
     set_orientation(Gtk::ORIENTATION_VERTICAL);
 
     m_result_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
     m_result_box->set_spacing(m_default_spacing);
-
-    auto *frame     = Gtk::make_managed<Gtk::Frame>();
-    auto *results_box = Gtk::make_managed<Gtk::Box>();
-    auto *label     = Gtk::make_managed<Gtk::Label>();
 
     label->set_markup("<b>Search to view AUR packages</b>");
     label->set_opacity(0.5);
@@ -97,7 +97,7 @@ PackageTab::create_search_box() -> Gtk::Box*
     auto *main_box          = Gtk::make_managed<Gtk::Box>();
     auto *search_by_frame = Gtk::make_managed<Gtk::Frame>();
     auto *sort_by_frame   = Gtk::make_managed<Gtk::Frame>();
-    auto *sort_by_box     = Gtk::make_managed<Gtk::Box>();
+    auto *sort_by_box       = Gtk::make_managed<Gtk::Box>();
 
     auto *entry_box   = Gtk::make_managed<Gtk::Box>();
     auto *misc_box    = Gtk::make_managed<Gtk::Box>();
@@ -273,7 +273,7 @@ PackageTab::get_installed_aur_packages(
     std::string line;
 
     while (std::getline(iss, line)) {
-        auto package = Str::split(line, line.find(' '));
+        auto package = Str::splitp(line, line.find(' '));
         installed_packages.emplace_back(
             Str::trim(package.at(0)),
             Str::trim(package.at(1))

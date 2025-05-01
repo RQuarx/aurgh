@@ -18,7 +18,6 @@ Diagnostics:
         Remove: [
             'readability-identifier-length',
             'readability-braces-around-statements',
-            'bugprone-narrowing-conversions',
             'bugprone-easily-swappable-parameters',
             'modernize-use-designated-initializers',
             'readability-magic-numbers',

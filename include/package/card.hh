@@ -26,36 +26,43 @@
 #include <vector>
 
 #include <gtkmm/frame.h>
+#include <json/value.h>
 
 namespace Utils { using str_pair = std::pair<std::string, std::string>; }
-namespace Json { class Value; }
 namespace Gtk {
     class Button;
     class Box;
 }
 
 
+/**
+ * @class Card
+ * @brief A widget that displays information for an AUR package
+ * @ingroup Widget
+ * @ingroup Container
+ * @ingroup Frame
+ */
 class Card : public Gtk::Frame
 {
-    static const inline int32_t DEFAULT_SPACING = 5;
 public:
     explicit Card(
-        const Json::Value &package,
+        Json::Value package,
         const std::vector<Utils::str_pair> &installed_aur_packages,
         int32_t spacing = DEFAULT_SPACING
     );
 
 private:
+    static const inline int32_t DEFAULT_SPACING = 5;
+
     std::vector<Utils::str_pair> m_installed_package;
+    Json::Value                  m_package;
+
     int32_t m_default_spacing;
 
-    void create_info_box(Gtk::Box &box, const Json::Value &package) const;
-
-    void create_package_name(Gtk::Box &box, const std::string &markup) const;
-    void create_action_button(
-        Gtk::Button &button, const Utils::str_pair &package) const;
-    void create_popularity_frame(
-        Gtk::Frame &frame, const Json::Value &package) const;
+    void create_info_box(Gtk::Box &box) const;
+    void create_package_name(Gtk::Box &box) const;
+    void create_action_button(Gtk::Button &button) const;
+    void create_popularity_frame(Gtk::Frame &frame) const;
 
     /**
      @brief Searches for a package inside installed_aur_package

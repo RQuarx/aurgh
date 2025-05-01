@@ -33,7 +33,7 @@ cpp_args = [
     '-Wall',
     '-Wextra',
     '-DGDK_DISABLE_DEPRECATED',
-    '-DGTK_DISABLE_DEPRECATED'
+    '-DGTK_DISABLE_DEPRECATED',
 ]
 
 executable(

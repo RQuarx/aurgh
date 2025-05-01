@@ -83,7 +83,6 @@ public:
     /**
      * @brief Prints a help message, and exist the program after it
      * @param stream An output stream the help message will be printed to
-     * @param operation_type An OperationType enum which the function use to pick the help message to print, defaults to None
      */
     void print_help_message(FILE *stream);
 

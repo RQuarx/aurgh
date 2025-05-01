@@ -28,6 +28,8 @@
 #include <vector>
 #include <array>
 
+#include <curl/curl.h>
+
 namespace Gtk {
     class Widget;
     class Label;
@@ -45,7 +47,15 @@ namespace Str {
      * @param pos The index where the string will be split.
      * @returns An array object with size 2.
      */
-    auto split(std::string_view str, size_t pos) -> std::array<std::string, 2>;
+     auto splitp(std::string_view str, size_t pos) -> std::array<std::string, 2>;
+
+    /**
+     * @brief Splits a string by the delim.
+     * @param str The base string.
+     * @param delim The char where the string will be split.
+     * @returns A vector of strings.
+     */
+    auto splitd(const std::string &str, char delim) -> std::vector<std::string>;
 
     /**
      * @brief Checks if a string only consists of digits
@@ -54,7 +64,10 @@ namespace Str {
 
     auto trim(std::string_view str) -> std::string;
 
-    auto make_argv(const std::string &cmd) -> std::vector<const char*>;
+    /**
+     * @brief Counts the amount of c inside str.
+     */
+    auto count(std::string_view str, char c) -> size_t;
 } /* namespace Str */
 
 /**
@@ -99,9 +112,29 @@ namespace Utils {
     ) -> size_t;
 
     /**
+     * @brief A wrapper for curl_easy_perform
+     * @param curl If nullptr, the function would use its own CURL
+     * @param url The url to fetch data from
+     * @param read_buffer The buffer the data will be placed in
+     * @returns a CURLCode
+     */
+    auto perform_curl(
+        CURL *curl, const std::string &url, std::string &read_buffer
+    ) -> CURLcode;
+
+    /**
      * @brief Returns a quote from https://quotes-api-self.vercel.app/quote
      */
     auto get_quote(size_t max_len) -> std::string;
+
+    /**
+     * @brief Execute FILE,
+     *     searching in the `PATH' environment variable if it contains no
+     *     slashes, with arguments ARGV and environment from `environ'.
+     */
+    auto execvp(
+        std::string &file, std::vector<std::string> &argv
+    ) -> int32_t;
 
 
     template<typename... T_Args>

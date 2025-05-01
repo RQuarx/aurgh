@@ -17,6 +17,8 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <gtkmm/linkbutton.h>
+#include <gtkmm/separator.h>
 #include <gtkmm/button.h>
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
@@ -24,16 +26,16 @@
 #include <json/value.h>
 
 #include "package/card.hh"
-#include "gtkmm/separator.h"
 #include "utils.hh"
 
 
 Card::Card(
-    const Json::Value &package,
+    Json::Value package,
     const std::vector<Utils::str_pair> &installed_aur_packages,
     int32_t spacing
 ) :
     m_installed_package(installed_aur_packages),
+    m_package(std::move(package)),
     m_default_spacing(spacing)
 {
     auto *card             = Gtk::make_managed<Gtk::Box>();
@@ -41,17 +43,8 @@ Card::Card(
 
     auto *action_button = Gtk::make_managed<Gtk::Button>();
 
-    std::string markup = "<b>{}</b>";
-    if (package["OutOfDate"] != Json::Value::null) {
-        markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
-    }
-
-    create_info_box(*info, package);
-
-    std::string pkg_name = Str::trim(package["Name"].asString());
-    std::string pkg_ver  = Str::trim(package["Version"].asString());
-
-    create_action_button(*action_button, { pkg_name, pkg_ver });
+    create_info_box(*info);
+    create_action_button(*action_button);
 
     card->set_spacing(m_default_spacing);
     card->pack_start(*info, true, true);
@@ -68,7 +61,7 @@ Card::Card(
 
 
 void
-Card::create_info_box(Gtk::Box &box, const Json::Value &package) const
+Card::create_info_box(Gtk::Box &box) const
 {
     auto *summary_info = Gtk::make_managed<Gtk::Box>();
 
@@ -78,13 +71,13 @@ Card::create_info_box(Gtk::Box &box, const Json::Value &package) const
     auto *desc       = Gtk::make_managed<Gtk::Label>();
 
     std::string markup = "<b>{}</b>";
-    if (package["OutOfDate"] != Json::Value::null) {
+    if (m_package["OutOfDate"] != Json::Value::null) {
         markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
     }
 
-    create_package_name(*name, Utils::format(markup, package["Name"].asString()));
-    create_popularity_frame(*popularity, package);
-    version->set_text(package["Version"].asString());
+    create_package_name(*name);
+    create_popularity_frame(*popularity);
+    version->set_text(m_package["Version"].asString());
 
     summary_info->pack_start(*name);
     summary_info->pack_start(*version);
@@ -93,7 +86,7 @@ Card::create_info_box(Gtk::Box &box, const Json::Value &package) const
     summary_info->set_halign(Gtk::ALIGN_START);
     summary_info->set_valign(Gtk::ALIGN_START);
 
-    desc->set_label(package["Description"].asString());
+    desc->set_label(m_package["Description"].asString());
     desc->set_halign(Gtk::ALIGN_START);
     desc->set_line_wrap(true);
 
@@ -105,29 +98,45 @@ Card::create_info_box(Gtk::Box &box, const Json::Value &package) const
 
 
 void
-Card::create_package_name(Gtk::Box &box, const std::string &markup) const
+Card::create_package_name(Gtk::Box &box) const
 {
-    auto *img  = Gtk::make_managed<Gtk::Image>();
-    auto *name = Gtk::make_managed<Gtk::Label>();
+    auto *img        = Gtk::make_managed<Gtk::Image>();
+    auto *name_link           = Gtk::make_managed<Gtk::LinkButton>();
+    auto *name_label = Gtk::make_managed<Gtk::Label>();
 
-    name->set_margin_left(m_default_spacing);
-    name->set_markup(markup);
+    std::string url    = m_package["URL"].asString();
+    std::string markup = "<b>{}</b>";
+
+    if (m_package["OutOfDate"] != Json::Value::null) {
+        markup = Utils::format(markup, "<span foreground=\"red\">{}</span>");
+    }
+
+    name_label->set_markup(Utils::format(markup, m_package["Name"].asString()));
+
+    name_link->add(*name_label);
+    name_link->set_margin_left(m_default_spacing);
+    name_link->set_tooltip_text(url);
+    name_link->set_uri(url);
+
+    name_link->signal_clicked().connect([name_link](){
+        name_link->set_visited();
+    });
 
     img->set_from_icon_name("package-x-generic-symbolic", Gtk::ICON_SIZE_MENU);
 
     box.pack_start(*img);
-    box.pack_start(*name);
+    box.pack_start(*name_link);
 }
 
 
 void
-Card::create_popularity_frame(
-    Gtk::Frame &frame, const Json::Value &package) const
+Card::create_popularity_frame(Gtk::Frame &frame) const
 {
     const std::string_view markup = "<sub>{}</sub>";
 
-    uint32_t votes   = package["NumVotes"].asUInt();
-    float popularity = std::roundf(package["Popularity"].asFloat() * 100) / 100;
+    uint32_t votes   = m_package["NumVotes"].asUInt();
+    float popularity =
+        std::roundf(m_package["Popularity"].asFloat() * 100) / 100;
 
     auto *box                = Gtk::make_managed<Gtk::Box>();
     auto *votes_label      = Gtk::make_managed<Gtk::Label>();
@@ -154,12 +163,13 @@ Card::create_popularity_frame(
 
 
 void
-Card::create_action_button(
-    Gtk::Button &button, const Utils::str_pair &package) const
+Card::create_action_button(Gtk::Button &button) const
 {
     std::string icon_name;
 
-    int8_t result = find_package(package);
+    std::string pkg_name    = m_package["Name"].asString();
+    std::string pkg_version = m_package["Version"].asString();
+    int8_t result = find_package({ pkg_name, pkg_version });
 
     if (result == -1) {
         icon_name = "document-save-symbolic";
@@ -177,9 +187,7 @@ Card::create_action_button(
 
 
 auto
-Card::find_package(
-    const Utils::str_pair &package
-) const -> int8_t
+Card::find_package(const Utils::str_pair &package) const -> int8_t
 {
     std::vector<std::string> version;
     std::vector<std::string> name;

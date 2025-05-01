@@ -28,6 +28,7 @@
 
 #include "utils.hh"
 
+
 using std::chrono::duration;
 using ms = std::chrono::milliseconds;
 using m = std::chrono::minutes;
@@ -36,11 +37,28 @@ using s = std::chrono::seconds;
 
 namespace Str {
     auto
-    split(std::string_view str, size_t pos) -> std::array<std::string, 2>
+    splitp(std::string_view str, size_t pos) -> std::array<std::string, 2>
     {
         const std::string first(str.substr(0, pos));
         const std::string second(str.substr(pos + 1));
         return { first , second };
+    }
+
+
+    auto
+    splitd(const std::string &str, char delim) -> std::vector<std::string>
+    {
+        std::vector<std::string> tokens;
+        tokens.reserve(count(str, delim) + 1);
+
+        std::istringstream iss(str);
+        std::string        token;
+
+        while (std::getline(iss, token, delim)) {
+            tokens.push_back(token);
+        }
+
+        return tokens;
     }
 
 
@@ -67,18 +85,14 @@ namespace Str {
 
 
     auto
-    make_argv(const std::string &cmd) -> std::vector<const char*>
+    count(std::string_view str, char c) -> size_t
     {
-        std::vector<const char*> argv(cmd.length() / 2);
-        std::istringstream       iss(cmd);
-        std::string              token;
-
-        while (iss >> token) {
-            argv.push_back(token.c_str());
+        size_t i = 0;
+        for (auto s : str) {
+            if (s == c) i++;
         }
-        argv.push_back(nullptr);
 
-        return argv;
+        return i;
     }
 } /* namespace Str */
 
@@ -148,42 +162,75 @@ namespace Utils {
 
 
     auto
+    perform_curl(
+        CURL *curl, const std::string &url, std::string &read_buffer
+    ) -> CURLcode
+    {
+        bool self_curl = (curl == nullptr);
+
+        if (self_curl)       curl = curl_easy_init();
+        if (curl == nullptr) return CURLE_FAILED_INIT;
+
+        read_buffer.clear();
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Utils::write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
+        CURLcode res = curl_easy_perform(curl);
+
+        if (self_curl) curl_easy_cleanup(curl);
+        return res;
+    }
+
+
+    auto
     get_quote(size_t max_len) -> std::string
     {
         CURL *curl = curl_easy_init();
-        if (curl == nullptr) return R"({"quote":"Unable to fetch quotes"})";
+        if (curl == nullptr) return R"({"quote": "Unable to fetch quotes"})";
 
-        std::string read_buffer;
+        std::string  read_buffer;
         Json::Reader reader;
-        Json::Value val;
-        std::string quote;
+        Json::Value  val;
+        std::string  quote;
 
-        while (true) {
-            read_buffer.clear();
+        while (quote.length() > max_len || quote.empty()) {
+            CURLcode res = perform_curl(
+                curl, "https://quotes-api-self.vercel.app/quote", read_buffer);
 
-            curl_easy_setopt(curl, CURLOPT_URL, "https://quotes-api-self.vercel.app/quote");
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Utils::write_callback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
-
-            CURLcode res = curl_easy_perform(curl);
             if (res != CURLE_OK) {
                 curl_easy_cleanup(curl);
-                return R"({"quote":"Failed to fetch quote"})";
+                return R"({"quote": "Failed to fetch quote"})";
             }
 
             if (!reader.parse(read_buffer, val)) {
                 curl_easy_cleanup(curl);
-                return R"({"quote":"Failed to parse response"})";
+                return R"({"quote": "Failed to parse response"})";
             }
 
             quote = val["quote"].asString();
-            if (quote.length() <= max_len) {
-                break;
-            }
         }
 
         curl_easy_cleanup(curl);
         return quote;
+    }
+
+
+    auto
+    execvp(
+        std::string &file, std::vector<std::string> &argv
+    ) -> int32_t
+    {
+        std::vector<char*> c_argv;
+        c_argv.reserve(argv.size() + 2);
+
+        c_argv.push_back(file.data());
+
+        for (std::string &arg : argv) {
+            c_argv.push_back(arg.data());
+        }
+        c_argv.push_back(nullptr);
+
+        return ::execvp(file.c_str(), c_argv.data());
     }
 } /* namespace Utils */
 

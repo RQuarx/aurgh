@@ -19,6 +19,7 @@
 
 #include <filesystem>
 #include <algorithm>
+#include <utility>
 #include <thread>
 
 #include "arg_parser.hh"
@@ -50,7 +51,7 @@ Logger::Logger(ArgParser &arg_parser) :
     log(
         Level::Debug,
         "Logger instace successfully created with a log level of {}.",
-        static_cast<int32_t>(m_log_treshold)
+        std::to_underlying(m_log_treshold)
     );
 }
 
@@ -79,7 +80,7 @@ auto
 Logger::set_leveL_threshold(int32_t level) -> bool
 {
     if (!is_valid_level(level)) return false;
-    m_log_treshold = static_cast<Level>(level);
+    m_log_treshold = Level(level);
     return true;
 }
 
@@ -109,7 +110,7 @@ Logger::open_log_file(const std::string &file) -> bool
 auto
 Logger::handle_double_parameters(const std::string &option) -> bool
 {
-    return std::ranges::all_of(Str::split(option, option.find(',')),
+    return std::ranges::all_of(Str::splitp(option, option.find(',')),
         [this](const std::string &param){
             if (Str::is_digit(param)) {
                 return set_leveL_threshold(std::stoi(param));

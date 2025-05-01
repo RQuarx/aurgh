@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <print>
 
 #include "arg_parser.hh"
 #include "utils.hh"
@@ -196,4 +197,22 @@ ArgParser::back() -> std::string
     }
 
     return "";
+}
+
+
+void
+ArgParser::print_help_message(FILE *stream)
+{
+    std::array<std::string, 3> options = {{
+        "-h,--help",
+        "-v,--version",
+        "-l,--log {file,level}"
+    }};
+
+    std::println(stream, "Usage:");
+    std::println(stream, "\t{} <options {{params}}>\n", m_bin_path);
+    std::println(stream, "Option:");
+    std::println(stream, "\t{:<30}prints this message", options.at(0));
+    std::println(stream, "\t{:<30}prints the program's version", options.at(1));
+    std::println(stream, "\t{:<30}prints log on a stream based on a level (0-3)", options.at(2));
 }

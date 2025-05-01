@@ -24,10 +24,9 @@
 
 
 AUR_Client::AUR_Client(Logger *logger, std::string_view url) :
+    m_url(!url.empty() ? url : DEFAULT_AUR_URL),
     m_logger(logger)
 {
-    if (!url.empty()) m_url = url;
-
     m_logger->log(
         Logger::Debug, "AUR Client instance successfully created"
     );
@@ -59,8 +58,8 @@ auto
 AUR_Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
 {
     Json::CharReaderBuilder reader;
-    Json::Value data;
-    std::string errs;
+    Json::Value             data;
+    std::string             errs;
     if (!Json::parseFromStream(reader, iss, &data, &errs)) {
         m_logger->log(
             Logger::Error,

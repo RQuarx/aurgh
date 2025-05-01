@@ -43,8 +43,11 @@ class Logger;
 
 
 /**
- @class PackageTab (Gtk::Box)
- @brief A tab for AUR package management
+ * @class PackageTab
+ * @brief A tab for AUR package management
+ * @ingroup Widget
+ * @ingroup Container
+ * @ingroup Box
  */
 class PackageTab : public Gtk::Box
 {

@@ -17,126 +17,59 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <filesystem>
+#include <cstring>
+#include <format>
+
+#include <unistd.h>
 
 #include "process.hh"
 #include "logger.hh"
 
-Process *Process::m_instance = nullptr;
+static const std::string DEFAULT_CWD =
+    std::format("{}/.cache/aurgh/", std::getenv("HOME"));
 
 
-Process::Process(std::string cmd, const std::string &cwd, Logger *logger) :
-    m_loop(uv_default_loop()),
-    m_logger(logger),
-    m_running(false),
-    m_cmd(std::move(cmd))
+Process::Process(
+    std::string file,
+    std::vector<std::string> argv,
+    Logger *logger,
+    const std::string &cwd
+) :
+    ma_logger(logger),
+    m_cwd(cwd.empty() ? DEFAULT_CWD : cwd)
 {
-    if (cwd.empty()) {
-        m_cwd = std::format("{}/.cache/aurgh/", std::getenv("HOME"));
-    } else {
-        m_cmd = cwd;
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        ma_logger.load()->log(
+            Logger::Error, "Failed to create child process: {}", strerror(errno)
+        );
+        exit(EXIT_FAILURE);
     }
 
-    uv_async_init(m_loop, &m_stop_async, async_stop_callback);
-    m_stop_async.data = this;
+    if (pid == 0) { /* Child process */
+        if (!std::filesystem::exists(m_cwd)) {
+            std::filesystem::create_directory(m_cwd);
+        }
 
-    m_args.at(2) = m_cmd.c_str();
+        if (chdir(m_cwd.c_str()) != 0) {
+            ma_logger.load()->log(
+                Logger::Error, "Failed to change directory: {}", strerror(errno)
+            );
+            exit(EXIT_FAILURE);
+        }
 
-    if (!std::filesystem::exists(m_cwd)) {
-        std::filesystem::create_directory(m_cwd);
-    }
+        Utils::execvp(file, argv);
 
-    m_options.exit_cb = on_exit;
-    m_options.file = m_args.at(0);
-    m_options.args = const_cast<char**>(m_args.data()); /* API tweaking fr fr */
-    m_options.flags = 0;
-    m_options.stdio_count = 0;
-    m_options.cwd = m_cwd.c_str();
-    m_options.env = nullptr;
-
-    m_instance = this;
-
-    int32_t result = uv_spawn(m_loop, &m_proc, &m_options);
-    if (result != 0) {
-        m_logger->log(Logger::Error, "uv_spawn error: {}", uv_strerror(result));
-        throw std::runtime_error("uv_spawn error\n");
-    }
-
-    m_running = true;
-    m_logger->log(
-        Logger::Debug, "Started process '{}' with PID: {}", m_cmd, m_proc.pid
-    );
-
-    uv_signal_init(m_loop, &m_kill_signal);
-    uv_signal_start(&m_kill_signal, on_signal, SIGINT);
-    m_kill_signal.data = this;
-
-    m_event_thread = std::thread(&Process::run_event_loop, this);
-}
-
-
-Process::~Process()
-{
-    if (m_running) stop();
-
-    if (m_event_thread.joinable()) {
-        m_event_thread.join();
-    }
-
-    uv_close(reinterpret_cast<uv_handle_t*>(&m_stop_async), nullptr);
-    uv_close(reinterpret_cast<uv_handle_t*>(&m_kill_signal), nullptr);
-
-    uv_run(m_loop, UV_RUN_NOWAIT);
-}
-
-
-auto
-Process::stop() -> int64_t
-{
-    if (m_running) {
-        uv_async_send(&m_stop_async);
-        return -1;
-    }
-    return m_exit_code.load();
-}
-
-
-auto
-Process::is_running() const -> bool
-{ return m_running; }
-
-
-void
-Process::on_exit(uv_process_t* req, int64_t exit_status, int32_t  /*term_signal*/)
-{
-    auto *self = m_instance;
-
-    self->m_running = false;
-    self->m_exit_code.store(exit_status);
-    uv_close(reinterpret_cast<uv_handle_t*>(req), nullptr);
-    uv_signal_stop(&self->m_kill_signal);
-    uv_stop(self->m_loop);
-}
-
-
-void
-Process::on_signal(uv_signal_t* handle, int32_t  /*signum*/)
-{
-    auto *self = static_cast<Process*>(handle->data);
-    self->stop();
-}
-
-
-void
-Process::async_stop_callback(uv_async_t *handle)
-{
-    auto *self = static_cast<Process*>(handle->data);
-    if (self->is_running()) {
-        uv_process_kill(&self->m_proc, SIGINT);
+        ma_logger.load()->log(
+            Logger::Error,
+            "'execvp' failed to run: {}",
+            strerror(errno)
+        );
+        exit(EXIT_FAILURE);
+    } else { /* Parent */
+        m_child_pid = pid;
     }
 }
-
-
-void
-Process::run_event_loop()
-{ uv_run(m_loop, UV_RUN_DEFAULT); }
