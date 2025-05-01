@@ -50,7 +50,7 @@ main(int32_t argc, char **argv) -> int32_t
     AUR_Client  aur_client(&logger, "");
     Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
 
-    auto proc = Process("git", { "clone", "https://github.com/git/git" }, &logger);
+    // auto proc = Process("git", { "clone", "https://github.com/git/git" }, &logger);
 
     if (curl_global_init(CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE) != 0) {
         logger.log(Logger::Error, "Failed to init curl");
@@ -69,7 +69,7 @@ main(int32_t argc, char **argv) -> int32_t
     */
     argc = 0;
 
-    logger.log(Logger::Debug, "Return: {}", proc.kill());
+    // logger.log(Logger::Debug, "Return: {}", proc.is_done());
 
     return app->run(window, argc, argv);
 }

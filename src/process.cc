@@ -75,7 +75,12 @@ Process::Process(
 
 
 Process::~Process()
-{ kill(); }
+{
+    if (waitpid(m_child_pid, nullptr, WNOHANG) == 0) {
+        ::kill(m_child_pid, SIGKILL);
+        waitpid(m_child_pid, nullptr, 0);
+    }
+}
 
 
 auto
@@ -123,16 +128,13 @@ Process::is_done() -> std::pair<bool, int32_t>
     pid_t   result = waitpid(m_child_pid, &status, WNOHANG);
 
     if (result == -1) {
-        ma_logger.load()->log(
-            Logger::Error, "`waitpid()` failed: {}", Utils::serrno()
-        );
-        return { false, -1 };
+        return { true, status };
     }
 
     /* Child is not dead */
-    if (result == 0) return { false, 0 };
+    if (result == 0) return { false, status };
 
     if (WIFEXITED(status)) return { true, WEXITSTATUS(status) };
     if (WIFSIGNALED(status)) return { true, 128 + WTERMSIG(status) };
-    return { false, -1 };
+    return { false, status };
 }
