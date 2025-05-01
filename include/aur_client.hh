@@ -84,8 +84,6 @@ private:
     std::string_view m_url;
     Logger          *m_logger;
 
-    auto perform_curl(
-        const std::string &url, std::string &read_buffer) -> CURLcode;
     auto get_json_from_stream(std::istringstream &iss) -> Json::Value;
 };
 

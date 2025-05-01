@@ -112,7 +112,7 @@ ArgParser::find_option_short(
 
         /* Case: -X=value */
         if (a.second.contains('=')) {
-            auto arg_and_option = Str::split(a.second, a.second.find('='));
+            auto arg_and_option = Str::splitp(a.second, a.second.find('='));
 
             if (arg_and_option.front().back() == arg) {
                 option = arg_and_option.back();
