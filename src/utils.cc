@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <cerrno>
 #include <chrono>
 #include <format>
 
@@ -231,6 +232,14 @@ namespace Utils {
         c_argv.push_back(nullptr);
 
         return ::execvp(file.c_str(), c_argv.data());
+    }
+
+
+    auto
+    serrno() -> std::string
+    {
+        auto err = errno;
+        return strerror(err);
     }
 } /* namespace Utils */
 

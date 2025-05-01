@@ -17,11 +17,10 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <algorithm>
 #include <filesystem>
-#include <cstring>
 #include <format>
 
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "process.hh"
@@ -44,7 +43,7 @@ Process::Process(
 
     if (pid == -1) {
         ma_logger.load()->log(
-            Logger::Error, "Failed to create child process: {}", strerror(errno)
+            Logger::Error, "Failed to create child process: {}", Utils::serrno()
         );
         exit(EXIT_FAILURE);
     }
@@ -56,7 +55,7 @@ Process::Process(
 
         if (chdir(m_cwd.c_str()) != 0) {
             ma_logger.load()->log(
-                Logger::Error, "Failed to change directory: {}", strerror(errno)
+                Logger::Error, "Failed to change directory: {}", Utils::serrno()
             );
             exit(EXIT_FAILURE);
         }
@@ -66,10 +65,74 @@ Process::Process(
         ma_logger.load()->log(
             Logger::Error,
             "'execvp' failed to run: {}",
-            strerror(errno)
+            Utils::serrno()
         );
         exit(EXIT_FAILURE);
     } else { /* Parent */
         m_child_pid = pid;
     }
+}
+
+
+Process::~Process()
+{ kill(); }
+
+
+auto
+Process::kill() -> int32_t
+{
+    int32_t status = -1;
+    pid_t   result = waitpid(m_child_pid, &status, WNOHANG);
+
+    if (result == -1) {
+        ma_logger.load()->log(
+            Logger::Error, "`waitpid()` failed: {}", Utils::serrno()
+        );
+        return -1;
+    }
+
+    /* Child is not dead */
+    if (result == 0) {
+        if (::kill(m_child_pid, SIGKILL) == -1) {
+            ma_logger.load()->log(
+                Logger::Error, "Failed to kill process: {}", Utils::serrno()
+            );
+            return -1;
+        }
+
+        if (waitpid(m_child_pid, &status, 0) == -1) {
+            ma_logger.load()->log(
+                Logger::Error,
+                "'waitpid()' after kill failed: {}",
+                Utils::serrno()
+            );
+            return -1;
+        }
+    }
+
+    if (WIFEXITED(status)) return WEXITSTATUS(status);
+    if (WIFSIGNALED(status)) return 128 + WTERMSIG(status);
+    return -1;
+}
+
+
+auto
+Process::is_done() -> std::pair<bool, int32_t>
+{
+    int32_t status = -1;
+    pid_t   result = waitpid(m_child_pid, &status, WNOHANG);
+
+    if (result == -1) {
+        ma_logger.load()->log(
+            Logger::Error, "`waitpid()` failed: {}", Utils::serrno()
+        );
+        return { false, -1 };
+    }
+
+    /* Child is not dead */
+    if (result == 0) return { false, 0 };
+
+    if (WIFEXITED(status)) return { true, WEXITSTATUS(status) };
+    if (WIFSIGNALED(status)) return { true, 128 + WTERMSIG(status) };
+    return { false, -1 };
 }

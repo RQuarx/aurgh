@@ -136,6 +136,11 @@ namespace Utils {
         std::string &file, std::vector<std::string> &argv
     ) -> int32_t;
 
+    /**
+     * @brief Returns errno as an std::string.
+     */
+    auto serrno() -> std::string;
+
 
     template<typename... T_Args>
     auto format(std::string_view fmt, T_Args&&... args) -> std::string
@@ -147,7 +152,7 @@ namespace Utils {
 
     template<typename T>
     auto
-    find(const std::vector<T> &vec, T obj) -> bool
+    find(const std::vector<T> &vec, const T &obj) -> bool
     { return std::ranges::find(vec, obj) != vec.end(); }
 } /* namespace Utils */
 

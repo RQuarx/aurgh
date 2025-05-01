@@ -17,8 +17,6 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// import std;
-
 #include <gtkmm/window.h>
 #include <curl/curl.h>
 
@@ -29,7 +27,7 @@
 #include "logger.hh"
 
 /* ! IMPORTANT APPLICATION DATA ! */
-static const std::string_view APP_VERSION = "0.0.10"; /* Bump minor on installation feature */
+static const std::string_view APP_VERSION = "0.0.11"; /* Bump minor on installation feature */
 
 
 auto
@@ -52,6 +50,8 @@ main(int32_t argc, char **argv) -> int32_t
     AUR_Client  aur_client(&logger, "");
     Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
 
+    auto proc = Process("git", { "clone", "https://github.com/git/git" }, &logger);
+
     if (curl_global_init(CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE) != 0) {
         logger.log(Logger::Error, "Failed to init curl");
         return EXIT_FAILURE;
@@ -68,6 +68,8 @@ main(int32_t argc, char **argv) -> int32_t
        like that in GTK3
     */
     argc = 0;
+
+    logger.log(Logger::Debug, "Return: {}", proc.kill());
 
     return app->run(window, argc, argv);
 }

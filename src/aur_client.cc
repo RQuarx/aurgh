@@ -17,10 +17,15 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
+#include <chrono>
+#include <thread>
+
 #include <json/json.h>
 
 #include "aur_client.hh"
 #include "logger.hh"
+#include "process.hh"
 
 
 AUR_Client::AUR_Client(Logger *logger, std::string_view url) :
@@ -82,6 +87,32 @@ AUR_Client::info(const std::string &args) -> Json::Value
 
     std::istringstream iss(read_buffer);
     return get_json_from_stream(iss);
+}
+
+
+auto
+AUR_Client::install(
+    const std::string &pkg_name, const std::string &prefix) -> bool
+{
+    std::string url = std::format("https://aur.archlinux.org/{}.git", pkg_name);
+    Process git("git", { "clone", url }, m_logger, prefix);
+
+    while (!git.is_done().first && git.is_done().second == 0) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    if (git.is_done().second == -1) return false;
+    git.kill();
+
+    if (!std::filesystem::exists(pkg_name)) {
+        m_logger->log(Logger::Error, "Failed to git clone.");
+        return false;
+    }
+
+    chdir(pkg_name.c_str());
+
+    /* polkit stuff??? */
+    return false;
 }
 
 

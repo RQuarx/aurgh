@@ -20,13 +20,12 @@ src = files(
     'src/utils.cc'
 )
 
-gtkmm_dep = dependency('gtkmm-3.0')
-glibmm_dep = dependency('glibmm-2.4')
-curl_dep = dependency('libcurl')
-jsoncpp_dep = dependency('jsoncpp')
-libuv_dep = dependency('libuv')
-
-deps = [gtkmm_dep, glibmm_dep, curl_dep, jsoncpp_dep, libuv_dep]
+deps = [
+    dependency('gtkmm-3.0'),
+    dependency('glibmm-2.4'),
+    dependency('libcurl'),
+    dependency('jsoncpp'),
+]
 
 cpp_args = [
     '-g',

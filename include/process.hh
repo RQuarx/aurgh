@@ -36,7 +36,20 @@ public:
         Logger *logger,
         const std::string &cwd = ""
     );
-    // ~Process();
+    ~Process();
+
+    /**
+     * @brief Kills the process, or returns the return code
+     *     if the process were to end before the function is called.
+     * @returns -1 on failure, 0 on success / return code, or the return code.
+     */
+    auto kill() -> int32_t;
+
+    /**
+     * @brief Checks if the process is 'done'
+     * @returns A pair of bool and int32_t which indicates success and return code.
+     */
+    auto is_done() -> std::pair<bool, int32_t>;
 
 private:
     std::atomic<Logger*> ma_logger;

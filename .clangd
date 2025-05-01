@@ -19,7 +19,6 @@ Diagnostics:
             'readability-identifier-length',
             'readability-braces-around-statements',
             'bugprone-easily-swappable-parameters',
-            'modernize-use-designated-initializers',
             'readability-magic-numbers',
             'cppcoreguidelines-pro-type-cstyle-cast',
             'misc-non-private-member-variables-in-classes',

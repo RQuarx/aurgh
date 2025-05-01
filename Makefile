@@ -3,7 +3,7 @@ CXX_LD := lld
 
 BUILD_DIR := target
 
-DEPS := gtkmm-3.0 glibmm-2.68 libcurl jsoncpp
+DEPS := gtkmm-3.0 glibmm-2.4 libcurl jsoncpp
 
 setup:
 	CXX=$(CXX) CXX_LD=$(CXX_LD) meson setup -Dbuildtype=debugoptimized $(BUILD_DIR)
@@ -25,4 +25,3 @@ check:
 			printf "%-15s \033[0;31m%s\033[0m\n" "$$dep" "✗ not satisfied"; \
 		fi; \
 	done
-

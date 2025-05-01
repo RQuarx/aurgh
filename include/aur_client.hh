@@ -64,6 +64,15 @@ public:
     auto info(const std::string &args) -> Json::Value;
 
     /**
+     * @brief Installs an aur package
+     * @param pkg_name The name of the package to be installed
+     * @param prefix The base directory where the git clones will happen
+     * @returns true on success, or false on failure
+     */
+    auto install(
+        const std::string &pkg_name, const std::string &prefix = "") -> bool;
+
+    /**
      * @brief Get the available "search by" keywords used for the search function.
      * @returns an array of const std::string with the size of 14.
      */
