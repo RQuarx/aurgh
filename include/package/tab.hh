@@ -27,7 +27,7 @@
 #include <json/value.h>
 #include <gtkmm/box.h>
 
-#include "package/card.hh"
+#include "card.hh"
 #include "utils.hh"
 
 namespace Gtk {
@@ -38,56 +38,67 @@ namespace Gtk {
     class Spinner;
     class Frame;
 }
-class AUR_Client;
+namespace AUR { class Client; }
 class Logger;
 
 
-/**
- * @class PackageTab
- * @brief A tab for AUR package management
- * @ingroup Widget
- * @ingroup Container
- * @ingroup Box
- */
-class PackageTab : public Gtk::Box
-{
-public:
-    explicit PackageTab(AUR_Client *aur_client, Logger *logger);
+namespace pkg {
+    /**
+    * @class PackageTab
+    * @brief A tab for AUR package management
+    * @ingroup Widget
+    * @ingroup Container
+    * @ingroup Box
+    */
+    class Tab : public Gtk::Box
+    {
+    public:
+        explicit Tab(AUR::Client *aur_client, Logger *logger);
 
-private:
-    const int32_t m_default_spacing = 5;
+    private:
+        const int32_t m_default_spacing = 5;
 
-    Gtk::ScrolledWindow *m_search_results;
-    Gtk::ComboBoxText   *m_search_by;
-    Gtk::ComboBoxText   *m_sort_by;
-    Gtk::CheckButton    *m_reverse_sort;
-    Gtk::SearchEntry    *m_entry;
-    Gtk::Spinner        *m_spinner;
-    Gtk::Label          *m_quote_label;
-    Gtk::Box            *m_result_box;
+        Gtk::ScrolledWindow *m_search_results;
+        Gtk::ComboBoxText   *m_search_by;
+        Gtk::ComboBoxText   *m_sort_by;
+        Gtk::CheckButton    *m_reverse_sort;
+        Gtk::SearchEntry    *m_entry;
+        Gtk::Spinner        *m_spinner;
+        Gtk::Label          *m_quote_label;
+        Gtk::Box            *m_result_box;
 
-    Glib::Dispatcher m_package_dispatcher;
-    Glib::Dispatcher m_quote_dispatcher;
+        Glib::Dispatcher m_package_dispatcher;
+        Glib::Dispatcher m_quote_dispatcher;
 
-    AUR_Client *m_aur_client;
-    Logger     *m_logger;
+        AUR::Client *m_aur_client;
+        Logger      *m_logger;
 
-    std::queue<Json::Value> m_package_queue;
-    Json::Value             m_aur_packages;
+        std::queue<Json::Value> m_package_queue;
+        Json::Value             m_aur_packages;
+        Json::Value             m_actions;
 
-    std::string m_quote;
+        std::string m_quote;
 
-protected:
-    auto create_search_box() -> Gtk::Box*;
+    protected:
+        auto create_search_box() -> Gtk::Box*;
 
-    void on_search();
-    void on_dispatch_search_ready();
-    void on_download_clicked();
-    void process_next_package(
-        const std::vector<Utils::str_pair> &installed_packages);
+        void on_search();
+        void on_dispatch_search_ready();
+        void on_download_clicked();
+        void process_next_package(
+            const std::vector<std::pair<std::string, std::string>> &installed_packages);
 
-    static auto get_installed_aur_packages() -> std::vector<Utils::str_pair>;
-    auto sort_packages(Json::Value packages) -> std::vector<Json::Value>;
-};
+        void on_card_download_clicked(
+            const std::string &pkg_name,
+            const std::string &pkg_version,
+            int8_t find_result,
+            Gtk::Button *&button
+        );
+
+        auto sort_packages(Json::Value packages) -> std::vector<Json::Value>;
+        static auto get_installed_aur_packages(
+            ) -> std::vector<std::pair<std::string, std::string>>;
+    };
+} /* namespace pkg */
 
 #endif /* package/tab.hh */

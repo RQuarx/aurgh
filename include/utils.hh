@@ -36,6 +36,7 @@ namespace Gtk {
     class Box;
 }
 
+
 /**
  * @namespace Str
  * @brief A namespace containing str utilities
@@ -75,8 +76,6 @@ namespace Str {
  * @brief A namespace containing usefull utilities
  */
 namespace Utils {
-    using str_pair = std::pair<std::string, std::string>;
-
     static const size_t DEFAULT_COLOR_THRESHOLD = 16UZ;
     static const size_t DEFAULT_BUFFER_SIZE     = 256UZ;
 

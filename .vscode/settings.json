@@ -5,11 +5,15 @@
     "editor.rulers": [ 80 ],
     "clangd.path": "/usr/bin/clangd",
     "clangd.arguments": [
+        "--experimental-modules-support",
         "--log=verbose",
         "--pretty",
         "--background-index",
         "--header-insertion-decorators",
         "--enable-config",
-        "--header-insertion=never"
+        "--header-insertion=never",
+        "-j=8",
+        "--malloc-trim",
+        "--compile-commands-dir=./target"
     ],
 }

@@ -122,19 +122,15 @@ Process::kill() -> int32_t
 
 
 auto
-Process::is_done() -> std::pair<bool, int32_t>
+Process::is_done() const -> std::optional<int32_t>
 {
     int32_t status = -1;
     pid_t   result = waitpid(m_child_pid, &status, WNOHANG);
 
-    if (result == -1) {
-        return { true, status };
-    }
+    if (result == -1) return std::nullopt;
+    if (result == 0) return status;
 
-    /* Child is not dead */
-    if (result == 0) return { false, status };
-
-    if (WIFEXITED(status)) return { true, WEXITSTATUS(status) };
-    if (WIFSIGNALED(status)) return { true, 128 + WTERMSIG(status) };
-    return { false, status };
+    if (WIFEXITED(status)) return WEXITSTATUS(status);
+    if (WIFSIGNALED(status)) return 128 + WTERMSIG(status);
+    return std::nullopt;
 }

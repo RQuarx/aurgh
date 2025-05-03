@@ -27,7 +27,7 @@
 #include "logger.hh"
 
 /* ! IMPORTANT APPLICATION DATA ! */
-static const std::string_view APP_VERSION = "0.0.11"; /* Bump minor on installation feature */
+static const std::string_view APP_VERSION = "0.0.12"; /* Bump minor on installation feature */
 
 
 auto
@@ -47,7 +47,7 @@ main(int32_t argc, char **argv) -> int32_t
     }
 
     Logger      logger(arg_parser);
-    AUR_Client  aur_client(&logger, "");
+    AUR::Client  aur_client(&logger, "");
     Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
 
     // auto proc = Process("git", { "clone", "https://github.com/git/git" }, &logger);
@@ -57,7 +57,7 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_FAILURE;
     }
 
-    auto *package_tab = Gtk::make_managed<PackageTab>(&aur_client, &logger);
+    auto *package_tab = Gtk::make_managed<pkg::Tab>(&aur_client, &logger);
 
     window.set_title("AUR Graphical Helper");
     window.add(*package_tab);

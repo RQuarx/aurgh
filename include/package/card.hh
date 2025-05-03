@@ -21,56 +21,68 @@
 #ifndef PACKAGE_CARD_HH__
 #define PACKAGE_CARD_HH__
 
-#include <cstdint>
+#include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gtkmm/frame.h>
 #include <json/value.h>
 
-namespace Utils { using str_pair = std::pair<std::string, std::string>; }
+#include "type.hh"
+
+
 namespace Gtk {
     class Button;
     class Box;
 }
+class Logger;
+
+using str_pair = std::pair<std::string, std::string>;
 
 
-/**
- * @class Card
- * @brief A widget that displays information for an AUR package
- * @ingroup Widget
- * @ingroup Container
- * @ingroup Frame
- */
-class Card : public Gtk::Frame
-{
-public:
-    explicit Card(
-        Json::Value package,
-        const std::vector<Utils::str_pair> &installed_aur_packages,
-        int32_t spacing = DEFAULT_SPACING
-    );
-
-private:
-    static const inline int32_t DEFAULT_SPACING = 5;
-
-    std::vector<Utils::str_pair> m_installed_package;
-    Json::Value                  m_package;
-
-    int32_t m_default_spacing;
-
-    void create_info_box(Gtk::Box &box) const;
-    void create_package_name(Gtk::Box &box) const;
-    void create_action_button(Gtk::Button &button) const;
-    void create_popularity_frame(Gtk::Frame &frame) const;
-
+namespace pkg {
     /**
-     @brief Searches for a package inside installed_aur_package
-     @returns -1 on none, 0 on all, 1 on name.
-     */
-    auto find_package(
-        const Utils::str_pair &package
-    ) const -> int8_t;
-};
+    * @class Card
+    * @brief A widget that displays information for an AUR package
+    * @ingroup Widget
+    * @ingroup Container
+    * @ingroup Frame
+    */
+    class Card : public Gtk::Frame
+    {
+    public:
+        explicit Card(
+            Json::Value package,
+            const std::vector<str_pair> &installed_aur_packages,
+            Json::Value *actions,
+            Logger *logger,
+            int32_t spacing = DEFAULT_SPACING
+        );
+
+    private:
+        static const inline int32_t DEFAULT_SPACING = 5;
+
+        std::vector<str_pair>      m_installed_package;
+        Json::Value                m_package;
+        Json::Value               *m_actions;
+        Logger                    *m_logger;
+
+        int32_t m_default_spacing;
+
+        void create_action_button(Gtk::Button &button);
+        void create_info_box(Gtk::Box &box) const;
+        void create_package_name(Gtk::Box &box) const;
+        void create_popularity_frame(Gtk::Frame &frame) const;
+
+        /**
+        @brief Searches for a package inside installed_aur_package
+        @returns -1 on none, 0 on all, 1 on name.
+        */
+        auto find_package(
+            const str_pair &package
+        ) const -> int8_t;
+    };
+} /* namespace pkg */
 
 #endif /* package/card.hh */

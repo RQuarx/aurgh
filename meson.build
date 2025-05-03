@@ -25,6 +25,7 @@ deps = [
     dependency('glibmm-2.4'),
     dependency('libcurl'),
     dependency('jsoncpp'),
+    dependency('libalpm'),
 ]
 
 cpp_args = [

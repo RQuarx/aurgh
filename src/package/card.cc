@@ -25,17 +25,26 @@
 #include <gtkmm/box.h>
 #include <json/value.h>
 
+#include <utility>
+
 #include "package/card.hh"
+#include "logger.hh"
 #include "utils.hh"
+
+using pkg::Card;
 
 
 Card::Card(
     Json::Value package,
-    const std::vector<Utils::str_pair> &installed_aur_packages,
+    const std::vector<str_pair> &installed_aur_packages,
+    Json::Value *actions,
+    Logger *logger,
     int32_t spacing
 ) :
     m_installed_package(installed_aur_packages),
     m_package(std::move(package)),
+    m_actions(actions),
+    m_logger(logger),
     m_default_spacing(spacing)
 {
     auto *card             = Gtk::make_managed<Gtk::Box>();
@@ -163,13 +172,15 @@ Card::create_popularity_frame(Gtk::Frame &frame) const
 
 
 void
-Card::create_action_button(Gtk::Button &button) const
+Card::create_action_button(Gtk::Button &button)
 {
     std::string icon_name;
 
     std::string pkg_name    = m_package["Name"].asString();
     std::string pkg_version = m_package["Version"].asString();
-    int8_t result = find_package({ pkg_name, pkg_version });
+
+    str_pair pkg(pkg_name, pkg_version);
+    int8_t result = find_package(pkg);
 
     if (result == -1) {
         icon_name = "document-save-symbolic";
@@ -179,6 +190,19 @@ Card::create_action_button(Gtk::Button &button) const
         icon_name = "view-refresh-symbolic";
     }
 
+    button.signal_clicked().connect([result, this, pkg_name](){
+        (*m_actions)[pkg_name] = result;
+
+        Json::Value actions = Json::objectValue;
+
+        for (const auto &pkg : m_actions->getMemberNames()) {
+            actions[pkg] =
+                std::format("{}", pkg::Type((*m_actions)[pkg].asInt()));
+        }
+
+        m_logger->log(Logger::Debug, "\n{}", actions.toStyledString());
+    });
+
     button.set_image_from_icon_name(icon_name);
     button.set_valign(Gtk::ALIGN_CENTER);
     button.set_halign(Gtk::ALIGN_END);
@@ -187,7 +211,7 @@ Card::create_action_button(Gtk::Button &button) const
 
 
 auto
-Card::find_package(const Utils::str_pair &package) const -> int8_t
+Card::find_package(const str_pair &package) const -> int8_t
 {
     std::vector<std::string> version;
     std::vector<std::string> name;

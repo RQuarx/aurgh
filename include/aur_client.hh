@@ -33,67 +33,69 @@ namespace Json { class Value; }
 class Logger;
 
 
-/**
- * @class AUR_Client
- * @brief A class made to fetch json fata from the Arch User Repository.
- */
-class AUR_Client
-{
-public:
+namespace AUR {
     /**
-     * @brief Constructs an AUR_Client class.
-     * @param logger A pointer to a Logger instance.
-     * @param url A custom AUR url, defaults to https://aur.archlinux.org/rpc/v5
-     */
-    explicit AUR_Client(Logger *logger, std::string_view url = "");
+    * @class Client
+    * @brief A class made to fetch json fata from the Arch User Repository.
+    */
+    class Client
+    {
+    public:
+        /**
+        * @brief Constructs an AUR_Client class.
+        * @param logger A pointer to a Logger instance.
+        * @param url A custom AUR url, defaults to https://aur.archlinux.org/rpc/v5
+        */
+        explicit Client(Logger *logger, std::string_view url = "");
 
-    /**
-     * @brief Searches a package on the AUR.
-     * @param args the args that is given to url/search/...
-     * @param by What to search by.
-     * @returns A Json::Value object.
-     */
-    auto search(
-        const std::string &args, const std::string &by = "") -> Json::Value;
+        /**
+        * @brief Searches a package on the AUR.
+        * @param args the args that is given to url/search/...
+        * @param by What to search by.
+        * @returns A Json::Value object.
+        */
+        auto search(
+            const std::string &args, const std::string &by = "") -> Json::Value;
 
-    /**
-     * @brief Gets an information about a package.
-     * @param args the args that is given to url/info?arg[]=...
-     * @returns A Json::Value object.
-     */
-    auto info(const std::string &args) -> Json::Value;
+        /**
+        * @brief Gets an information about a package.
+        * @param args the args that is given to url/info?arg[]=...
+        * @returns A Json::Value object.
+        */
+        auto info(const std::string &args) -> Json::Value;
 
-    /**
-     * @brief Installs an aur package
-     * @param pkg_name The name of the package to be installed
-     * @param prefix The base directory where the git clones will happen
-     * @returns true on success, or false on failure
-     */
-    auto install(
-        const std::string &pkg_name, const std::string &prefix = "") -> bool;
+        /**
+        * @brief Installs an aur package
+        * @param pkg_name The name of the package to be installed
+        * @param prefix The base directory where the git clones will happen
+        * @returns true on success, or false on failure
+        */
+        auto install(
+            const std::string &pkg_name, const std::string &prefix = "") -> bool;
 
-    /**
-     * @brief Get the available "search by" keywords used for the search function.
-     * @returns an array of const std::string with the size of 14.
-     */
-    static auto get_search_by_keywords(
-        ) -> std::array<const std::string, SEARCH_BY_KEYWORDS>;
+        /**
+        * @brief Get the available "search by" keywords used for the search function.
+        * @returns an array of const std::string with the size of 14.
+        */
+        static auto get_search_by_keywords(
+            ) -> std::array<const std::string, SEARCH_BY_KEYWORDS>;
 
-    /**
-     * @brief Get the available "sort by" keywords used for the search function.
-     * @returns an array of const std::string with the size of 7.
-     */
-    static auto get_sort_by_keywords(
-        ) -> std::array<const std::string, SORT_BY_KEYWORDS>;
+        /**
+        * @brief Get the available "sort by" keywords used for the search function.
+        * @returns an array of const std::string with the size of 7.
+        */
+        static auto get_sort_by_keywords(
+            ) -> std::array<const std::string, SORT_BY_KEYWORDS>;
 
-private:
-    static const inline std::string_view DEFAULT_AUR_URL =
-        "https://aur.archlinux.org/rpc/v5";
+    private:
+        static const inline std::string_view DEFAULT_AUR_URL =
+            "https://aur.archlinux.org/rpc/v5";
 
-    std::string_view m_url;
-    Logger          *m_logger;
+        std::string_view m_url;
+        Logger          *m_logger;
 
-    auto get_json_from_stream(std::istringstream &iss) -> Json::Value;
-};
+        auto get_json_from_stream(std::istringstream &iss) -> Json::Value;
+    };
+} /* namespace AUR */
 
 #endif /* aur_client.hh */

@@ -34,8 +34,10 @@
 #include "logger.hh"
 #include "utils.hh"
 
+using pkg::Tab;
 
-PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
+
+Tab::Tab(AUR::Client *aur_client, Logger *logger) :
     m_search_results(Gtk::make_managed<Gtk::ScrolledWindow>()),
     m_search_by(Gtk::make_managed<Gtk::ComboBoxText>()),
     m_sort_by(Gtk::make_managed<Gtk::ComboBoxText>()),
@@ -45,7 +47,8 @@ PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
     m_quote_label(Gtk::make_managed<Gtk::Label>()),
     m_result_box(Gtk::make_managed<Gtk::Box>()),
     m_aur_client(aur_client),
-    m_logger(logger)
+    m_logger(logger),
+    m_actions(Json::objectValue)
 {
     m_package_dispatcher.connect([this](){
         on_dispatch_search_ready();
@@ -92,7 +95,7 @@ PackageTab::PackageTab(AUR_Client *aur_client, Logger *logger) :
 
 
 auto
-PackageTab::create_search_box() -> Gtk::Box*
+Tab::create_search_box() -> Gtk::Box*
 {
     auto *main_box          = Gtk::make_managed<Gtk::Box>();
     auto *search_by_frame = Gtk::make_managed<Gtk::Frame>();
@@ -104,8 +107,8 @@ PackageTab::create_search_box() -> Gtk::Box*
     auto *menu        = Gtk::make_managed<Gtk::Box>();
     auto *menu_icon = Gtk::make_managed<Gtk::Image>();
 
-    auto search_by_keywords = AUR_Client::get_search_by_keywords();
-    auto sort_by_keywords   = AUR_Client::get_sort_by_keywords();
+    auto search_by_keywords = AUR::Client::get_search_by_keywords();
+    auto sort_by_keywords   = AUR::Client::get_sort_by_keywords();
 
     for (const auto &w : search_by_keywords) m_search_by->append(w);
     for (const auto &w : sort_by_keywords) m_sort_by->append(w);
@@ -173,7 +176,7 @@ PackageTab::create_search_box() -> Gtk::Box*
 
 
 void
-PackageTab::on_search()
+Tab::on_search()
 {
     if (m_entry->get_text_length() < 3) return;
 
@@ -209,7 +212,7 @@ PackageTab::on_search()
 
 
 void
-PackageTab::on_dispatch_search_ready()
+Tab::on_dispatch_search_ready()
 {
     for (size_t i = 0; i < m_package_queue.size(); i++) {
         m_package_queue.pop();
@@ -245,15 +248,16 @@ PackageTab::on_dispatch_search_ready()
 
 
 void
-PackageTab::process_next_package(
-    const std::vector<Utils::str_pair> &installed_packages)
+Tab::process_next_package(
+    const std::vector<std::pair<std::string, std::string>> &installed_packages)
 {
     if (m_package_queue.empty()) return;
 
     auto package = m_package_queue.front();
     m_package_queue.pop();
 
-    auto *card = Gtk::make_managed<Card>(package, installed_packages);
+    auto *card = Gtk::make_managed<Card>(
+        package, installed_packages, &m_actions, m_logger);
 
     m_result_box->pack_start(*card, true, true);
     m_result_box->show_all_children();
@@ -265,10 +269,10 @@ PackageTab::process_next_package(
 
 
 auto
-PackageTab::get_installed_aur_packages(
-    ) -> std::vector<Utils::str_pair>
+Tab::get_installed_aur_packages(
+    ) -> std::vector<std::pair<std::string, std::string>>
 {
-    std::vector<Utils::str_pair> installed_packages;
+    std::vector<std::pair<std::string, std::string>> installed_packages;
     std::istringstream iss(Utils::run_command("pacman -Qm", 512)->first);
     std::string line;
 
@@ -285,7 +289,7 @@ PackageTab::get_installed_aur_packages(
 
 
 auto
-PackageTab::sort_packages(Json::Value packages) -> std::vector<Json::Value>
+Tab::sort_packages(Json::Value packages) -> std::vector<Json::Value>
 {
     std::vector<Json::Value> package;
     package.reserve(packages["results"].size());

@@ -21,6 +21,7 @@
 #ifndef PROCESS_HH__
 #define PROCESS_HH__
 
+#include <optional>
 #include <atomic>
 #include <string>
 #include <vector>
@@ -47,9 +48,10 @@ public:
 
     /**
      * @brief Checks if the process is 'done'
-     * @returns A pair of bool and int32_t which indicates success and return code.
+     * @returns std::nullopt on failure, else the return code or -1.
      */
-    auto is_done() -> std::pair<bool, int32_t>;
+    [[nodiscard]]
+    auto is_done() const -> std::optional<int32_t>;
 
 private:
     std::atomic<Logger*> ma_logger;

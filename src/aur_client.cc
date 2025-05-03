@@ -27,8 +27,10 @@
 #include "logger.hh"
 #include "process.hh"
 
+using AUR::Client;
 
-AUR_Client::AUR_Client(Logger *logger, std::string_view url) :
+
+Client::Client(Logger *logger, std::string_view url) :
     m_url(!url.empty() ? url : DEFAULT_AUR_URL),
     m_logger(logger)
 {
@@ -39,7 +41,7 @@ AUR_Client::AUR_Client(Logger *logger, std::string_view url) :
 
 
 auto
-AUR_Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
+Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
 {
     Json::CharReaderBuilder reader;
     Json::Value             data;
@@ -56,7 +58,7 @@ AUR_Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
 
 
 auto
-AUR_Client::search(
+Client::search(
     const std::string &args, const std::string &by) -> Json::Value
 {
     std::string full_url = std::format("{}/search/{}", m_url, args);
@@ -76,7 +78,7 @@ AUR_Client::search(
 
 
 auto
-AUR_Client::info(const std::string &args) -> Json::Value
+Client::info(const std::string &args) -> Json::Value
 {
     std::string full_url = std::format("{}/info?arg[]={}", m_url, args);
 
@@ -91,17 +93,17 @@ AUR_Client::info(const std::string &args) -> Json::Value
 
 
 auto
-AUR_Client::install(
+Client::install(
     const std::string &pkg_name, const std::string &prefix) -> bool
 {
     std::string url = std::format("https://aur.archlinux.org/{}.git", pkg_name);
     Process git("git", { "clone", url }, m_logger, prefix);
 
-    while (!git.is_done().first && git.is_done().second == 0) {
+    while (git.is_done() == -1) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    if (git.is_done().second == -1) return false;
+    if (git.is_done() == std::nullopt) return false;
     git.kill();
 
     if (!std::filesystem::exists(pkg_name)) {
@@ -111,13 +113,13 @@ AUR_Client::install(
 
     chdir(pkg_name.c_str());
 
-    /* polkit stuff??? */
+    Process ls("ls", {}, m_logger, prefix + pkg_name);
     return false;
 }
 
 
 auto
-AUR_Client::get_search_by_keywords(
+Client::get_search_by_keywords(
     ) -> std::array<const std::string, SEARCH_BY_KEYWORDS>
 {
     return {{
@@ -133,7 +135,7 @@ AUR_Client::get_search_by_keywords(
 
 
 auto
-AUR_Client::get_sort_by_keywords(
+Client::get_sort_by_keywords(
     ) -> std::array<const std::string, SORT_BY_KEYWORDS>
 {
     return {{
