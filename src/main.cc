@@ -27,7 +27,7 @@
 #include "logger.hh"
 
 /* ! IMPORTANT APPLICATION DATA ! */
-static const std::string_view APP_VERSION = "0.0.12"; /* Bump minor on installation feature */
+static const std::string_view APP_VERSION = "0.0.13"; /* Bump minor on installation feature */
 
 
 auto

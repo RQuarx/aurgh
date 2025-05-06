@@ -25,6 +25,7 @@
 #include <utility>
 #include <format>
 #include <string>
+#include <vector>
 
 using str_pair = std::pair<std::string, std::string>;
 
@@ -35,6 +36,27 @@ namespace pkg {
         Remove  = 0,
         Update  = 1,
         None    = 2,
+    };
+
+    struct Actions {
+        std::vector<std::string> install;
+        std::vector<std::string> remove;
+        std::vector<std::string> update;
+
+        Actions() {
+            install.reserve(10);
+            remove.reserve(10);
+            update.reserve(10);
+        }
+
+        [[nodiscard]]
+        auto at(pkg::Type t) -> std::vector<std::string>*
+        {
+            if (t == pkg::Install) { return &install; }
+            if (t == pkg::Remove)  { return &remove; }
+            if (t == pkg::Update)  { return &update; }
+            return &install;
+        }
     };
 } /* namespace pkg */
 
@@ -47,6 +69,46 @@ struct std::formatter<pkg::Type> : std::formatter<std::string> {
             case pkg::Update:  return format_to(ctx.out(), "update");
             default:      return format_to(ctx.out(), "none");
         }
+    }
+};
+
+template <typename CharT>
+struct std::formatter<std::vector<std::string>, CharT> {
+    constexpr auto parse(std::format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(const std::vector<std::string>& vec, FormatContext& ctx) const {
+        auto out = ctx.out();
+        *out++ = "\n\t[";
+
+        if (!vec.empty()) {
+            *out++ = '\n';
+            for (std::size_t i = 0; i < vec.size(); ++i) {
+                out = std::format_to(out, "\t\t\"{}\"{}", vec[i], (i + 1 < vec.size() ? ",\n" : "\n"));
+            }
+            out = std::format_to(out, "\t");
+        }
+
+        *out++ = ']';
+        return out;
+    }
+};
+
+template <typename CharT>
+struct std::formatter<pkg::Actions, CharT> {
+    constexpr auto parse(std::format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(const pkg::Actions& actions, FormatContext& ctx) const {
+        auto out = ctx.out();
+        out = std::format_to(out,
+"\"actions\":\n{{\n\t\"install\":\t{},\n\t\"remove\":\t{},\n\t\"update\":\t{}\n}}",
+            actions.install, actions.remove, actions.update);
+        return out;
     }
 };
 

@@ -23,6 +23,8 @@
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/checkbutton.h>
 #include <gtkmm/searchentry.h>
+#include <gtkmm/linkbutton.h>
+#include <gtkmm/expander.h>
 #include <gtkmm/spinner.h>
 #include <gtkmm/label.h>
 #include <gtkmm/image.h>
@@ -46,9 +48,9 @@ Tab::Tab(AUR::Client *aur_client, Logger *logger) :
     m_spinner(Gtk::make_managed<Gtk::Spinner>()),
     m_quote_label(Gtk::make_managed<Gtk::Label>()),
     m_result_box(Gtk::make_managed<Gtk::Box>()),
+    m_actions_widget(Gtk::make_managed<Gtk::Expander>()),
     m_aur_client(aur_client),
-    m_logger(logger),
-    m_actions(Json::objectValue)
+    m_logger(logger)
 {
     m_package_dispatcher.connect([this](){
         on_dispatch_search_ready();
@@ -62,28 +64,47 @@ Tab::Tab(AUR::Client *aur_client, Logger *logger) :
 
     m_logger->log(Logger::Debug, "Creating packages tab");
 
+    auto *action_box  = Gtk::make_managed<Gtk::Box>();
     auto *frame     = Gtk::make_managed<Gtk::Frame>();
     auto *results_box = Gtk::make_managed<Gtk::Box>();
     auto *label     = Gtk::make_managed<Gtk::Label>();
 
+    action_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    action_box->set_margin_left(10);
+
+    for (const auto &t : { pkg::Install, pkg::Remove, pkg::Update }) {
+        m_actions_view.at(t) = Gtk::make_managed<Gtk::Expander>();
+        m_actions_view.at(t)->set_label(std::format("{}", t));
+
+        m_actions_view.at(t)->signal_button_press_event().connect(sigc::bind(
+            sigc::mem_fun(this, &Tab::on_action_type_opened), t
+        ));
+
+        action_box->pack_start(*m_actions_view.at(t));
+    }
+
     GtkUtils::set_margin(*this, m_default_spacing);
     set_orientation(Gtk::ORIENTATION_VERTICAL);
-
-    m_result_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
-    m_result_box->set_spacing(m_default_spacing);
 
     label->set_markup("<b>Search to view AUR packages</b>");
     label->set_opacity(0.5);
 
     m_result_box->pack_start(*label);
-    m_result_box->set_hexpand();
+    m_result_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    m_result_box->set_spacing(m_default_spacing);
     m_result_box->set_halign(Gtk::ALIGN_CENTER);
+    m_result_box->set_hexpand();
 
     m_search_results->add(*m_result_box);
     m_search_results->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
-    m_search_results->set_placement(Gtk::CORNER_TOP_LEFT);
+    m_search_results->set_placement(Gtk::CORNER_TOP_RIGHT);
+
+    m_actions_widget->set_label("Actions");
+    m_actions_widget->set_visible(false);
+    m_actions_widget->add(*action_box);
 
     results_box->pack_start(*m_search_results, true, true);
+    results_box->pack_start(*m_actions_widget, false, false);
     results_box->set_margin_top(m_default_spacing);
 
     frame->add(*create_search_box());
@@ -259,6 +280,10 @@ Tab::process_next_package(
     auto *card = Gtk::make_managed<Card>(
         package, installed_packages, &m_actions, m_logger);
 
+    card->get_action_button()->signal_clicked().connect(sigc::mem_fun(
+        this, &Tab::on_action_button_pressed
+    ));
+
     m_result_box->pack_start(*card, true, true);
     m_result_box->show_all_children();
 
@@ -317,4 +342,90 @@ Tab::sort_packages(Json::Value packages) -> std::vector<Json::Value>
     });
 
     return package;
+}
+
+
+auto
+Tab::on_action_type_opened(
+    GdkEventButton * /*button_event*/, pkg::Type type) -> bool
+{
+    if (!m_actions_view.at(type)->get_expanded()) {
+        std::vector<std::string> *pkgs = m_actions.at(type);
+
+        auto *packages = Gtk::make_managed<Gtk::Box>();
+
+        packages->set_orientation(Gtk::ORIENTATION_VERTICAL);
+        packages->set_margin_left(10);
+
+        for (const auto &pkg : *pkgs) {
+            auto *url_button = Gtk::make_managed<Gtk::LinkButton>();
+
+            std::string url = std::format(
+                "https://aur.archlinux.org/packages/{}", pkg
+            );
+
+            url_button->set_halign(Gtk::ALIGN_START);
+            url_button->set_tooltip_text(url);
+            url_button->set_label(pkg);
+            url_button->set_uri(url);
+
+            packages->pack_start(*url_button);
+        }
+
+        m_actions_view.at(type)->remove();
+        m_actions_view.at(type)->add(*packages);
+        m_actions_view.at(type)->show_all_children();
+    }
+    return true;
+}
+
+
+void
+Tab::on_action_button_pressed()
+{
+    bool all_empty = true;
+    for (auto t : { pkg::Install, pkg::Remove, pkg::Update }) {
+        auto *const pkgs = m_actions.at(t);
+        auto *action = m_actions_view.at(t);
+
+        if (pkgs->empty()) {
+            if (t == pkg::Update && all_empty) {
+                m_actions_widget->set_visible(false);
+            }
+
+            action->set_visible(false);
+            action->remove();
+            continue;
+        }
+
+        if (all_empty) {
+            all_empty = false;
+            m_actions_widget->set_visible(true);
+        }
+
+        auto *packages = Gtk::make_managed<Gtk::Box>();
+
+        packages->set_orientation(Gtk::ORIENTATION_VERTICAL);
+        packages->set_margin_left(10);
+
+        for (const auto &pkg : *pkgs) {
+            auto *url_button = Gtk::make_managed<Gtk::LinkButton>();
+
+            std::string url = std::format(
+                "https://aur.archlinux.org/packages/{}", pkg
+            );
+
+            url_button->set_halign(Gtk::ALIGN_START);
+            url_button->set_tooltip_text(url);
+            url_button->set_label(pkg);
+            url_button->set_uri(url);
+
+            packages->pack_start(*url_button);
+        }
+
+        action->remove();
+        action->add(*packages);
+        action->set_visible(true);
+        action->show_all_children();
+    }
 }

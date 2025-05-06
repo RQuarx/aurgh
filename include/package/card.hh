@@ -51,26 +51,31 @@ namespace pkg {
     */
     class Card : public Gtk::Frame
     {
+        using slot_type = sigc::slot<bool, GdkEventButton *>;
     public:
         explicit Card(
             Json::Value package,
             const std::vector<str_pair> &installed_aur_packages,
-            Json::Value *actions,
+            Actions *actions,
             Logger *logger,
             int32_t spacing = DEFAULT_SPACING
         );
 
+        auto get_action_button() -> Gtk::Button*;
+
     private:
         static const inline int32_t DEFAULT_SPACING = 5;
 
+        Gtk::Button *m_action_button;
+
         std::vector<str_pair>      m_installed_package;
         Json::Value                m_package;
-        Json::Value               *m_actions;
+        Actions                   *m_actions;
         Logger                    *m_logger;
 
         int32_t m_default_spacing;
 
-        void create_action_button(Gtk::Button &button);
+        void create_action_button();
         void create_info_box(Gtk::Box &box) const;
         void create_package_name(Gtk::Box &box) const;
         void create_popularity_frame(Gtk::Frame &frame) const;

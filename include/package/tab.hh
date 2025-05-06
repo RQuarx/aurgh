@@ -35,6 +35,7 @@ namespace Gtk {
     class ComboBoxText;
     class CheckButton;
     class SearchEntry;
+    class Expander;
     class Spinner;
     class Frame;
 }
@@ -66,6 +67,13 @@ namespace pkg {
         Gtk::Spinner        *m_spinner;
         Gtk::Label          *m_quote_label;
         Gtk::Box            *m_result_box;
+        Gtk::Expander       *m_actions_widget;
+
+        std::unordered_map<pkg::Type, Gtk::Expander*> m_actions_view = {
+            { pkg::Install, nullptr },
+            { pkg::Remove, nullptr },
+            { pkg::Update, nullptr }
+        };
 
         Glib::Dispatcher m_package_dispatcher;
         Glib::Dispatcher m_quote_dispatcher;
@@ -75,7 +83,7 @@ namespace pkg {
 
         std::queue<Json::Value> m_package_queue;
         Json::Value             m_aur_packages;
-        Json::Value             m_actions;
+        Actions                 m_actions;
 
         std::string m_quote;
 
@@ -88,12 +96,15 @@ namespace pkg {
         void process_next_package(
             const std::vector<std::pair<std::string, std::string>> &installed_packages);
 
+        void on_action_button_pressed();
         void on_card_download_clicked(
             const std::string &pkg_name,
             const std::string &pkg_version,
             int8_t find_result,
             Gtk::Button *&button
         );
+        auto on_action_type_opened(
+            GdkEventButton *button_event, pkg::Type type) -> bool;
 
         auto sort_packages(Json::Value packages) -> std::vector<Json::Value>;
         static auto get_installed_aur_packages(

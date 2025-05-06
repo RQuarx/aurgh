@@ -37,10 +37,11 @@ using pkg::Card;
 Card::Card(
     Json::Value package,
     const std::vector<str_pair> &installed_aur_packages,
-    Json::Value *actions,
+    Actions *actions,
     Logger *logger,
     int32_t spacing
 ) :
+    m_action_button(Gtk::make_managed<Gtk::Button>()),
     m_installed_package(installed_aur_packages),
     m_package(std::move(package)),
     m_actions(actions),
@@ -50,14 +51,12 @@ Card::Card(
     auto *card             = Gtk::make_managed<Gtk::Box>();
     auto *info             = Gtk::make_managed<Gtk::Box>();
 
-    auto *action_button = Gtk::make_managed<Gtk::Button>();
-
     create_info_box(*info);
-    create_action_button(*action_button);
+    create_action_button();
 
     card->set_spacing(m_default_spacing);
     card->pack_start(*info, true, true);
-    card->pack_end(*action_button, true, true);
+    card->pack_end(*m_action_button, true, true);
     GtkUtils::set_margin(*card, m_default_spacing);
 
     add(*card);
@@ -67,6 +66,11 @@ Card::Card(
     set_hexpand(true);
     GtkUtils::set_margin(*this, m_default_spacing);
 }
+
+
+auto
+Card::get_action_button() -> Gtk::Button*
+{ return m_action_button; }
 
 
 void
@@ -172,41 +176,48 @@ Card::create_popularity_frame(Gtk::Frame &frame) const
 
 
 void
-Card::create_action_button(Gtk::Button &button)
+Card::create_action_button()
 {
-    std::string icon_name;
-
     std::string pkg_name    = m_package["Name"].asString();
     std::string pkg_version = m_package["Version"].asString();
 
-    str_pair pkg(pkg_name, pkg_version);
-    int8_t result = find_package(pkg);
+    std::string icon_name;
+    str_pair    pkg(pkg_name, pkg_version);
+    int8_t      result = find_package(pkg);
 
-    if (result == -1) {
-        icon_name = "document-save-symbolic";
-    } else if (result == 0) {
-        icon_name = "edit-delete-symbolic";
-    } else {
-        icon_name = "view-refresh-symbolic";
-    }
+    if      (result == -1) { icon_name = "document-save-symbolic"; }
+    else if (result == 0)  { icon_name = "edit-delete-symbolic"; }
+    else                   { icon_name = "view-refresh-symbolic"; }
 
-    button.signal_clicked().connect([result, this, pkg_name](){
-        (*m_actions)[pkg_name] = result;
+    m_action_button->signal_clicked().connect(
+    [result, this, pkg_name]() -> void
+    {
+        auto *vec = (*m_actions).at(pkg::Type(result));
 
-        Json::Value actions = Json::objectValue;
+        if (m_action_button->get_opacity() < 1) {
+            auto it = std::ranges::find(*vec, pkg_name);
 
-        for (const auto &pkg : m_actions->getMemberNames()) {
-            actions[pkg] =
-                std::format("{}", pkg::Type((*m_actions)[pkg].asInt()));
+            if (it != vec->end()) {
+                vec->erase(it);
+                m_action_button->set_opacity(1);
+            }
+
+        } else {
+            vec->push_back(pkg_name);
+            m_action_button->set_opacity(
+                m_action_button->get_opacity() / 2
+            );
         }
 
-        m_logger->log(Logger::Debug, "\n{}", actions.toStyledString());
+#ifdef DEBUG
+        m_logger->log(Logger::Debug, "\n{}", *m_actions);
+#endif
     });
 
-    button.set_image_from_icon_name(icon_name);
-    button.set_valign(Gtk::ALIGN_CENTER);
-    button.set_halign(Gtk::ALIGN_END);
-    GtkUtils::set_margin(button, m_default_spacing);
+    m_action_button->set_image_from_icon_name(icon_name);
+    m_action_button->set_valign(Gtk::ALIGN_CENTER);
+    m_action_button->set_halign(Gtk::ALIGN_END);
+    GtkUtils::set_margin(*m_action_button, m_default_spacing);
 }
 
 
