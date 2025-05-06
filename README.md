@@ -13,7 +13,9 @@ Built with [GTK3](https://www.gtk.org/) and modern C++23 to deal with daily AUR 
 
 <div align=left>
 
-> [!IMPORTANT]
+<br>
+
+> [!TIP]
 > The program might be unsafe/unsecure.
 > As at this point I only work alone on this program, and has limited knowledge on permissions.
 
