@@ -50,7 +50,8 @@ Tab::Tab(AUR::Client *aur_client, Logger *logger) :
     m_result_box(Gtk::make_managed<Gtk::Box>()),
     m_actions_widget(Gtk::make_managed<Gtk::Expander>()),
     m_aur_client(aur_client),
-    m_logger(logger)
+    m_logger(logger),
+    m_search_in_progress(false)
 {
     m_package_dispatcher.connect([this](){
         on_dispatch_search_ready();
@@ -69,49 +70,52 @@ Tab::Tab(AUR::Client *aur_client, Logger *logger) :
     auto *results_box = Gtk::make_managed<Gtk::Box>();
     auto *label     = Gtk::make_managed<Gtk::Label>();
 
-    action_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
-    action_box->set_margin_left(10);
+    action_box->set_orientation(Gtk::Orientation::VERTICAL);
+    action_box->set_margin_start(10);
 
     for (const auto &t : { pkg::Install, pkg::Remove, pkg::Update }) {
         m_actions_view.at(t) = Gtk::make_managed<Gtk::Expander>();
         m_actions_view.at(t)->set_label(std::format("{}", t));
 
-        m_actions_view.at(t)->signal_button_press_event().connect(sigc::bind(
-            sigc::mem_fun(this, &Tab::on_action_type_opened), t
+        m_actions_view.at(t)->property_expanded()
+            .signal_changed()
+            .connect(sigc::bind(
+            sigc::mem_fun(*this, &Tab::on_action_type_opened), t
         ));
 
-        action_box->pack_start(*m_actions_view.at(t));
+        action_box->append(*m_actions_view.at(t));
     }
 
     GtkUtils::set_margin(*this, m_default_spacing);
-    set_orientation(Gtk::ORIENTATION_VERTICAL);
+    set_orientation(Gtk::Orientation::VERTICAL);
 
     label->set_markup("<b>Search to view AUR packages</b>");
     label->set_opacity(0.5);
 
-    m_result_box->pack_start(*label);
-    m_result_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    m_result_box->append(*label);
+    m_result_box->set_orientation(Gtk::Orientation::VERTICAL);
     m_result_box->set_spacing(m_default_spacing);
-    m_result_box->set_halign(Gtk::ALIGN_CENTER);
+    m_result_box->set_halign(Gtk::Align::CENTER);
     m_result_box->set_hexpand();
 
-    m_search_results->add(*m_result_box);
-    m_search_results->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
-    m_search_results->set_placement(Gtk::CORNER_TOP_RIGHT);
+    m_search_results->set_child(*m_result_box);
+    m_search_results->set_policy(Gtk::PolicyType::NEVER, Gtk::PolicyType::AUTOMATIC);
+    m_search_results->set_placement(Gtk::CornerType::TOP_RIGHT);
+    m_search_results->set_vexpand();
 
     m_actions_widget->set_label("Actions");
     m_actions_widget->set_visible(false);
-    m_actions_widget->add(*action_box);
+    m_actions_widget->set_child(*action_box);
 
-    results_box->pack_start(*m_search_results, true, true);
-    results_box->pack_start(*m_actions_widget, false, false);
+    results_box->append(*m_search_results);
+    results_box->append(*m_actions_widget);
     results_box->set_margin_top(m_default_spacing);
 
-    frame->add(*create_search_box());
+    frame->set_child(*create_search_box());
 
-    pack_start(*frame, false, false);
-    pack_start(*results_box, true, true);
-    show_all_children();
+    append(*frame);
+    append(*results_box);
+    // show_all_children();
 }
 
 
@@ -139,50 +143,51 @@ Tab::create_search_box() -> Gtk::Box*
     GtkUtils::set_margin(*m_search_by, m_default_spacing);
 
     search_by_frame->set_label("Search by");
-    search_by_frame->add(*m_search_by);
+    search_by_frame->set_child(*m_search_by);
     GtkUtils::set_margin(*search_by_frame, 0, m_default_spacing);
 
     m_sort_by->signal_changed().connect([this](){ on_search(); });
     m_sort_by->set_active_text(sort_by_keywords.at(0));
     GtkUtils::set_margin(*m_sort_by, m_default_spacing);
 
-    m_reverse_sort->signal_clicked().connect([this](){ on_search(); });
+    m_reverse_sort->signal_toggled().connect([this](){ on_search(); });
     m_reverse_sort->set_tooltip_text("Reverse sort");
-    m_reverse_sort->set_halign(Gtk::ALIGN_CENTER);
-    m_reverse_sort->set_valign(Gtk::ALIGN_CENTER);
+    m_reverse_sort->set_halign(Gtk::Align::CENTER);
+    m_reverse_sort->set_valign(Gtk::Align::CENTER);
     GtkUtils::set_margin(*m_reverse_sort, { 0, m_default_spacing, 0, 0 });
 
-    sort_by_box->pack_start(*m_sort_by);
-    sort_by_box->pack_start(*m_reverse_sort);
+    sort_by_box->append(*m_sort_by);
+    sort_by_box->append(*m_reverse_sort);
     sort_by_box->set_spacing(m_default_spacing);
-    sort_by_box->set_valign(Gtk::ALIGN_START);
+    sort_by_box->set_valign(Gtk::Align::START);
 
     sort_by_frame->set_label("Sort by");
-    sort_by_frame->add(*sort_by_box);
+    sort_by_frame->set_child(*sort_by_box);
     GtkUtils::set_margin(*sort_by_frame, 0, m_default_spacing);
 
     m_entry->signal_search_changed().connect([this](){ on_search(); });
     m_entry->set_placeholder_text("Search for AUR packages");
-    m_entry->set_valign(Gtk::ALIGN_CENTER);
+    m_entry->set_valign(Gtk::Align::CENTER);
     m_entry->set_vexpand(false);
 
     m_quote_label->set_markup("<i>...</i>");
-    m_quote_label->set_halign(Gtk::ALIGN_START);
+    m_quote_label->set_halign(Gtk::Align::START);
 
-    menu_icon->set_from_icon_name("open-menu", Gtk::ICON_SIZE_MENU);
+    menu_icon->set_icon_size(Gtk::IconSize::LARGE);
+    menu_icon->set_from_icon_name("open-menu");
 
-    menu->add(*menu_icon);
-    menu->set_halign(Gtk::ALIGN_END);
+    menu->append(*menu_icon);
+    menu->set_halign(Gtk::Align::END);
 
-    misc_box->pack_start(*m_quote_label);
-    misc_box->pack_start(*menu);
-    entry_box->pack_start(*misc_box);
-    entry_box->pack_start(*m_entry);
-    entry_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    misc_box->append(*m_quote_label);
+    misc_box->append(*menu);
+    entry_box->append(*misc_box);
+    entry_box->append(*m_entry);
+    entry_box->set_orientation(Gtk::Orientation::VERTICAL);
 
-    main_box->pack_start(*search_by_frame, false, true);
-    main_box->pack_start(*sort_by_frame, false, true);
-    main_box->pack_start(*entry_box, true, true);
+    main_box->append(*search_by_frame);
+    main_box->append(*sort_by_frame);
+    main_box->append(*entry_box);
 
     main_box->set_spacing(m_default_spacing);
     GtkUtils::set_margin(*main_box, m_default_spacing);
@@ -199,7 +204,8 @@ Tab::create_search_box() -> Gtk::Box*
 void
 Tab::on_search()
 {
-    if (m_entry->get_text_length() < 3) return;
+    if (m_entry->get_text().length() < 3) return;
+    m_search_in_progress = true;
 
     std::string package_name = m_entry->get_text();
     std::string search_by = m_search_by->get_active_text();
@@ -212,21 +218,18 @@ Tab::on_search()
     auto children = m_result_box->get_children();
     for (auto *w : children) m_result_box->remove(*w);
 
+    m_spinner->set_visible(true);
     m_spinner->start();
-    m_result_box->set_halign(Gtk::ALIGN_CENTER);
-    m_result_box->pack_start(*m_spinner);
-    m_result_box->show_all_children();
+    m_result_box->set_halign(Gtk::Align::CENTER);
 
     std::thread([this, package_name, search_by](){
         m_aur_packages.clear();
         m_aur_packages = m_aur_client->search(package_name, search_by);
 
         m_spinner->stop();
-        if (m_spinner->get_parent() != nullptr) {
-            m_result_box->remove(*m_spinner);
-        }
+        m_spinner->set_visible(false);
 
-        m_result_box->set_halign(Gtk::ALIGN_START);
+        m_result_box->set_halign(Gtk::Align::START);
         m_package_dispatcher.emit();
     }).detach();
 }
@@ -244,27 +247,31 @@ Tab::on_dispatch_search_ready()
 
         label->set_markup("<b>An error has occured</b>");
 
-        m_result_box->pack_start(*label);
-        m_result_box->set_halign(Gtk::ALIGN_CENTER);
+        m_result_box->append(*label);
+        m_result_box->set_halign(Gtk::Align::CENTER);
     }
     else if (m_aur_packages["resultcount"].asInt() == 0) {
         auto *label = Gtk::make_managed<Gtk::Label>();
 
         label->set_markup("<b>No results found</b>");
 
-        m_result_box->pack_start(*label);
-        m_result_box->set_halign(Gtk::ALIGN_CENTER);
+        m_result_box->append(*label);
+        m_result_box->set_halign(Gtk::Align::CENTER);
     }
     else {
         for (const auto &package : sort_packages(m_aur_packages)) {
             m_package_queue.push(package);
         }
 
+        if (m_search_in_progress) {
+            for (size_t i = 0; i < m_package_queue.size(); i++) {
+                m_package_queue.pop();
+            }
+        }
+        m_search_in_progress = false;
         process_next_package(get_installed_aur_packages());
-        m_result_box->set_halign(Gtk::ALIGN_START);
+        m_result_box->set_halign(Gtk::Align::START);
     }
-
-    m_result_box->show_all_children();
 }
 
 
@@ -272,7 +279,7 @@ void
 Tab::process_next_package(
     const std::vector<std::pair<std::string, std::string>> &installed_packages)
 {
-    if (m_package_queue.empty()) return;
+    if (m_package_queue.empty() || m_search_in_progress) return;
 
     auto package = m_package_queue.front();
     m_package_queue.pop();
@@ -281,11 +288,10 @@ Tab::process_next_package(
         package, installed_packages, &m_actions, m_logger);
 
     card->get_action_button()->signal_clicked().connect(sigc::mem_fun(
-        this, &Tab::on_action_button_pressed
+        *this, &Tab::on_action_button_pressed
     ));
 
-    m_result_box->pack_start(*card, true, true);
-    m_result_box->show_all_children();
+    m_result_box->append(*card);
 
     Glib::signal_timeout().connect_once([this, installed_packages](){
         process_next_package(installed_packages);
@@ -326,7 +332,8 @@ Tab::sort_packages(Json::Value packages) -> std::vector<Json::Value>
     std::string sort_by = m_sort_by->get_active_text();
 
     std::ranges::sort(package,
-        [this, &sort_by](const Json::Value &a, const Json::Value &b){
+    [this, &sort_by](const Json::Value &a, const Json::Value &b)
+    {
         if (a[sort_by].isInt()) {
 
             if (m_reverse_sort->get_active()) {
@@ -345,17 +352,27 @@ Tab::sort_packages(Json::Value packages) -> std::vector<Json::Value>
 }
 
 
-auto
-Tab::on_action_type_opened(
-    GdkEventButton * /*button_event*/, pkg::Type type) -> bool
+void
+Tab::on_action_type_opened(pkg::Type type)
 {
     if (!m_actions_view.at(type)->get_expanded()) {
         std::vector<std::string> *pkgs = m_actions.at(type);
 
-        auto *packages = Gtk::make_managed<Gtk::Box>();
+        auto *packages =
+            dynamic_cast<Gtk::Box*>(m_actions_view.at(type)->get_child());
 
-        packages->set_orientation(Gtk::ORIENTATION_VERTICAL);
-        packages->set_margin_left(10);
+        if (packages == nullptr) {
+            m_actions_view.at(type)->set_child(*Gtk::make_managed<Gtk::Box>());
+            packages =
+                dynamic_cast<Gtk::Box*>(m_actions_view.at(type)->get_child());
+        }
+
+        while (auto *child = m_result_box->get_first_child()) {
+            m_result_box->remove(*child);
+        }
+
+        packages->set_orientation(Gtk::Orientation::VERTICAL);
+        packages->set_margin_start(10);
 
         for (const auto &pkg : *pkgs) {
             auto *url_button = Gtk::make_managed<Gtk::LinkButton>();
@@ -364,19 +381,16 @@ Tab::on_action_type_opened(
                 "https://aur.archlinux.org/packages/{}", pkg
             );
 
-            url_button->set_halign(Gtk::ALIGN_START);
+            url_button->set_halign(Gtk::Align::START);
             url_button->set_tooltip_text(url);
             url_button->set_label(pkg);
             url_button->set_uri(url);
 
-            packages->pack_start(*url_button);
+            packages->append(*url_button);
         }
 
-        m_actions_view.at(type)->remove();
-        m_actions_view.at(type)->add(*packages);
-        m_actions_view.at(type)->show_all_children();
+        m_actions_view.at(type)->signal_destroy();
     }
-    return true;
 }
 
 
@@ -394,7 +408,6 @@ Tab::on_action_button_pressed()
             }
 
             action->set_visible(false);
-            action->remove();
             continue;
         }
 
@@ -403,10 +416,20 @@ Tab::on_action_button_pressed()
             m_actions_widget->set_visible(true);
         }
 
-        auto *packages = Gtk::make_managed<Gtk::Box>();
+        auto *packages = dynamic_cast<Gtk::Box*>(action->get_child());
 
-        packages->set_orientation(Gtk::ORIENTATION_VERTICAL);
-        packages->set_margin_left(10);
+        if (packages == nullptr) {
+            action->set_child(*Gtk::make_managed<Gtk::Box>());
+            packages =
+                dynamic_cast<Gtk::Box*>(action->get_child());
+        }
+
+        packages->set_orientation(Gtk::Orientation::VERTICAL);
+        packages->set_margin_start(10);
+
+        while (auto *child = m_result_box->get_first_child()) {
+            m_result_box->remove(*child);
+        }
 
         for (const auto &pkg : *pkgs) {
             auto *url_button = Gtk::make_managed<Gtk::LinkButton>();
@@ -415,17 +438,14 @@ Tab::on_action_button_pressed()
                 "https://aur.archlinux.org/packages/{}", pkg
             );
 
-            url_button->set_halign(Gtk::ALIGN_START);
+            url_button->set_halign(Gtk::Align::START);
             url_button->set_tooltip_text(url);
             url_button->set_label(pkg);
             url_button->set_uri(url);
 
-            packages->pack_start(*url_button);
+            packages->append(*url_button);
         }
 
-        action->remove();
-        action->add(*packages);
         action->set_visible(true);
-        action->show_all_children();
     }
 }

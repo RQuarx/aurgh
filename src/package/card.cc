@@ -55,13 +55,13 @@ Card::Card(
     create_action_button();
 
     card->set_spacing(m_default_spacing);
-    card->pack_start(*info, true, true);
-    card->pack_end(*m_action_button, true, true);
+    card->append(*info);
+    card->append(*m_action_button);
     GtkUtils::set_margin(*card, m_default_spacing);
 
-    add(*card);
-    set_valign(Gtk::ALIGN_START);
-    set_halign(Gtk::ALIGN_FILL);
+    set_child(*card);
+    set_valign(Gtk::Align::START);
+    set_halign(Gtk::Align::FILL);
     set_vexpand(false);
     set_hexpand(true);
     GtkUtils::set_margin(*this, m_default_spacing);
@@ -92,21 +92,21 @@ Card::create_info_box(Gtk::Box &box) const
     create_popularity_frame(*popularity);
     version->set_text(m_package["Version"].asString());
 
-    summary_info->pack_start(*name);
-    summary_info->pack_start(*version);
-    summary_info->pack_start(*popularity);
+    summary_info->append(*name);
+    summary_info->append(*version);
+    summary_info->append(*popularity);
     summary_info->set_spacing(m_default_spacing);
-    summary_info->set_halign(Gtk::ALIGN_START);
-    summary_info->set_valign(Gtk::ALIGN_START);
+    summary_info->set_halign(Gtk::Align::START);
+    summary_info->set_valign(Gtk::Align::START);
 
     desc->set_label(m_package["Description"].asString());
-    desc->set_halign(Gtk::ALIGN_START);
-    desc->set_line_wrap(true);
+    desc->set_halign(Gtk::Align::START);
+    desc->set_wrap();
 
-    box.pack_start(*summary_info, true, true);
-    box.pack_start(*desc, true, true);
-    box.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    box.set_margin_left(m_default_spacing);
+    box.append(*summary_info);
+    box.append(*desc);
+    box.set_orientation(Gtk::Orientation::VERTICAL);
+    box.set_margin_start(m_default_spacing);
 }
 
 
@@ -126,8 +126,8 @@ Card::create_package_name(Gtk::Box &box) const
 
     name_label->set_markup(Utils::format(markup, m_package["Name"].asString()));
 
-    name_link->add(*name_label);
-    name_link->set_margin_left(m_default_spacing);
+    name_link->set_child(*name_label);
+    name_link->set_margin_start(m_default_spacing);
     name_link->set_tooltip_text(url);
     name_link->set_uri(url);
 
@@ -135,10 +135,11 @@ Card::create_package_name(Gtk::Box &box) const
         name_link->set_visited();
     });
 
-    img->set_from_icon_name("package-x-generic-symbolic", Gtk::ICON_SIZE_MENU);
+    img->set_from_icon_name("package-x-generic-symbolic");
+    img->set_icon_size(Gtk::IconSize::LARGE);
 
-    box.pack_start(*img);
-    box.pack_start(*name_link);
+    box.append(*img);
+    box.append(*name_link);
 }
 
 
@@ -159,19 +160,19 @@ Card::create_popularity_frame(Gtk::Frame &frame) const
     popularity_label->set_markup(Utils::format(markup, popularity));
     popularity_label->set_tooltip_text("Popularity");
 
-    sep->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    sep->set_orientation(Gtk::Orientation::VERTICAL);
 
     votes_label->set_markup(Utils::format(markup, votes));
     votes_label->set_tooltip_text("Number of votes");
 
-    box->pack_start(*popularity_label);
-    box->pack_start(*sep);
-    box->pack_start(*votes_label);
+    box->append(*popularity_label);
+    box->append(*sep);
+    box->append(*votes_label);
     box->set_spacing(m_default_spacing);
     GtkUtils::set_margin(*box, 0, m_default_spacing);
 
-    frame.add(*box);
-    frame.set_margin_left(m_default_spacing);
+    frame.set_child(*box);
+    frame.set_margin_start(m_default_spacing);
 }
 
 
@@ -215,8 +216,8 @@ Card::create_action_button()
     });
 
     m_action_button->set_image_from_icon_name(icon_name);
-    m_action_button->set_valign(Gtk::ALIGN_CENTER);
-    m_action_button->set_halign(Gtk::ALIGN_END);
+    m_action_button->set_valign(Gtk::Align::CENTER);
+    m_action_button->set_halign(Gtk::Align::END);
     GtkUtils::set_margin(*m_action_button, m_default_spacing);
 }
 

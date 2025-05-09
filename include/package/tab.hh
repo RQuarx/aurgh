@@ -86,6 +86,7 @@ namespace pkg {
         Actions                 m_actions;
 
         std::string m_quote;
+        bool        m_search_in_progress;
 
     protected:
         auto create_search_box() -> Gtk::Box*;
@@ -103,8 +104,7 @@ namespace pkg {
             int8_t find_result,
             Gtk::Button *&button
         );
-        auto on_action_type_opened(
-            GdkEventButton *button_event, pkg::Type type) -> bool;
+        void on_action_type_opened(pkg::Type type);
 
         auto sort_packages(Json::Value packages) -> std::vector<Json::Value>;
         static auto get_installed_aur_packages(

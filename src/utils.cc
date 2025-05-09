@@ -249,26 +249,26 @@ namespace GtkUtils {
     set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin)
     {
         widget.set_margin_top(margin.at(0));
-        widget.set_margin_right(margin.at(1));
+        widget.set_margin_end(margin.at(1));
         widget.set_margin_bottom(margin.at(2));
-        widget.set_margin_left(margin.at(3));
+        widget.set_margin_start(margin.at(3));
     }
 
     void
     set_margin(Gtk::Widget &widget, int32_t margin_y, int32_t margin_x)
     {
         widget.set_margin_top(margin_y);
-        widget.set_margin_right(margin_x);
+        widget.set_margin_end(margin_x);
         widget.set_margin_bottom(margin_y);
-        widget.set_margin_left(margin_x);
+        widget.set_margin_start(margin_x);
     }
 
     void
     set_margin(Gtk::Widget &widget, int32_t margin)
     {
         widget.set_margin_top(margin);
-        widget.set_margin_right(margin);
+        widget.set_margin_end(margin);
         widget.set_margin_bottom(margin);
-        widget.set_margin_left(margin);
+        widget.set_margin_start(margin);
     }
 } /* namespace GtkUtils */

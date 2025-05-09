@@ -203,16 +203,18 @@ ArgParser::back() -> std::string
 void
 ArgParser::print_help_message(FILE *stream)
 {
-    std::array<std::string, 3> options = {{
-        "-h,--help",
-        "-v,--version",
-        "-l,--log {file,level}"
+    std::array<arg_pair, 4> options = {{
+        { "-h,--help", "Prints this message." },
+        { "-v,--version", "Prints the program's version." },
+        { "-l,--log {file,level}", "Prints logs on a stream based on a level. (0-3)" },
+        { "-t,--title {title}", "Sets the window title to a custom title." }
     }};
 
     std::println(stream, "Usage:");
     std::println(stream, "\t{} <options {{params}}>\n", m_bin_path);
     std::println(stream, "Option:");
-    std::println(stream, "\t{:<30}prints this message", options.at(0));
-    std::println(stream, "\t{:<30}prints the program's version", options.at(1));
-    std::println(stream, "\t{:<30}prints log on a stream based on a level (0-3)", options.at(2));
+
+    for (const auto &message : options) {
+        std::println(stream, "\t{:<30}{}", message.first, message.second);
+    }
 }

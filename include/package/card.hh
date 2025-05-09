@@ -21,9 +21,8 @@
 #ifndef PACKAGE_CARD_HH__
 #define PACKAGE_CARD_HH__
 
-#include <functional>
-#include <string>
 #include <utility>
+#include <string>
 #include <vector>
 
 #include <gtkmm/frame.h>
@@ -51,7 +50,6 @@ namespace pkg {
     */
     class Card : public Gtk::Frame
     {
-        using slot_type = sigc::slot<bool, GdkEventButton *>;
     public:
         explicit Card(
             Json::Value package,

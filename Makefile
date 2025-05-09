@@ -1,11 +1,10 @@
-CXX := clang++
+CXX    := clang++
 CXX_LD := lld
 
 MESON := CXX=$(CXX) CXX_LD=$(CXX_LD) $(shell which meson)
 
 BUILD_DIR := target
-
-DEPS := gtkmm-3.0 glibmm-2.4 libcurl jsoncpp
+DEPS      := gtkmm-4.0 glibmm-2.68 libcurl jsoncpp
 
 all:
 	@echo "Available options are: setup, setup-release, clean, compile, check."
