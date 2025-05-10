@@ -109,10 +109,10 @@ public:
 
 private:
     static const inline std::unordered_map<Level, label_pair> m_labels{
-        { Debug, { "\e[1;37m[\e[1;36mDEBUG\e[1;37m]:\e[0;0;0m", "[DEBUG]:" } },
-        { Error, { "\e[1;37m[\e[1;31mERROR\e[1;37m]:\e[0;0;0m", "[ERROR]:" } },
-        { Info,  { "\e[1;37m[\e[1;32mINFO\e[1;37m]:\e[0;0;0m ", "[INFO]: " } },
-        { Warn,  { "\e[1;37m[\e[1;33mWARN\e[1;37m]:\e[0;0;0m ", "[WARN]: " } },
+        { Debug, { "\033[1;37m[\033[1;36mDEBUG\033[1;37m]:\033[0;0;0m", "[DEBUG]:" } },
+        { Error, { "\033[1;37m[\033[1;31mERROR\033[1;37m]:\033[0;0;0m", "[ERROR]:" } },
+        { Info,  { "\033[1;37m[\033[1;32mINFO\033[1;37m]:\033[0;0;0m ", "[INFO]: " } },
+        { Warn,  { "\033[1;37m[\033[1;33mWARN\033[1;37m]:\033[0;0;0m ", "[WARN]: " } },
     };
     const std::string m_log_arg = "{-l --log}";
     Level m_previous_log_level  = None;
