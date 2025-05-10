@@ -17,6 +17,7 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <utility>
 #include <thread>
 
@@ -30,6 +31,8 @@
 #include <gtkmm/label.h>
 #include <gtkmm/image.h>
 #include <glibmm/main.h>
+#include <json/writer.h>
+#include <json/reader.h>
 
 #include "package/card.hh"
 #include "package/tab.hh"
@@ -68,6 +71,20 @@ Tab::Tab(
     });
 
     m_logger->log(Logger::Debug, "Creating packages tab");
+
+    const char *xdg_cache_home = std::getenv("XDG_CACHE_HOME");
+    if (xdg_cache_home == nullptr) {
+        const char* home = std::getenv("HOME");
+        m_cache_path = std::string(home) + "/.cache";
+    } else { m_cache_path = xdg_cache_home; }
+
+    m_cache_path.append("/aurgh/");
+
+    if (!std::filesystem::exists(m_cache_path)) {
+        std::filesystem::create_directory(m_cache_path);
+    }
+
+    m_cache_path.append("aurgh.json");
 
     auto *action_box  = Gtk::make_managed<Gtk::Box>();
     auto *frame     = Gtk::make_managed<Gtk::Frame>();
@@ -121,6 +138,37 @@ Tab::Tab(
 
 
 auto
+Tab::save_cache() -> bool
+{
+    Json::Value cache{ Json::objectValue };
+
+    if (m_sort_by == nullptr)      return false;
+    if (m_search_by == nullptr)    return false;
+    if (m_reverse_sort == nullptr) return false;
+
+    cache["sort-by"] = Json::String{ m_sort_by->get_active_text() };
+    cache["search-by"] = Json::String{ m_search_by->get_active_text() };
+    cache["reverse-sort"] = m_reverse_sort->get_active();
+
+    std::ofstream out;
+
+    try {
+        out.open(m_cache_path, std::ios_base::trunc);
+    } catch (const std::exception &e) {
+        m_logger->log(
+            Logger::Error,
+            "Failed to open cache file: {}, {}",
+            m_cache_path,
+            e.what()
+        );
+    }
+
+    out << cache;
+    return true;
+}
+
+
+auto
 Tab::create_search_box() -> Gtk::Box*
 {
     auto *main_box          = Gtk::make_managed<Gtk::Box>();
@@ -139,19 +187,54 @@ Tab::create_search_box() -> Gtk::Box*
     for (const auto &w : search_by_keywords) m_search_by->append(w);
     for (const auto &w : sort_by_keywords) m_sort_by->append(w);
 
-    m_search_by->signal_changed().connect([this](){ on_search(); });
-    m_search_by->set_active_text(search_by_keywords.at(0));
+    std::ifstream cache_file_i;
+    bool success{ true };
+
+    try {
+        cache_file_i.open(m_cache_path);
+    } catch (const std::exception &e) {
+        m_logger->log(
+            Logger::Error,
+            "Failed to open cache file: {}, {}",
+            m_cache_path,
+            e.what()
+        );
+        success = false;
+    }
+
+    Json::Value cache;
+    m_logger->log(Logger::Debug, "cache file: {}", m_cache_path);
+    if (success && cache_file_i.peek() != std::ifstream::traits_type::eof()) {
+        cache_file_i >> cache;
+    } else {
+        cache["sort-by"]      = Json::String{ sort_by_keywords.at(0) };
+        cache["search-by"]    = Json::String{ search_by_keywords.at(0) };
+        cache["reverse-sort"] = false;
+    }
+
+    m_search_by->signal_changed().connect([this](){
+        save_cache();
+        on_search();
+    });
+    m_search_by->set_active_text(cache["search-by"].asString());
     GtkUtils::set_margin(*m_search_by, m_default_spacing);
 
     search_by_frame->set_label("Search by");
     search_by_frame->add(*m_search_by);
     GtkUtils::set_margin(*search_by_frame, 0, m_default_spacing);
 
-    m_sort_by->signal_changed().connect([this](){ on_search(); });
-    m_sort_by->set_active_text(sort_by_keywords.at(0));
+    m_sort_by->signal_changed().connect([this](){
+        save_cache();
+        on_search();
+    });
+    m_sort_by->set_active_text(cache["sort-by"].asString());
     GtkUtils::set_margin(*m_sort_by, m_default_spacing);
 
-    m_reverse_sort->signal_clicked().connect([this](){ on_search(); });
+    m_reverse_sort->set_active(cache["reverse-sort"].asBool());
+    m_reverse_sort->signal_clicked().connect([this](){
+        save_cache();
+        on_search();
+    });
     m_reverse_sort->set_tooltip_text("Reverse sort");
     m_reverse_sort->set_halign(Gtk::ALIGN_CENTER);
     m_reverse_sort->set_valign(Gtk::ALIGN_CENTER);

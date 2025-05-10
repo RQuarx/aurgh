@@ -21,6 +21,7 @@
 #ifndef PACKAGE_TAB_HH__
 #define PACKAGE_TAB_HH__
 
+#include <fstream>
 #include <queue>
 
 #include <glibmm/dispatcher.h>
@@ -89,8 +90,11 @@ namespace pkg {
         std::shared_ptr<Actions> m_actions;
 
         std::string m_quote;
+        std::string m_cache_path;
 
     protected:
+        auto save_cache() -> bool;
+
         auto create_search_box() -> Gtk::Box*;
 
         void on_search();
