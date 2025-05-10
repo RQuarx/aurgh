@@ -1,9 +1,9 @@
+base
+base-devel
 cmake
 meson
 clang
 lld
 gtkmm3
 glibmm
-make
 pkg-config
-which

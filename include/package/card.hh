@@ -1,5 +1,5 @@
 /**
- * @file package/card.hh
+ * aurgh Copyright (C) 2025 RQuarx
  *
  * This file is part of aurgh
  *
@@ -42,12 +42,12 @@ using str_pair = std::pair<std::string, std::string>;
 
 namespace pkg {
     /**
-    * @class Card
-    * @brief A widget that displays information for an AUR package
-    * @ingroup Widget
-    * @ingroup Container
-    * @ingroup Frame
-    */
+     * @class Card
+     * @brief A widget that displays information for an AUR package
+     * @ingroup Widget
+     * @ingroup Container
+     * @ingroup Frame
+     */
     class Card : public Gtk::Frame
     {
         using slot_type = sigc::slot<bool, GdkEventButton *>;
@@ -80,12 +80,10 @@ namespace pkg {
         void create_popularity_frame(Gtk::Frame &frame) const;
 
         /**
-        @brief Searches for a package inside installed_aur_package
-        @returns -1 on none, 0 on all, 1 on name.
-        */
-        auto find_package(
-            const str_pair &package
-        ) const -> int8_t;
+         * @brief Searches for a package inside installed_aur_package
+         * @returns -1 on none, 0 on all, 1 on name.
+         */
+        auto find_package(const str_pair &package) const -> int8_t;
     };
 } /* namespace pkg */
 

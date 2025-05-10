@@ -1,5 +1,5 @@
 /**
- * @file package/tab.cc
+ * aurgh Copyright (C) 2025 RQuarx
  *
  * This file is part of aurgh
  *
@@ -104,9 +104,9 @@ Tab::Tab(
     m_search_results->set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
     m_search_results->set_placement(Gtk::CORNER_TOP_RIGHT);
 
+    m_actions_widget->add(*action_box);
     m_actions_widget->set_label("Actions");
     m_actions_widget->set_visible(false);
-    m_actions_widget->add(*action_box);
 
     results_box->pack_start(*m_search_results, true, true);
     results_box->pack_start(*m_actions_widget, false, false);

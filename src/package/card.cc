@@ -1,5 +1,5 @@
 /**
- * @file package/card.cc
+ * aurgh Copyright (C) 2025 RQuarx
  *
  * This file is part of aurgh
  *
@@ -60,6 +60,7 @@ Card::Card(
     GtkUtils::set_margin(*card, m_default_spacing);
 
     add(*card);
+    set_shadow_type(Gtk::SHADOW_ETCHED_IN);
     set_valign(Gtk::ALIGN_START);
     set_halign(Gtk::ALIGN_FILL);
     set_vexpand(false);
@@ -211,7 +212,7 @@ Card::create_action_button()
 
 #ifdef DEBUG
         m_logger->log(Logger::Debug, "\n{}", *m_actions);
-#endif
+#endif /* DEBUG */
     });
 
     m_action_button->set_image_from_icon_name(icon_name);

@@ -61,7 +61,9 @@ root$ cp target/aurgh /usr/bin
 ```
 
 ## License
-This project is licensed under the [GNU General Public License v3](LICENSE).
+This project is licensed under the [GNU General Public License v3](LICENSE)[^1].
+
+[^1]: https://www.gnu.org/licenses/gpl-3.0.html
 
 [License]: LICENSE
 

@@ -1,5 +1,5 @@
 /**
- * @file arg_parser.cc
+ * aurgh Copyright (C) 2025 RQuarx
  *
  * This file is part of aurgh
  *
