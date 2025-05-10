@@ -1,14 +1,13 @@
-CXX := clang++
+CXX    := clang++
 CXX_LD := lld
 
-MESON := CXX=$(CXX) CXX_LD=$(CXX_LD) $(shell which meson)
-
+MESON     := CXX=$(CXX) CXX_LD=$(CXX_LD) $(shell which meson)
 BUILD_DIR := target
 
 DEPS := gtkmm-3.0 glibmm-2.4 libcurl jsoncpp
 
 all:
-	@echo "Available options are: setup, setup-release, clean, compile, check."
+	@echo "Available options are: setup, setup-release, clean, compile, install-deps, check."
 
 setup:
 	$(MESON) setup -Dbuildtype=debugoptimized $(BUILD_DIR)
@@ -23,7 +22,7 @@ compile:
 	$(MESON) compile -C $(BUILD_DIR)
 
 install-deps:
-	@pacman -S --needed - < required.txt
+	pacman -S --needed - < required.txt
 
 check:
 	@for dep in $(DEPS); do \

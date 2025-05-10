@@ -2,9 +2,9 @@
 
 # AURGH
 
-AURGH is an **[Arch User Repository](https://aur.archlinux.org/) Graphical Helper**.
+AURGH is an **Arch User Repository[^1] Graphical Helper**.
 <br>
-Built with [GTK3](https://www.gtk.org/) and modern C++23 to deal with daily AUR shenanigans.
+Built with GTK3[^2] and modern C++23 to deal with daily AUR shenanigans.
 <br>
 
 ![Badge Workflow]
@@ -60,10 +60,17 @@ user$ make setup-release && make compile
 root$ cp target/aurgh /usr/bin
 ```
 
-## License
-This project is licensed under the [GNU General Public License v3](LICENSE)[^1].
+## Donating
 
-[^1]: https://www.gnu.org/licenses/gpl-3.0.html
+If you like this project, you could support it by donating to me.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I11ERX5G)
+
+## License
+This project is licensed under the [GNU General Public License v3](LICENSE)[^3].
+
+[^1]: https://aur.archlinux.org/
+[^2]: https://www.gtk.org/
+[^3]: https://www.gnu.org/licenses/gpl-3.0.html
 
 [License]: LICENSE
 
