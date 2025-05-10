@@ -23,7 +23,7 @@ compile:
 	$(MESON) compile -C $(BUILD_DIR)
 
 install-deps:
-	@pacman -S --noconfirm --noprogressbar - < required.txt
+	@pacman -Syyu --noconfirm --noprogressbar --needed - < required.txt
 
 check:
 	@for dep in $(DEPS); do \

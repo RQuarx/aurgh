@@ -14,7 +14,6 @@ jobs:
         shell: bash
         run: |
           sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
-          pacman --noconfirm --noprogressbar -Syyu
           make install-deps
 
       - name: Build AURGH
