@@ -30,7 +30,7 @@
 using AUR::Client;
 
 
-Client::Client(Logger *logger, std::string_view url) :
+Client::Client(const std::shared_ptr<Logger> &logger, std::string_view url) :
     m_url(!url.empty() ? url : DEFAULT_AUR_URL),
     m_logger(logger)
 {

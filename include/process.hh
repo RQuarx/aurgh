@@ -23,6 +23,7 @@
 
 #include <optional>
 #include <atomic>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -34,7 +35,7 @@ public:
     Process(
         std::string file,
         std::vector<std::string> argv,
-        Logger *logger,
+        const std::shared_ptr<Logger> &logger,
         const std::string &cwd = ""
     );
     ~Process();
@@ -54,8 +55,8 @@ public:
     auto is_done() const -> std::optional<int32_t>;
 
 private:
-    std::atomic<Logger*> ma_logger;
-    std::atomic<bool>    ma_is_running;
+    std::atomic<std::shared_ptr<Logger>> ma_logger;
+    std::atomic<bool>                    ma_is_running;
 
     pid_t       m_child_pid;
     std::string m_cwd;

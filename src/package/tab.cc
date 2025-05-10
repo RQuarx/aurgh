@@ -17,6 +17,7 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <utility>
 #include <thread>
 
 #include <gtkmm/scrolledwindow.h>
@@ -39,7 +40,10 @@
 using pkg::Tab;
 
 
-Tab::Tab(AUR::Client *aur_client, Logger *logger) :
+Tab::Tab(
+    const std::shared_ptr<AUR::Client> &aur_client,
+    const std::shared_ptr<Logger> &logger
+) :
     m_search_results(Gtk::make_managed<Gtk::ScrolledWindow>()),
     m_search_by(Gtk::make_managed<Gtk::ComboBoxText>()),
     m_sort_by(Gtk::make_managed<Gtk::ComboBoxText>()),
@@ -50,7 +54,8 @@ Tab::Tab(AUR::Client *aur_client, Logger *logger) :
     m_result_box(Gtk::make_managed<Gtk::Box>()),
     m_actions_widget(Gtk::make_managed<Gtk::Expander>()),
     m_aur_client(aur_client),
-    m_logger(logger)
+    m_logger(logger),
+    m_actions(std::make_shared<Actions>())
 {
     m_package_dispatcher.connect([this](){
         on_dispatch_search_ready();
@@ -278,7 +283,7 @@ Tab::process_next_package(
     m_package_queue.pop();
 
     auto *card = Gtk::make_managed<Card>(
-        package, installed_packages, &m_actions, m_logger);
+        package, installed_packages, m_actions, m_logger);
 
     card->get_action_button()->signal_clicked().connect(sigc::mem_fun(
         this, &Tab::on_action_button_pressed
@@ -287,9 +292,9 @@ Tab::process_next_package(
     m_result_box->pack_start(*card, true, true);
     m_result_box->show_all_children();
 
-    Glib::signal_timeout().connect_once([this, installed_packages](){
+    Glib::signal_idle().connect_once([this, installed_packages](){
         process_next_package(installed_packages);
-    }, 100);
+    });
 }
 
 
@@ -328,7 +333,6 @@ Tab::sort_packages(Json::Value packages) -> std::vector<Json::Value>
     std::ranges::sort(package,
         [this, &sort_by](const Json::Value &a, const Json::Value &b){
         if (a[sort_by].isInt()) {
-
             if (m_reverse_sort->get_active()) {
                 return a[sort_by].asInt64() < b[sort_by].asInt64();
             }
@@ -350,7 +354,7 @@ Tab::on_action_type_opened(
     GdkEventButton * /*button_event*/, pkg::Type type) -> bool
 {
     if (!m_actions_view.at(type)->get_expanded()) {
-        std::vector<std::string> *pkgs = m_actions.at(type);
+        std::vector<std::string> *pkgs = m_actions->at(type);
 
         auto *packages = Gtk::make_managed<Gtk::Box>();
 
@@ -385,7 +389,7 @@ Tab::on_action_button_pressed()
 {
     bool all_empty = true;
     for (auto t : { pkg::Install, pkg::Remove, pkg::Update }) {
-        auto *const pkgs = m_actions.at(t);
+        auto *const pkgs = m_actions->at(t);
         auto *action = m_actions_view.at(t);
 
         if (pkgs->empty()) {

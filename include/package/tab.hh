@@ -54,7 +54,10 @@ namespace pkg {
     class Tab : public Gtk::Box
     {
     public:
-        explicit Tab(AUR::Client *aur_client, Logger *logger);
+        explicit Tab(
+            const std::shared_ptr<AUR::Client> &aur_client,
+            const std::shared_ptr<Logger> &logger
+        );
 
     private:
         const int32_t m_default_spacing = 5;
@@ -69,7 +72,7 @@ namespace pkg {
         Gtk::Box            *m_result_box;
         Gtk::Expander       *m_actions_widget;
 
-        std::unordered_map<pkg::Type, Gtk::Expander*> m_actions_view = {
+        std::unordered_map<pkg::Type, Gtk::Expander*> m_actions_view{
             { pkg::Install, nullptr },
             { pkg::Remove, nullptr },
             { pkg::Update, nullptr }
@@ -78,12 +81,12 @@ namespace pkg {
         Glib::Dispatcher m_package_dispatcher;
         Glib::Dispatcher m_quote_dispatcher;
 
-        AUR::Client *m_aur_client;
-        Logger      *m_logger;
+        std::shared_ptr<AUR::Client> m_aur_client;
+        std::shared_ptr<Logger>      m_logger;
 
-        std::queue<Json::Value> m_package_queue;
-        Json::Value             m_aur_packages;
-        Actions                 m_actions;
+        std::queue<Json::Value>  m_package_queue;
+        Json::Value              m_aur_packages;
+        std::shared_ptr<Actions> m_actions;
 
         std::string m_quote;
 

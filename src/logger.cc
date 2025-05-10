@@ -26,11 +26,11 @@
 #include "logger.hh"
 
 
-Logger::Logger(ArgParser &arg_parser) :
+Logger::Logger(const std::shared_ptr<ArgParser> &arg_parser) :
     m_use_color(Utils::term_has_colors())
 {
     std::string option;
-    if (arg_parser.option_arg(option, { "-l", "--log" })) {
+    if (arg_parser->option_arg(option, { "-l", "--log" })) {
         if (option.contains(',')) {
             /* Exits with error code 1 if it fails */
             if (!handle_double_parameters(option)) {

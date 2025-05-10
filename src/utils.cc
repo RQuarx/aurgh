@@ -128,9 +128,10 @@ namespace Utils {
         );
 
         if (!pipe) return std::nullopt;
-        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-            result += buffer.data();
-        }
+        while (fgets(
+                buffer.data(), static_cast<int32_t>(buffer.size()), pipe.get()
+            ) != nullptr
+        ) result += buffer.data();
 
         return std::pair(result, pclose(pipe.release()));
     }

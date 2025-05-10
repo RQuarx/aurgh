@@ -22,6 +22,7 @@
 #define AUR_CLIENT_HH__
 
 #include <string_view>
+#include <memory>
 #include <string>
 
 #include <curl/curl.h>
@@ -46,7 +47,8 @@ namespace AUR {
         * @param logger A pointer to a Logger instance.
         * @param url A custom AUR url, defaults to https://aur.archlinux.org/rpc/v5
         */
-        explicit Client(Logger *logger, std::string_view url = "");
+        explicit Client(
+            const std::shared_ptr<Logger> &logger, std::string_view url = "");
 
         /**
         * @brief Searches a package on the AUR.
@@ -91,8 +93,8 @@ namespace AUR {
         static const inline std::string_view DEFAULT_AUR_URL =
             "https://aur.archlinux.org/rpc/v5";
 
-        std::string_view m_url;
-        Logger          *m_logger;
+        std::string_view        m_url;
+        std::shared_ptr<Logger> m_logger;
 
         auto get_json_from_stream(std::istringstream &iss) -> Json::Value;
     };

@@ -31,19 +31,22 @@ using str_pair = std::pair<std::string, std::string>;
 
 
 namespace pkg {
-    enum Type : int8_t {
+    enum Type : int8_t
+    {
         Install = -1,
         Remove  = 0,
         Update  = 1,
         None    = 2,
     };
 
-    struct Actions {
+    struct Actions
+    {
         std::vector<std::string> install;
         std::vector<std::string> remove;
         std::vector<std::string> update;
 
-        Actions() {
+        Actions()
+        {
             install.reserve(10);
             remove.reserve(10);
             update.reserve(10);
@@ -52,41 +55,56 @@ namespace pkg {
         [[nodiscard]]
         auto at(pkg::Type t) -> std::vector<std::string>*
         {
-            if (t == pkg::Install) { return &install; }
-            if (t == pkg::Remove)  { return &remove; }
-            if (t == pkg::Update)  { return &update; }
-            return &install;
+            switch (t)
+            {
+            case pkg::Install: return &install;
+            case pkg::Remove:  return &remove;
+            case pkg::Update:  return &update;
+            case pkg::None:    return nullptr;
+            default:           return &install;
+            }
         }
     };
 } /* namespace pkg */
 
 template<>
-struct std::formatter<pkg::Type> : std::formatter<std::string> {
-    static auto format(pkg::Type type, format_context& ctx) {
-        switch (type) {
-            case pkg::Install: return format_to(ctx.out(), "install");
-            case pkg::Remove:  return format_to(ctx.out(), "remove");
-            case pkg::Update:  return format_to(ctx.out(), "update");
-            default:      return format_to(ctx.out(), "none");
+struct std::formatter<pkg::Type> : std::formatter<std::string>
+{
+    static auto
+    format(pkg::Type type, format_context &ctx)
+    {
+        switch (type)
+        {
+        case pkg::Install: return format_to(ctx.out(), "install");
+        case pkg::Remove:  return format_to(ctx.out(), "remove");
+        case pkg::Update:  return format_to(ctx.out(), "update");
+        default:           return format_to(ctx.out(), "none");
         }
     }
 };
 
 template <typename CharT>
-struct std::formatter<std::vector<std::string>, CharT> {
-    constexpr auto parse(std::format_parse_context& ctx) {
-        return ctx.begin();
-    }
+struct std::formatter<std::vector<std::string>, CharT>
+{
+    constexpr auto
+    parse(std::format_parse_context &ctx)
+    { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const std::vector<std::string>& vec, FormatContext& ctx) const {
+    auto format(const std::vector<std::string> &vec, FormatContext &ctx) const
+    {
         auto out = ctx.out();
         *out++ = "\n\t[";
 
         if (!vec.empty()) {
             *out++ = '\n';
-            for (std::size_t i = 0; i < vec.size(); ++i) {
-                out = std::format_to(out, "\t\t\"{}\"{}", vec[i], (i + 1 < vec.size() ? ",\n" : "\n"));
+            for (size_t i = 0; i < vec.size(); ++i) {
+                out = std::format_to(
+                    out,
+                    "\t\t\"{}\"{}",
+                    vec.at(i),
+                    (i + 1 < vec.size() ? ",\n" : "\n")
+                );
             }
             out = std::format_to(out, "\t");
         }
@@ -97,13 +115,15 @@ struct std::formatter<std::vector<std::string>, CharT> {
 };
 
 template <typename CharT>
-struct std::formatter<pkg::Actions, CharT> {
-    constexpr auto parse(std::format_parse_context& ctx) {
-        return ctx.begin();
-    }
+struct std::formatter<pkg::Actions, CharT>
+{
+    constexpr auto
+    parse(std::format_parse_context &ctx)
+    { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const pkg::Actions& actions, FormatContext& ctx) const {
+    auto format(const pkg::Actions &actions, FormatContext &ctx) const
+    {
         auto out = ctx.out();
         out = std::format_to(out,
 "\"actions\":\n{{\n\t\"install\":\t{},\n\t\"remove\":\t{},\n\t\"update\":\t{}\n}}",

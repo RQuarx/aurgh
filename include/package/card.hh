@@ -21,9 +21,8 @@
 #ifndef PACKAGE_CARD_HH__
 #define PACKAGE_CARD_HH__
 
-#include <functional>
-#include <string>
 #include <utility>
+#include <string>
 #include <vector>
 
 #include <gtkmm/frame.h>
@@ -56,8 +55,8 @@ namespace pkg {
         explicit Card(
             Json::Value package,
             const std::vector<str_pair> &installed_aur_packages,
-            Actions *actions,
-            Logger *logger,
+            std::shared_ptr<Actions> &actions,
+            const std::shared_ptr<Logger> &logger,
             int32_t spacing = DEFAULT_SPACING
         );
 
@@ -69,9 +68,9 @@ namespace pkg {
         Gtk::Button *m_action_button;
 
         std::vector<str_pair>      m_installed_package;
+        std::shared_ptr<Actions>   m_actions;
+        std::shared_ptr<Logger>    m_logger;
         Json::Value                m_package;
-        Actions                   *m_actions;
-        Logger                    *m_logger;
 
         int32_t m_default_spacing;
 

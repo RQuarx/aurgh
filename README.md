@@ -27,8 +27,38 @@ Built with [GTK3](https://www.gtk.org/) and modern C++23 to deal with daily AUR 
 | **[meson](https://mesonbuild.com/)**                          | Build system               |
 | **[clang](https://clang.llvm.org/)**                          | Compiler and Linker        |
 | **[curl](https://curl.se/)**                                  | Fetching data from the AUR |
-| **[JsonCpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling              |
+| **[jsoncpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling              |
 | **[gtkmm-3.0](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK      |
+
+## Installation
+
+> [!NOTE]
+> Everything done here would require the user to clone the repo first.
+
+<details>
+<summary>Installing dependencies</summary>
+
+```bash
+root$ pacman -S - < required.txt
+```
+
+or
+
+```bash
+root$ make install-deps
+```
+
+</details>
+
+### Installing the package
+
+```bash
+user$ make setup-release && make compile
+```
+
+```bash
+root$ cp target/aurgh /usr/bin
+```
 
 ## License
 This project is licensed under the [GNU General Public License v3](LICENSE).

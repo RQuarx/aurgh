@@ -22,6 +22,9 @@ clean:
 compile:
 	$(MESON) compile -C $(BUILD_DIR)
 
+install-deps:
+	@pacman -S - < required.txt
+
 check:
 	@for dep in $(DEPS); do \
 		if pkg-config --exists $$dep; then \

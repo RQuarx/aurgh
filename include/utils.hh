@@ -143,11 +143,7 @@ namespace Utils {
 
     template<typename... T_Args>
     auto format(std::string_view fmt, T_Args&&... args) -> std::string
-    {
-        return std::vformat(
-            fmt, std::make_format_args(args...)
-        );
-    }
+    { return std::vformat(fmt, std::make_format_args(args...)); }
 
     template<typename T>
     auto

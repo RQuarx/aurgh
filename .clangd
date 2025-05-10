@@ -1,5 +1,5 @@
 CompileFlags:
-    Add: [-xc++, -Wall, -std=c++23]
+    Add: [-xc++]
     Compiler: clang++
 
 Diagnostics:

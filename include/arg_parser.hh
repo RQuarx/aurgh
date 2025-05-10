@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef ARG_PARSE_HH__
-#define ARG_PARSE_HH__
+#ifndef ARG_PARSER_HH__
+#define ARG_PARSER_HH__
 
 #include <unordered_map>
 #include <cstdint>
@@ -91,7 +91,8 @@ private:
      * @enum Type
      * @brief An enum representing the argument type
      */
-    enum Type : uint8_t {
+    enum Type : uint8_t
+    {
         Short = 0,
         Long = 1,
     };
@@ -122,4 +123,4 @@ private:
     auto find_option_long(std::string &option, std::string_view long_arg) -> bool;
 };
 
-#endif /* arg_parse.hh */
+#endif /* arg_parser.hh */

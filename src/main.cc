@@ -26,50 +26,52 @@
 #include "process.hh"
 #include "logger.hh"
 
+using const_str = const std::string;
+
 /* ! IMPORTANT APPLICATION DATA ! */
-static const std::string_view APP_VERSION = "0.0.13"; /* Bump minor on installation feature */
+
+static const_str APP_ID               = "org.rquarx.aur-graphical-helper";
+static const_str DEFAULT_WINDOW_TITLE = "AUR Graphical Helper";
+
+/* Bump minor on installation feature */
+static const_str APP_VERSION = "0.0.14";
 
 
 auto
 main(int32_t argc, char **argv) -> int32_t
 {
-    auto app = Gtk::Application::create("org.rquarx.aur-graphical-helper");
-    ArgParser  arg_parser(argc, argv);
+    auto app        = Gtk::Application::create(APP_ID);
+    auto arg_parser = std::make_shared<ArgParser>(argc, argv);
 
-    if (arg_parser.find_arg({ "-h", "--help" })) {
-        arg_parser.print_help_message(stdout);
+    if (arg_parser->find_arg({ "-h", "--help" })) {
+        arg_parser->print_help_message(stdout);
         return EXIT_SUCCESS;
     }
 
-    if (arg_parser.find_arg({ "-v", "--version" })) {
+    if (arg_parser->find_arg({ "-v", "--version" })) {
         std::println("AURGH-{}", APP_VERSION);
         return EXIT_SUCCESS;
     }
 
-    Logger      logger(arg_parser);
-    AUR::Client  aur_client(&logger, "");
+    auto logger     = std::make_shared<Logger>(arg_parser);
+    auto aur_client = std::make_shared<AUR::Client>(logger, "");
     Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
 
-    // auto proc = Process("git", { "clone", "https://github.com/git/git" }, &logger);
-
     if (curl_global_init(CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE) != 0) {
-        logger.log(Logger::Error, "Failed to init curl");
+        logger->log(Logger::Error, "Failed to init curl");
         return EXIT_FAILURE;
     }
 
-    auto *package_tab = Gtk::make_managed<pkg::Tab>(&aur_client, &logger);
+    auto *package_tab = Gtk::make_managed<pkg::Tab>(aur_client, logger);
 
-    window.set_title("AUR Graphical Helper");
+    std::string title;
+    if (!arg_parser->option_arg(title, { "-t", "--title" })) {
+        title = DEFAULT_WINDOW_TITLE;
+    }
+
+    window.set_title(title);
     window.add(*package_tab);
     window.show_all();
 
-    /* Since in GTK4, GTK doesnt requires an argv to run.
-       Therefore, it would be best practice to make it work
-       like that in GTK3
-    */
-    argc = 0;
-
-    // logger.log(Logger::Debug, "Return: {}", proc.is_done());
-
-    return app->run(window, argc, argv);
+    return app->run(window, 0, nullptr);
 }

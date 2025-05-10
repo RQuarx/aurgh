@@ -18,11 +18,12 @@
  */
 
 #pragma once
-#ifndef LOGGER_HPP_
-#define LOGGER_HPP_
+#ifndef LOGGER_HH__
+#define LOGGER_HH__
 
 #include <unordered_map>
 #include <fstream>
+#include <memory>
 #include <print>
 
 #include "utils.hh"
@@ -48,7 +49,8 @@ public:
      *
      * This enum is used to categorize log messages based on their severity.
     */
-    enum Level : uint8_t {
+    enum Level : uint8_t
+    {
         Debug,
         Info,
         Warn,
@@ -58,10 +60,10 @@ public:
 
     /**
      * @brief Construct the Logger class
-     * @param arg_parser A pointer to an Arg::Parser instance for command-line
+     * @param arg_parser A shared pointer to an ArgParser instance for command-line
      * argument parsing.
      */
-    explicit Logger(ArgParser &arg_parser);
+    explicit Logger(const std::shared_ptr<ArgParser> &arg_parser);
 
     /**
      * @brief Destructor for Logger class
@@ -106,7 +108,7 @@ public:
     auto get_previous_log_level() -> Level;
 
 private:
-    static const inline std::unordered_map<Level, label_pair> m_labels = {
+    static const inline std::unordered_map<Level, label_pair> m_labels{
         { Debug, { "\e[1;37m[\e[1;36mDEBUG\e[1;37m]:\e[0;0;0m", "[DEBUG]:" } },
         { Error, { "\e[1;37m[\e[1;31mERROR\e[1;37m]:\e[0;0;0m", "[ERROR]:" } },
         { Info,  { "\e[1;37m[\e[1;32mINFO\e[1;37m]:\e[0;0;0m ", "[INFO]: " } },
@@ -161,4 +163,4 @@ private:
     auto handle_double_parameters(const std::string &option) -> bool;
 };
 
-#endif /* logger.hpp */
+#endif /* logger.hh */

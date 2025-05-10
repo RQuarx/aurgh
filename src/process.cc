@@ -33,7 +33,7 @@ static const std::string DEFAULT_CWD =
 Process::Process(
     std::string file,
     std::vector<std::string> argv,
-    Logger *logger,
+    const std::shared_ptr<Logger> &logger,
     const std::string &cwd
 ) :
     ma_logger(logger),

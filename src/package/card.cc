@@ -37,19 +37,19 @@ using pkg::Card;
 Card::Card(
     Json::Value package,
     const std::vector<str_pair> &installed_aur_packages,
-    Actions *actions,
-    Logger *logger,
+    std::shared_ptr<Actions> &actions,
+    const std::shared_ptr<Logger> &logger,
     int32_t spacing
 ) :
     m_action_button(Gtk::make_managed<Gtk::Button>()),
     m_installed_package(installed_aur_packages),
-    m_package(std::move(package)),
     m_actions(actions),
     m_logger(logger),
+    m_package(std::move(package)),
     m_default_spacing(spacing)
 {
-    auto *card             = Gtk::make_managed<Gtk::Box>();
-    auto *info             = Gtk::make_managed<Gtk::Box>();
+    auto *card = Gtk::make_managed<Gtk::Box>();
+    auto *info = Gtk::make_managed<Gtk::Box>();
 
     create_info_box(*info);
     create_action_button();
@@ -192,7 +192,7 @@ Card::create_action_button()
     m_action_button->signal_clicked().connect(
     [result, this, pkg_name]() -> void
     {
-        auto *vec = (*m_actions).at(pkg::Type(result));
+        auto *vec = m_actions->at(pkg::Type(result));
 
         if (m_action_button->get_opacity() < 1) {
             auto it = std::ranges::find(*vec, pkg_name);
