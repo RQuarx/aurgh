@@ -11,7 +11,7 @@ Built with [GTK3](https://www.gtk.org/) and modern C++23 to deal with daily AUR 
 [![Badge License]][License]
 ![Badge Language]
 
-<div align=left>
+</div>
 
 ## Features
 
@@ -32,8 +32,8 @@ Built with [GTK3](https://www.gtk.org/) and modern C++23 to deal with daily AUR 
 
 ## Installation
 
-> [!NOTE]
-> Everything done here would require the user to clone the repo first.
+>[!NOTE]
+>Everything done here would require the user to clone the repo first.
 
 <details>
 <summary>Installing dependencies</summary>
