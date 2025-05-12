@@ -41,12 +41,12 @@ Built with GTK3[^2] and modern C++23 to deal with daily AUR shenanigans.
 <summary>Installing dependencies</summary>
 
 ```bash
-root$ pacman -S - < required.txt
+root# pacman -S - < required.txt
 ```
 or
 
 ```bash
-root$ make install-deps
+root# make install-deps
 ```
 
 </details>
