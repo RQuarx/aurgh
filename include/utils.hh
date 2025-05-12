@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <optional>
 #include <format>
+#include <memory>
 #include <string>
 #include <vector>
 #include <array>
@@ -35,6 +36,7 @@ namespace Gtk {
     class Label;
     class Box;
 }
+class ArgParser;
 
 
 /**
@@ -72,17 +74,12 @@ namespace Str {
 } /* namespace Str */
 
 /**
- * @namespace Utils
+ * @namespace utils
  * @brief A namespace containing usefull utilities
  */
-namespace Utils {
+namespace utils {
     static const size_t DEFAULT_COLOR_THRESHOLD = 16UZ;
     static const size_t DEFAULT_BUFFER_SIZE     = 256UZ;
-
-    /**
-     * @brief Returns the current time as "minutes:seconds:miliseconds".
-     */
-    auto get_current_time() -> std::string;
 
     /**
      * @brief Runs a command and capture its stdout, stderr, and return code.
@@ -122,11 +119,6 @@ namespace Utils {
     ) -> CURLcode;
 
     /**
-     * @brief Returns a quote from https://quotes-api-self.vercel.app/quote
-     */
-    auto get_quote(size_t max_len) -> std::string;
-
-    /**
      * @brief Execute FILE,
      *     searching in the `PATH' environment variable if it contains no
      *     slashes, with arguments ARGV and environment from `environ'.
@@ -140,6 +132,15 @@ namespace Utils {
      */
     auto serrno() -> std::string;
 
+    auto get_ui_file(
+        const std::string &file_name,
+        const std::shared_ptr<ArgParser> &arg_parser
+    ) -> std::string;
+
+    /**
+     * @brief A wrapper for std::getenv that doesnt returns a nullptr.
+     */
+    auto get_env(const std::string &name) -> std::string;
 
     template<typename... T_Args>
     auto format(std::string_view fmt, T_Args&&... args) -> std::string
@@ -149,7 +150,7 @@ namespace Utils {
     auto
     find(const std::vector<T> &vec, const T &obj) -> bool
     { return std::ranges::find(vec, obj) != vec.end(); }
-} /* namespace Utils */
+} /* namespace utils */
 
 /**
  * @namespace GtkUtils

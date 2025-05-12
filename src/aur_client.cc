@@ -69,7 +69,7 @@ Client::search(
     std::string read_buffer;
 
     if (
-        Utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
+        utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
     ) m_logger->log(Logger::Error, "Failed to initialise CURL.");
 
     std::istringstream iss(read_buffer);
@@ -84,7 +84,7 @@ Client::info(const std::string &args) -> Json::Value
 
     std::string read_buffer;
     if (
-        Utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
+        utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
     ) m_logger->log(Logger::Error, "Failed to initialise CURL.");
 
     std::istringstream iss(read_buffer);
@@ -120,9 +120,9 @@ Client::install(
 
 auto
 Client::get_search_by_keywords(
-    ) -> std::array<const std::string, SEARCH_BY_KEYWORDS>
+    ) -> std::vector<std::string>
 {
-    return {{
+    return {
         "name", "name-desc",
         "depends", "checkdepends",
         "optdepends", "makedepends",
@@ -130,19 +130,19 @@ Client::get_search_by_keywords(
         "provides", "conflicts",
         "replaces", "keywords",
         "groups", "comaintainers"
-    }};
+    };
 }
 
 
 auto
 Client::get_sort_by_keywords(
-    ) -> std::array<const std::string, SORT_BY_KEYWORDS>
+    ) -> std::vector<std::string>
 {
-    return {{
+    return {
         "Name",
         "NumVotes",
         "Popularity",
         "Maintainer",
         "LastModified"
-    }};
+    };
 }

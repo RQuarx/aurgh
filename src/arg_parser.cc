@@ -203,16 +203,19 @@ ArgParser::back() -> std::string
 void
 ArgParser::print_help_message(FILE *stream)
 {
-    std::array<arg_pair, 4> options = {{
+    std::array<arg_pair, 7> options = {{
         { "-h,--help",             "Prints the help message." },
         { "-v,--version",          "Prints the current version."},
         { "-l,--log {file,level}", "Shows or outputs the logs."},
-        { "-t,--title {title}",    "Changes the window title."}
+        { "-t,--title {title}",    "Changes the window title."},
+        { "-c,--config {path}",    "Specify a non-default config path."},
+        { "-u,--ui {path}",        "Specify a non-default ui-file path."},
+        { "   --no-cache",         "Forces the program to no cache."}
     }};
 
     std::println(stream, "Usage:");
     std::println(stream, "\t{} <options {{params}}>\n", m_bin_path);
-    std::println(stream, "Option:");
+    std::println(stream, "Options:");
 
     for (const auto &m : options) {
         std::println(stream, "\t{:<30}{}", m.first, m.second);

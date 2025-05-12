@@ -17,23 +17,17 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <algorithm>
 #include <cerrno>
-#include <chrono>
-#include <format>
 
 #include <gtkmm/widget.h>
 #include <json/reader.h>
 #include <json/value.h>
 #include <curl/curl.h>
 
+#include "arg_parser.hh"
 #include "utils.hh"
-
-
-using std::chrono::duration;
-using ms = std::chrono::milliseconds;
-using m = std::chrono::minutes;
-using s = std::chrono::seconds;
 
 
 namespace Str {
@@ -98,23 +92,7 @@ namespace Str {
 } /* namespace Str */
 
 
-namespace Utils {
-    auto
-    get_current_time() -> std::string
-    {
-        duration now = std::chrono::system_clock::now().time_since_epoch();
-
-        ms milliseconds  = std::chrono::duration_cast<ms>(now) % 1000;
-        m minutes        = std::chrono::duration_cast<m>(now) % 60;
-        duration seconds = now % 60;
-
-        return std::format(
-            "{:02}:{:02}.{:03}",
-            minutes.count(), seconds.count(), milliseconds.count()
-        );
-    }
-
-
+namespace utils {
     auto
     run_command(
         const std::string &cmd, size_t buffer_size
@@ -175,45 +153,12 @@ namespace Utils {
 
         read_buffer.clear();
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, Utils::write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, utils::write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &read_buffer);
         CURLcode res = curl_easy_perform(curl);
 
         if (self_curl) curl_easy_cleanup(curl);
         return res;
-    }
-
-
-    auto
-    get_quote(size_t max_len) -> std::string
-    {
-        CURL *curl = curl_easy_init();
-        if (curl == nullptr) return R"({"quote": "Unable to fetch quotes"})";
-
-        std::string  read_buffer;
-        Json::Reader reader;
-        Json::Value  val;
-        std::string  quote;
-
-        while (quote.length() > max_len || quote.empty()) {
-            CURLcode res = perform_curl(
-                curl, "https://quotes-api-self.vercel.app/quote", read_buffer);
-
-            if (res != CURLE_OK) {
-                curl_easy_cleanup(curl);
-                return R"({"quote": "Failed to fetch quote"})";
-            }
-
-            if (!reader.parse(read_buffer, val)) {
-                curl_easy_cleanup(curl);
-                return R"({"quote": "Failed to parse response"})";
-            }
-
-            quote = val["quote"].asString();
-        }
-
-        curl_easy_cleanup(curl);
-        return quote;
     }
 
 
@@ -242,7 +187,44 @@ namespace Utils {
         auto err = errno;
         return strerror(err);
     }
-} /* namespace Utils */
+
+
+    auto
+    get_env(const std::string &name) -> std::string
+    {
+        const char *env = std::getenv(name.c_str());
+
+        if (env == nullptr) return "";
+        return env;
+    }
+
+
+    auto
+    get_ui_file(
+        const std::string &file_name,
+        const std::shared_ptr<ArgParser> &arg_parser
+    ) -> std::string
+    {
+        namespace fs = std::filesystem;
+
+        auto valid_file = [](const std::string &file){
+            return fs::exists(file)
+                && fs::is_regular_file(file)
+                && fs::path(file).extension() == ".xml";
+        };
+
+        std::string option;
+        if (arg_parser->option_arg(option, { "-u","--ui" })) {
+            option.append(file_name);
+
+            if (valid_file(option)) return option;
+        }
+
+        if (valid_file(file_name)) return file_name;
+        if (valid_file("ui/" + file_name)) return "ui/" + file_name;
+        return "/usr/share/aurgh/ui/" + file_name;
+    }
+} /* namespace utils */
 
 
 namespace GtkUtils {

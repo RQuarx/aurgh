@@ -43,7 +43,6 @@ Built with GTK3[^2] and modern C++23 to deal with daily AUR shenanigans.
 ```bash
 root$ pacman -S - < required.txt
 ```
-
 or
 
 ```bash
@@ -56,10 +55,7 @@ root$ make install-deps
 
 ```bash
 user$ make setup-release && make compile
-```
-
-```bash
-root$ cp target/aurgh /usr/bin
+root# make install
 ```
 
 ## Donating

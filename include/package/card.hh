@@ -32,6 +32,7 @@
 
 
 namespace Gtk {
+    class LinkButton;
     class Button;
     class Box;
 }
@@ -50,34 +51,46 @@ namespace pkg {
      */
     class Card : public Gtk::Frame
     {
-        using slot_type = sigc::slot<bool, GdkEventButton *>;
     public:
         explicit Card(
             Json::Value package,
+            const std::string &ui_file,
             const std::vector<str_pair> &installed_aur_packages,
-            std::shared_ptr<Actions> &actions,
             const std::shared_ptr<Logger> &logger,
+            std::shared_ptr<Actions> &actions,
             int32_t spacing = DEFAULT_SPACING
         );
 
-        auto get_action_button() -> Gtk::Button*;
+        auto get_action_button() -> Gtk::Button*&;
 
     private:
         static const inline int32_t DEFAULT_SPACING = 5;
-
-        Gtk::Button *m_action_button;
 
         std::vector<str_pair>      m_installed_package;
         std::shared_ptr<Actions>   m_actions;
         std::shared_ptr<Logger>    m_logger;
         Json::Value                m_package;
 
-        int32_t m_default_spacing;
+        Gtk::Box *m_card = nullptr;
 
-        void create_action_button();
-        void create_info_box(Gtk::Box &box) const;
-        void create_package_name(Gtk::Box &box) const;
-        void create_popularity_frame(Gtk::Frame &frame) const;
+        Gtk::Button *m_action_button = nullptr;
+
+        Gtk::Label *m_version_label = nullptr;
+        Gtk::Label *m_desc_label    = nullptr;
+
+        Gtk::Label      *m_name_label = nullptr;
+        Gtk::LinkButton *m_name_link  = nullptr;
+
+        Gtk::Label *m_popularity_label = nullptr;
+        Gtk::Label *m_votes_label      = nullptr;
+
+        int32_t m_default_spacing;
+        bool    m_button_dimmed;
+
+    protected:
+        auto setup() -> bool;
+
+        void on_button_clicked(pkg::Type result, const std::string &pkg_name);
 
         /**
          * @brief Searches for a package inside installed_aur_package

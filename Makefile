@@ -24,6 +24,15 @@ compile:
 install-deps:
 	pacman -S --needed - < required.txt
 
+install:
+	mkdir -p /usr/share/aurgh/
+	cp -r ui /usr/share/aurgh/
+	cp target/aurgh /usr/bin/
+
+uninstall:
+	rm -rf /usr/share/aurgh
+	rm /usr/bin/aurgh
+
 check:
 	@for dep in $(DEPS); do \
 		if pkg-config --exists $$dep; then \

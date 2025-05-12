@@ -1,11 +1,16 @@
 project(
     'aurgh',
     'cpp',
+    version: run_command(
+        'grep', '-Po', 'APP_VERSION\\s*=\\s*"\K[0-9.]+', 'src/main.cc', check: true
+    ).stdout().strip(),
     default_options: [
         'cpp_std=c++23',
         'optimization=2',
         'warning_level=3'
-    ]
+    ],
+    license: 'GPL-3.0-or-later',
+    license_files: 'LICENSE'
 )
 
 src = files(
@@ -14,6 +19,7 @@ src = files(
 
     'src/arg_parser.cc',
     'src/aur_client.cc',
+    'src/config.cc',
     'src/logger.cc',
     'src/main.cc',
     'src/process.cc',

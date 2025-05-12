@@ -21,15 +21,14 @@
 #ifndef PACKAGE_TAB_HH__
 #define PACKAGE_TAB_HH__
 
-#include <fstream>
-#include <queue>
+#include <atomic>
+#include <memory>
 
 #include <glibmm/dispatcher.h>
 #include <json/value.h>
 #include <gtkmm/box.h>
 
-#include "card.hh"
-#include "utils.hh"
+#include "package/type.hh"
 
 namespace Gtk {
     class ScrolledWindow;
@@ -37,84 +36,81 @@ namespace Gtk {
     class CheckButton;
     class SearchEntry;
     class Expander;
+    class Builder;
     class Spinner;
-    class Frame;
+    class Label;
 }
 namespace AUR { class Client; }
+class ArgParser;
+class Config;
 class Logger;
 
 
 namespace pkg {
+    using std::shared_ptr;
+
     /**
-    * @class PackageTab
-    * @brief A tab for AUR package management
-    * @ingroup Widget
-    * @ingroup Container
-    * @ingroup Box
-    */
+     * @class Tab
+     * @brief A tab for AUR package management
+     * @ingroup Widget
+     * @ingroup Container
+     * @ingroup Box
+     */
     class Tab : public Gtk::Box
     {
     public:
-        explicit Tab(
-            const std::shared_ptr<AUR::Client> &aur_client,
-            const std::shared_ptr<Logger> &logger
+        Tab(
+            const shared_ptr<AUR::Client> &aur_client,
+            const shared_ptr<Logger> &logger,
+            const shared_ptr<Config> &config,
+            const shared_ptr<ArgParser> &arg_parser
         );
 
     private:
-        const int32_t m_default_spacing = 5;
+        shared_ptr<AUR::Client> m_aur_client;
+        shared_ptr<Logger>      m_logger;
+        shared_ptr<Config>      m_config;
+        shared_ptr<Actions>     m_actions;
 
-        Gtk::ScrolledWindow *m_search_results;
-        Gtk::ComboBoxText   *m_search_by;
-        Gtk::ComboBoxText   *m_sort_by;
-        Gtk::CheckButton    *m_reverse_sort;
-        Gtk::SearchEntry    *m_entry;
-        Gtk::Spinner        *m_spinner;
-        Gtk::Label          *m_quote_label;
-        Gtk::Box            *m_result_box;
-        Gtk::Expander       *m_actions_widget;
+        std::atomic<bool>        m_stop_search;
+        Glib::Dispatcher         m_search_dispatcher;
+        std::vector<Json::Value> m_package_queue;
+        Json::Value              m_search_result;
 
-        std::unordered_map<pkg::Type, Gtk::Expander*> m_actions_view{
-            { pkg::Install, nullptr },
-            { pkg::Remove, nullptr },
-            { pkg::Update, nullptr }
-        };
+        std::string m_card_ui_file;
 
-        Glib::Dispatcher m_package_dispatcher;
-        Glib::Dispatcher m_quote_dispatcher;
+        /* Widgets */
 
-        std::shared_ptr<AUR::Client> m_aur_client;
-        std::shared_ptr<Logger>      m_logger;
+        Gtk::Box *m_tab_box{};
+        Gtk::Box *m_result_box{};
 
-        std::queue<Json::Value>  m_package_queue;
-        Json::Value              m_aur_packages;
-        std::shared_ptr<Actions> m_actions;
+        Gtk::ScrolledWindow *m_results_scroll{};
 
-        std::string m_quote;
-        std::string m_cache_path;
+        Gtk::ComboBoxText *m_search_by_combo{};
+        Gtk::ComboBoxText *m_sort_by_combo{};
+        Gtk::CheckButton  *m_reverse_sort_check{};
+        Gtk::SearchEntry  *m_search_entry{};
+
+        Gtk::Expander                       *m_actions_expander{};
+        std::map<pkg::Type, Gtk::Expander *> m_action_widgets;
+
+        Gtk::Spinner *m_spinner{};
 
     protected:
-        auto save_cache() -> bool;
-
-        auto create_search_box() -> Gtk::Box*;
-
-        void on_search();
         void on_dispatch_search_ready();
-        void on_download_clicked();
+        auto setup() -> bool;
+        void on_search();
+        auto sort_packages(
+            const Json::Value &packages) -> std::vector<Json::Value>;
+
         void process_next_package(
-            const std::vector<std::pair<std::string, std::string>> &installed_packages);
+            const std::vector<std::pair<std::string, std::string>> &installed);
 
         void on_action_button_pressed();
-        void on_card_download_clicked(
-            const std::string &pkg_name,
-            const std::string &pkg_version,
-            int8_t find_result,
-            Gtk::Button *&button
-        );
-        auto on_action_type_opened(
-            GdkEventButton *button_event, pkg::Type type) -> bool;
 
-        auto sort_packages(Json::Value packages) -> std::vector<Json::Value>;
-        static auto get_installed_aur_packages(
+        void on_action_type_opened(GdkEventButton *button_event, pkg::Type type);
+
+        static auto get_installed_pkgs(
             ) -> std::vector<std::pair<std::string, std::string>>;
     };
 } /* namespace pkg */

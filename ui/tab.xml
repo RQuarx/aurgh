@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.24" />
+
+  <object class="GtkBox" id="tab_main">
+
+    <property name="orientation">vertical</property>
+    <property name="spacing">10</property>
+
+    <child>
+      <!-- Search Frame -->
+      <object class="GtkFrame" id="search_frame">
+
+        <property name="margin">5</property>
+        <property name="hexpand">true</property>
+
+        <child>
+          <object class="GtkBox" id="search_options_box">
+
+            <property name="orientation">horizontal</property>
+            <property name="hexpand">true</property>
+            <property name="spacing">10</property>
+            <property name="margin">5</property>
+
+            <child>
+              <object class="GtkBox" id="search_by_container">
+
+                <property name="orientation">horizontal</property>
+                <property name="margin-right">10</property>
+                <property name="margin-left">10</property>
+                <property name="spacing">10</property>
+
+                <child>
+                  <object class="GtkLabel" id="search_by_label">
+
+                    <property name="label">Search by</property>
+
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="search_by" />
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkSearchEntry" id="search_entry">
+
+                <property name="placeholder_text">Search for AUR packages</property>
+                <property name="hexpand">true</property>
+                <property name="halign">fill</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkBox" id="sort_by_container">
+
+                <property name="orientation">horizontal</property>
+                <property name="margin-right">10</property>
+                <property name="margin-left">10</property>
+                <property name="spacing">10</property>
+
+                <child>
+                  <object class="GtkLabel" id="sort_by_label">
+
+                    <property name="label">Sort by</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="sort_by" />
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkCheckButton" id="reverse_sort">
+                <property name="label">Reverse</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkImage" id="menu_icon">
+
+                <property name="icon_name">open-menu</property>
+                <property name="hexpand">true</property>
+                <property name="icon_size">1</property>
+                <property name="halign">end</property>
+              </object>
+            </child>
+
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkBox" id="results_container">
+
+        <property name="orientation">horizontal</property>
+        <property name="vexpand">true</property>
+        <property name="valign">fill</property>
+        <property name="spacing">10</property>
+
+        <child>
+          <object class="GtkScrolledWindow" id="search_results">
+
+            <property name="vscrollbar_policy">automatic</property>
+            <property name="hscrollbar_policy">never</property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="halign">fill</property>
+            <property name="valign">fill</property>
+
+            <child>
+              <object class="GtkBox" id="result_box">
+
+                <property name="orientation">vertical</property>
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="valign">start</property>
+                <property name="halign">fill</property>
+                <property name="spacing">10</property>
+
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkExpander" id="actions_widget">
+
+            <property name="label">Actions</property>
+            <property name="hexpand">false</property>
+            <property name="halign">end</property>
+
+            <child>
+              <object class="GtkBox" id="actions_box">
+
+                <property name="orientation">vertical</property>
+                <property name="spacing">10</property>
+
+                <!-- These expanders are placeholders for Install, Remove, Update -->
+                <child>
+                  <object class="GtkExpander" id="actions_install">
+
+                    <property name="margin-left">10</property>
+                    <property name="label">Install</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkExpander" id="actions_remove">
+
+                    <property name="margin-left">10</property>
+                    <property name="label">Remove</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkExpander" id="actions_update">
+
+                    <property name="margin-left">10</property>
+                    <property name="label">Update</property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+  </object>
+</interface>

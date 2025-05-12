@@ -27,7 +27,7 @@
 
 
 Logger::Logger(const std::shared_ptr<ArgParser> &arg_parser) :
-    m_use_color(Utils::term_has_colors())
+    m_use_color(utils::term_has_colors())
 {
     std::string option;
     if (arg_parser->option_arg(option, { "-l", "--log" })) {
@@ -129,7 +129,7 @@ Logger::log_to_file(Level log_level, std::string_view message)
     std::jthread([this, log_level, message]() {
         std::string_view label = m_labels.at(log_level).second;
         std::println(
-            m_log_file, "{} {} {}", Utils::get_current_time(), label, message
+            m_log_file, "{} {} {}", get_current_time(), label, message
         );
     });
 }
@@ -138,3 +138,23 @@ Logger::log_to_file(Level log_level, std::string_view message)
 auto
 Logger::get_previous_log_level() -> Level
 { return m_previous_log_level; }
+
+
+auto
+Logger::get_current_time() -> std::string
+{
+    using std::chrono::duration;
+    using ms = std::chrono::milliseconds;
+    using m = std::chrono::minutes;
+
+    duration now = std::chrono::system_clock::now().time_since_epoch();
+
+    ms milliseconds  = std::chrono::duration_cast<ms>(now) % 1000;
+    m minutes        = std::chrono::duration_cast<m>(now) % 60;
+    duration seconds = now % 60;
+
+    return std::format(
+        "{:02}:{:02}.{:03}",
+        minutes.count(), seconds.count(), milliseconds.count()
+    );
+}

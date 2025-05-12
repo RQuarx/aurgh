@@ -24,11 +24,9 @@
 #include <string_view>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <curl/curl.h>
-
-static const size_t SEARCH_BY_KEYWORDS = 14;
-static const size_t SORT_BY_KEYWORDS = 7;
 
 namespace Json { class Value; }
 class Logger;
@@ -80,14 +78,14 @@ namespace AUR {
         * @returns an array of const std::string with the size of 14.
         */
         static auto get_search_by_keywords(
-            ) -> std::array<const std::string, SEARCH_BY_KEYWORDS>;
+            ) -> std::vector<std::string>;
 
         /**
         * @brief Get the available "sort by" keywords used for the search function.
         * @returns an array of const std::string with the size of 7.
         */
         static auto get_sort_by_keywords(
-            ) -> std::array<const std::string, SORT_BY_KEYWORDS>;
+            ) -> std::vector<std::string>;
 
     private:
         static const inline std::string_view DEFAULT_AUR_URL =

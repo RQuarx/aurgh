@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <utility>
 #include <format>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -41,28 +42,31 @@ namespace pkg {
 
     struct Actions
     {
-        std::vector<std::string> install;
-        std::vector<std::string> remove;
-        std::vector<std::string> update;
+        std::shared_ptr<std::vector<std::string>> install;
+        std::shared_ptr<std::vector<std::string>> remove;
+        std::shared_ptr<std::vector<std::string>> update;
 
-        Actions()
+        Actions() :
+            install(std::make_shared<std::vector<std::string>>()),
+            remove(std::make_shared<std::vector<std::string>>()),
+            update(std::make_shared<std::vector<std::string>>())
         {
-            install.reserve(10);
-            remove.reserve(10);
-            update.reserve(10);
+            install->reserve(10);
+            remove->reserve(10);
+            update->reserve(10);
         }
 
         [[nodiscard]]
-        auto at(pkg::Type t) -> std::vector<std::string>*
+        auto at(pkg::Type t) -> std::shared_ptr<std::vector<std::string>>
         {
             switch (t)
             {
-            case pkg::Install: return &install;
-            case pkg::Remove:  return &remove;
-            case pkg::Update:  return &update;
-            case pkg::None:    return nullptr;
-            default:           return &install;
+            case pkg::Install: return install;
+            case pkg::Remove:  return remove;
+            case pkg::Update:  return update;
+            case pkg::None:    return install;
             }
+            return install;
         }
     };
 } /* namespace pkg */

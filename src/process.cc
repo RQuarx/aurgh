@@ -43,7 +43,7 @@ Process::Process(
 
     if (pid == -1) {
         ma_logger.load()->log(
-            Logger::Error, "Failed to create child process: {}", Utils::serrno()
+            Logger::Error, "Failed to create child process: {}", utils::serrno()
         );
         exit(EXIT_FAILURE);
     }
@@ -55,17 +55,17 @@ Process::Process(
 
         if (chdir(m_cwd.c_str()) != 0) {
             ma_logger.load()->log(
-                Logger::Error, "Failed to change directory: {}", Utils::serrno()
+                Logger::Error, "Failed to change directory: {}", utils::serrno()
             );
             exit(EXIT_FAILURE);
         }
 
-        Utils::execvp(file, argv);
+        utils::execvp(file, argv);
 
         ma_logger.load()->log(
             Logger::Error,
             "'execvp' failed to run: {}",
-            Utils::serrno()
+            utils::serrno()
         );
         exit(EXIT_FAILURE);
     } else { /* Parent */
@@ -91,7 +91,7 @@ Process::kill() -> int32_t
 
     if (result == -1) {
         ma_logger.load()->log(
-            Logger::Error, "`waitpid()` failed: {}", Utils::serrno()
+            Logger::Error, "`waitpid()` failed: {}", utils::serrno()
         );
         return -1;
     }
@@ -100,7 +100,7 @@ Process::kill() -> int32_t
     if (result == 0) {
         if (::kill(m_child_pid, SIGKILL) == -1) {
             ma_logger.load()->log(
-                Logger::Error, "Failed to kill process: {}", Utils::serrno()
+                Logger::Error, "Failed to kill process: {}", utils::serrno()
             );
             return -1;
         }
@@ -109,7 +109,7 @@ Process::kill() -> int32_t
             ma_logger.load()->log(
                 Logger::Error,
                 "'waitpid()' after kill failed: {}",
-                Utils::serrno()
+                utils::serrno()
             );
             return -1;
         }

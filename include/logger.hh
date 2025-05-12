@@ -99,7 +99,7 @@ public:
             std::println(
                 (log_level == Error ? stderr : stdout),
                 "{} {} {}",
-                Utils::get_current_time(), label, message
+                get_current_time(), label, message
             );
             std::fflush(stdout);
         }
@@ -161,6 +161,12 @@ private:
      * @returns true on success, or false on failure
     */
     auto handle_double_parameters(const std::string &option) -> bool;
+
+    /**
+     * @brief Returns the current time as "MM:SS.MS".
+     * @returns A valid string on success, or an empty string on failure.
+     */
+    static auto get_current_time() -> std::string;
 };
 
 #endif /* logger.hh */
