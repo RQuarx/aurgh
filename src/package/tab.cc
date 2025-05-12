@@ -41,9 +41,9 @@ using pkg::Tab;
 
 Tab::Tab(
     const shared_ptr<AUR::Client> &aur_client,
-    const shared_ptr<Logger> &logger,
-    const shared_ptr<Config> &config,
-    const shared_ptr<ArgParser> &arg_parser
+    const shared_ptr<Logger>      &logger,
+    const shared_ptr<Config>      &config,
+    const shared_ptr<ArgParser>   &arg_parser
 ) :
     m_aur_client(aur_client),
     m_logger(logger),
@@ -145,12 +145,12 @@ Tab::on_search()
 
 
 auto
-Tab::sort_packages(const Json::Value &packages) -> std::vector<Json::Value>
+Tab::sort_packages(const Json::Value &pkgs) -> std::vector<Json::Value>
 {
     std::vector<Json::Value> package;
-    package.reserve(packages.size());
+    package.reserve(pkgs.size());
 
-    for (const auto &p : packages) package.push_back(p);
+    for (const auto &p : pkgs) package.push_back(p);
 
     std::string sort_by = m_sort_by_combo->get_active_text();
 
@@ -174,18 +174,17 @@ Tab::sort_packages(const Json::Value &packages) -> std::vector<Json::Value>
 
 
 auto
-Tab::get_installed_pkgs(
-    ) -> std::vector<std::pair<std::string, std::string>>
+Tab::get_installed_pkgs() -> str_pair_vec
 {
-    std::vector<std::pair<std::string, std::string>> installed_packages;
+    str_pair_vec       installed_packages;
     std::istringstream iss(utils::run_command("pacman -Qm", 512)->first);
-    std::string line;
+    std::string        line;
 
     while (std::getline(iss, line)) {
-        auto package = Str::splitp(line, line.find(' '));
+        auto package = str::split(line, line.find(' '));
         installed_packages.emplace_back(
-            Str::trim(package.at(0)),
-            Str::trim(package.at(1))
+            str::trim(package.at(0)),
+            str::trim(package.at(1))
         );
     }
 
@@ -227,7 +226,7 @@ Tab::on_dispatch_search_ready()
 
 void
 Tab::process_next_package(
-    const std::vector<std::pair<std::string, std::string>> &installed)
+    const str_pair_vec &installed)
 {
     if (m_package_queue.empty()) return;
 

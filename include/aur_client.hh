@@ -46,7 +46,9 @@ namespace AUR {
         * @param url A custom AUR url, defaults to https://aur.archlinux.org/rpc/v5
         */
         explicit Client(
-            const std::shared_ptr<Logger> &logger, std::string_view url = "");
+            const std::shared_ptr<Logger> &logger,
+            std::string_view               url = ""
+        );
 
         /**
         * @brief Searches a package on the AUR.

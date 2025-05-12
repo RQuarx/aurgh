@@ -30,39 +30,13 @@
 #include "utils.hh"
 
 
-namespace Str {
+namespace str {
     auto
-    splitp(std::string_view str, size_t pos) -> std::array<std::string, 2>
+    split(std::string_view str, size_t pos) -> std::array<std::string, 2>
     {
         const std::string first(str.substr(0, pos));
         const std::string second(str.substr(pos + 1));
         return { first , second };
-    }
-
-
-    auto
-    splitd(const std::string &str, char delim) -> std::vector<std::string>
-    {
-        std::vector<std::string> tokens;
-        tokens.reserve(count(str, delim) + 1);
-
-        std::istringstream iss(str);
-        std::string        token;
-
-        while (std::getline(iss, token, delim)) {
-            tokens.push_back(token);
-        }
-
-        return tokens;
-    }
-
-
-    auto
-    is_digit(std::string_view str) -> bool
-    {
-        return std::ranges::all_of(str, [](const char c){
-            return std::isdigit(c);
-        });
     }
 
 
@@ -80,29 +54,40 @@ namespace Str {
 
 
     auto
-    count(std::string_view str, char c) -> size_t
+    count(std::string_view str, char delim) -> size_t
     {
         size_t i = 0;
         for (auto s : str) {
-            if (s == c) i++;
+            if (s == delim) i++;
         }
 
         return i;
     }
-} /* namespace Str */
+
+
+    auto
+    is_digit(const std::string &str) -> bool
+    {
+        return std::ranges::all_of(str, [](char c){
+            return std::isdigit(c);
+        });
+    }
+} /* namespace str */
 
 
 namespace utils {
     auto
     run_command(
-        const std::string &cmd, size_t buffer_size
-    ) -> std::optional<std::pair<std::string, int32_t>>
+        const std::string &cmd,
+        size_t             buffer_size
+    ) -> optional<std::pair<std::string, int32_t>>
     {
         std::vector<char> buffer(buffer_size);
         std::string       result;
 
-        std::unique_ptr<FILE, decltype(&pclose)> pipe(
-            popen((cmd + " 2>&1").c_str(), "r"), pclose
+        auto pipe = std::unique_ptr<FILE, std::function<void(FILE*)>>(
+            popen((cmd + " 2>&1").c_str(), "r"),
+            [](FILE* f) { if (f) pclose(f); }
         );
 
         if (!pipe) return std::nullopt;
@@ -132,7 +117,10 @@ namespace utils {
 
     auto
     write_callback(
-        void *contents, size_t size, size_t nmemb, std::string &userp
+        void        *contents,
+        size_t       size,
+        size_t       nmemb,
+        std::string &userp
     ) -> size_t
     {
         size_t total_size = size * nmemb;
@@ -143,7 +131,9 @@ namespace utils {
 
     auto
     perform_curl(
-        CURL *curl, const std::string &url, std::string &read_buffer
+        CURL              *curl,
+        const std::string &url,
+        std::string       &read_buffer
     ) -> CURLcode
     {
         bool self_curl = (curl == nullptr);
@@ -164,7 +154,8 @@ namespace utils {
 
     auto
     execvp(
-        std::string &file, std::vector<std::string> &argv
+        std::string              &file,
+        std::vector<std::string> &argv
     ) -> int32_t
     {
         std::vector<char*> c_argv;
@@ -201,7 +192,7 @@ namespace utils {
 
     auto
     get_ui_file(
-        const std::string &file_name,
+        const std::string                &file_name,
         const std::shared_ptr<ArgParser> &arg_parser
     ) -> std::string
     {

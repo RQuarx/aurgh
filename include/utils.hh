@@ -31,6 +31,7 @@
 
 #include <curl/curl.h>
 
+namespace Json { class Value; }
 namespace Gtk {
     class Widget;
     class Label;
@@ -40,125 +41,206 @@ class ArgParser;
 
 
 /**
- * @namespace Str
- * @brief A namespace containing str utilities
+ * @namespace str
+ * @brief String utility functions.
  */
-namespace Str {
+namespace str {
     /**
      * @brief Splits a string into an array of 2.
      * @param str The base string.
      * @param pos The index where the string will be split.
      * @returns An array object with size 2.
      */
-     auto splitp(std::string_view str, size_t pos) -> std::array<std::string, 2>;
+    auto split(std::string_view str, size_t pos) -> std::array<std::string, 2>;
+
 
     /**
-     * @brief Splits a string by the delim.
-     * @param str The base string.
-     * @param delim The char where the string will be split.
-     * @returns A vector of strings.
+     * @brief Trims whitespace from both ends of the string.
+     * @param str The input string.
+     * @return A new trimmed string.
      */
-    auto splitd(const std::string &str, char delim) -> std::vector<std::string>;
-
-    /**
-     * @brief Checks if a string only consists of digits
-     */
-    auto is_digit(std::string_view str) -> bool;
-
     auto trim(std::string_view str) -> std::string;
 
+
     /**
-     * @brief Counts the amount of c inside str.
+    * @brief Counts the occurrences of a character in a string.
+    * @param str The input string to search within.
+    * @param delim The character to count.
+    * @return The number of times @p delim appears in @p str.
+    */
+    auto count(std::string_view str, char delim) -> size_t;
+
+
+    /**
+     * @brief Checks wheter @p str is only composed of digits.
+     * @param str The input string.
+     * @return Wheter @p str is only composed of digits.
      */
-    auto count(std::string_view str, char c) -> size_t;
-} /* namespace Str */
+    auto is_digit(const std::string &str) -> bool;
+} /* namespace str */
 
 /**
  * @namespace utils
  * @brief A namespace containing usefull utilities
  */
 namespace utils {
+    using std::optional;
+
     static const size_t DEFAULT_COLOR_THRESHOLD = 16UZ;
     static const size_t DEFAULT_BUFFER_SIZE     = 256UZ;
 
+
     /**
-     * @brief Runs a command and capture its stdout, stderr, and return code.
-     * @param cmd The command that will be executed.
-     * @param buffer_size The buffer size used to capture the output,
-     *        defaults to 256.
-     * @returns An std::optional object containing the output and return code.
+     * @brief Executes a shell command and captures its output.
+     * @param cmd The command string.
+     * @param buffer_size Optional buffer size (default: 256).
+     * @return Optional pair of output string and exit code.
      */
     auto run_command(
-        const std::string &cmd, size_t buffer_size = DEFAULT_BUFFER_SIZE
-    ) -> std::optional<std::pair<std::string, int32_t>>;
+        const std::string &cmd,
+        size_t             buffer_size = DEFAULT_BUFFER_SIZE
+    ) -> optional<std::pair<std::string, int32_t>>;
 
     /**
-     * @brief Checks if the terminal used by the user has colours.
-     * @param threshold_color_amount The color amount used for the threshold,
-     *        defaults to 16.
+     * @brief Checks if the current terminal supports a given number of colors.
+     * @param threshold_color_amount The color threshold (default: 16).
+     * @return True if the terminal supports at least that many colors.
      */
     auto term_has_colors(
-        int32_t threshold_color_amount = DEFAULT_COLOR_THRESHOLD) -> bool;
+        int32_t threshold_color_amount = DEFAULT_COLOR_THRESHOLD
+    ) -> bool;
+
 
     /**
-     * @brief A write callback function for CURL
+     * @brief libcurl write callback to append data to a string.
+     * @param contents Incoming data buffer.
+     * @param size Size of each element.
+     * @param nmemb Number of elements.
+     * @param userp Target string buffer.
+     * @return Number of bytes handled.
      */
     auto write_callback(
-        void *contents, size_t size, size_t nmemb, std::string &userp
+        void        *contents,
+        size_t       size,
+        size_t       nmemb,
+        std::string &userp
     ) -> size_t;
 
+
     /**
-     * @brief A wrapper for curl_easy_perform
-     * @param curl If nullptr, the function would use its own CURL
-     * @param url The url to fetch data from
-     * @param read_buffer The buffer the data will be placed in
-     * @returns a CURLCode
+     * @brief Performs a CURL request to a given URL.
+     * @param curl Optional CURL handle. If nullptr, an internal handle is used.
+     * @param url The target URL.
+     * @param read_buffer String to store response data.
+     * @return CURLcode result.
      */
     auto perform_curl(
-        CURL *curl, const std::string &url, std::string &read_buffer
+        CURL              *curl,
+        const std::string &url,
+        std::string       &read_buffer
     ) -> CURLcode;
 
-    /**
-     * @brief Execute FILE,
-     *     searching in the `PATH' environment variable if it contains no
-     *     slashes, with arguments ARGV and environment from `environ'.
-     */
-    auto execvp(
-        std::string &file, std::vector<std::string> &argv
-    ) -> int32_t;
 
     /**
-     * @brief Returns errno as an std::string.
+     * @brief Executes a file with arguments, optionally resolving via PATH.
+     * @param file Executable name or path.
+     * @param argv Argument vector.
+     * @return Exit code or -1 on error.
+     */
+    auto execvp(
+        std::string              &file,
+        std::vector<std::string> &argv
+    ) -> int32_t;
+
+
+    /**
+     * @brief Sorts a Json::Value array based on a field.
+     * @param root The JSON array to sort.
+     * @param sort_by The field to sort on.
+     * @param reverse Whether to reverse the sort order.
+     * @return A vector of sorted Json::Value objects.
+     */
+    auto sort_json(
+        const Json::Value &root,
+        const std::string &sort_by,
+        bool               reverse = false
+    ) -> std::vector<Json::Value>;
+
+
+    /**
+     * @brief Returns the current errno value as a human-readable string.
+     * @return The error string.
      */
     auto serrno() -> std::string;
 
+
+    /**
+     * @brief Resolves the full UI file path from a filename.
+     * @param file_name Name of the UI file.
+     * @param arg_parser ArgParser for config paths.
+     * @return Full file path to the UI resource.
+     */
     auto get_ui_file(
-        const std::string &file_name,
+        const std::string                &file_name,
         const std::shared_ptr<ArgParser> &arg_parser
     ) -> std::string;
 
+
     /**
-     * @brief A wrapper for std::getenv that doesnt returns a nullptr.
+     * @brief Safe wrapper around std::getenv that returns a string.
+     * @param name Environment variable name.
+     * @return The variable's value or empty string.
      */
     auto get_env(const std::string &name) -> std::string;
 
+
+    /**
+     * @brief A wrapper for std::format.
+     * @param fmt Format string.
+     * @param args Variadic arguments.
+     * @return The formatted string.
+     */
     template<typename... T_Args>
     auto format(std::string_view fmt, T_Args&&... args) -> std::string
     { return std::vformat(fmt, std::make_format_args(args...)); }
 
+
+    /**
+     * @brief Checks if a value exists in a vector.
+     * @param vec Vector to search.
+     * @param obj Object to find.
+     * @return True if found, false otherwise.
+     */
     template<typename T>
-    auto
-    find(const std::vector<T> &vec, const T &obj) -> bool
+    auto find(const std::vector<T> &vec, const T &obj) -> bool
     { return std::ranges::find(vec, obj) != vec.end(); }
 } /* namespace utils */
 
 /**
  * @namespace GtkUtils
- * @brief A namespace containing utilities for the Gtkmm-3.0 library.
+ * @brief Utility functions for working with Gtkmm widgets.
  */
 namespace GtkUtils {
+    /**
+     * @brief Sets individual margins on a widget (top, right, bottom, left).
+     * @param widget The widget to set margins on.
+     * @param margin Array of 4 margin values.
+     */
     void set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin);
+
+    /**
+     * @brief Sets vertical and horizontal margins on a widget.
+     * @param widget The widget to set margins on.
+     * @param margin_y Top and bottom margin.
+     * @param margin_x Left and right margin.
+     */
     void set_margin(Gtk::Widget &widget, int32_t margin_y, int32_t margin_x);
+
+    /**
+     * @brief Sets the same margin on all sides of a widget.
+     * @param widget The widget to set margins on.
+     * @param margin Margin value for all sides.
+     */
     void set_margin(Gtk::Widget &widget, int32_t margin);
 } /* namespace GtkUtils */
 

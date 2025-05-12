@@ -31,10 +31,10 @@ static const std::string DEFAULT_CWD =
 
 
 Process::Process(
-    std::string file,
-    std::vector<std::string> argv,
+    std::string                    file,
+    std::vector<std::string>       argv,
     const std::shared_ptr<Logger> &logger,
-    const std::string &cwd
+    const std::string             &cwd
 ) :
     ma_logger(logger),
     m_cwd(cwd.empty() ? DEFAULT_CWD : cwd)

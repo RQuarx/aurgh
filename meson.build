@@ -1,9 +1,7 @@
 project(
     'aurgh',
     'cpp',
-    version: run_command(
-        'grep', '-Po', 'APP_VERSION\\s*=\\s*"\K[0-9.]+', 'src/main.cc', check: true
-    ).stdout().strip(),
+    version: '0.1.1',
     default_options: [
         'cpp_std=c++23',
         'optimization=2',
@@ -34,18 +32,23 @@ deps = [
     dependency('libalpm'),
 ]
 
-cpp_args = [
-    '-g',
-    '-Wall',
-    '-Wextra',
+foreach dep : deps
+    add_project_dependencies(dep, language: 'cpp')
+endforeach
+
+
+
+add_project_arguments([
     '-DGDK_DISABLE_DEPRECATED',
     '-DGTK_DISABLE_DEPRECATED',
-]
+    '-DAPP_VERSION="@0@"'.format(meson.project_version()),
+    '-DAPP_NAME="@0@"'.format(meson.project_name()),
+    '-DPRETTY_LOGGING=@0@'.format(get_option('pretty-logging')),
+], language: 'cpp')
+
 
 executable(
     'aurgh',
     src,
-    dependencies: deps,
-    cpp_args: cpp_args,
     include_directories: include_directories('include')
 )

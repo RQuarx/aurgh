@@ -1,0 +1,6 @@
+option(
+    'pretty-logging',
+    type:        'boolean',
+    value:        true,
+    description: 'Show colours in log messages.'
+)

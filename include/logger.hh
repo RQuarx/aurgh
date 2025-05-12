@@ -114,7 +114,7 @@ private:
         { Info,  { "\033[1;37m[\033[1;32mINFO\033[1;37m]:\033[0;0;0m ", "[INFO]: " } },
         { Warn,  { "\033[1;37m[\033[1;33mWARN\033[1;37m]:\033[0;0;0m ", "[WARN]: " } },
     };
-    const std::string m_log_arg = "{-l --log}";
+    const std::string m_log_arg = "-l, --log";
     Level m_previous_log_level  = None;
     Level m_log_treshold        = None;
 

@@ -29,6 +29,7 @@
 #include <vector>
 
 using str_pair = std::pair<std::string, std::string>;
+using str_vec  = std::vector<std::string>;
 
 
 namespace pkg {
@@ -42,14 +43,14 @@ namespace pkg {
 
     struct Actions
     {
-        std::shared_ptr<std::vector<std::string>> install;
-        std::shared_ptr<std::vector<std::string>> remove;
-        std::shared_ptr<std::vector<std::string>> update;
+        std::shared_ptr<str_vec> install;
+        std::shared_ptr<str_vec> remove;
+        std::shared_ptr<str_vec> update;
 
         Actions() :
-            install(std::make_shared<std::vector<std::string>>()),
-            remove(std::make_shared<std::vector<std::string>>()),
-            update(std::make_shared<std::vector<std::string>>())
+            install(std::make_shared<str_vec>()),
+            remove(std::make_shared<str_vec>()),
+            update(std::make_shared<str_vec>())
         {
             install->reserve(10);
             remove->reserve(10);
@@ -57,7 +58,7 @@ namespace pkg {
         }
 
         [[nodiscard]]
-        auto at(pkg::Type t) -> std::shared_ptr<std::vector<std::string>>
+        auto at(pkg::Type t) const -> std::shared_ptr<str_vec>
         {
             switch (t)
             {
@@ -88,14 +89,14 @@ struct std::formatter<pkg::Type> : std::formatter<std::string>
 };
 
 template <typename CharT>
-struct std::formatter<std::vector<std::string>, CharT>
+struct std::formatter<str_vec, CharT>
 {
     constexpr auto
     parse(std::format_parse_context &ctx)
     { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const std::vector<std::string> &vec, FormatContext &ctx) const
+    auto format(const str_vec &vec, FormatContext &ctx) const
     {
         auto out = ctx.out();
         *out++ = "\n\t[";

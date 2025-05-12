@@ -45,6 +45,21 @@ ArgParser::ArgParser(int32_t argc, char **argv) :
 
         m_arg_list[previous_type].emplace_back(true, arg);
     }
+
+    /* A way to make main cleaner. */
+
+    if (find_arg({ "-h", "--help" })) {
+        print_help_message(stdout);
+        exit(EXIT_SUCCESS);
+    }
+
+    if (find_arg({ "-V", "--version" })) {
+        std::println("{} v{}", APP_NAME, APP_VERSION);
+        std::println("Copyright (C) 2025 RQuarx\n");
+        std::println("This program may be freely redistributed under");
+        std::println("the terms of the GNU General Public License.");
+        exit(EXIT_SUCCESS);
+    }
 }
 
 
@@ -112,7 +127,7 @@ ArgParser::find_option_short(
 
         /* Case: -X=value */
         if (a.second.contains('=')) {
-            auto arg_and_option = Str::splitp(a.second, a.second.find('='));
+            auto arg_and_option = str::split(a.second, a.second.find('='));
 
             if (arg_and_option.front().back() == arg) {
                 option = arg_and_option.back();
@@ -203,21 +218,29 @@ ArgParser::back() -> std::string
 void
 ArgParser::print_help_message(FILE *stream)
 {
-    std::array<arg_pair, 7> options = {{
-        { "-h,--help",             "Prints the help message." },
-        { "-v,--version",          "Prints the current version."},
-        { "-l,--log {file,level}", "Shows or outputs the logs."},
-        { "-t,--title {title}",    "Changes the window title."},
-        { "-c,--config {path}",    "Specify a non-default config path."},
-        { "-u,--ui {path}",        "Specify a non-default ui-file path."},
-        { "   --no-cache",         "Forces the program to no cache."}
+    std::vector<std::array<std::string, 3>> options{{
+        {{ "-h,--help", "", "Prints the help message." }},
+        {{ "-V,--version", "", "Prints the current version." }},
+        {{ "-l,--log", "{file,level}", "Shows or outputs the logs." }},
+        {{ "-t,--title", "{title}", "Changes the window title." }},
+        {{ "-c,--config", "{path}", "Specify a non-default config path." }},
+        {{ "-u,--ui", "{path}", "Specify a non-default ui-file path." }},
+        {{ "   --no-cache", "", "Forces the program to not cache." }},
     }};
 
-    std::println(stream, "Usage:");
-    std::println(stream, "\t{} <options {{params}}>\n", m_bin_path);
-    std::println(stream, "Options:");
+    std::println(stream, "\033[1m\033[4mUsage:\033[0m");
+    std::println(stream, "\t\033[1m{}\033[0m <options {{params}}>\n", m_bin_path);
+    std::println(stream, "\033[1m\033[4mOptions:\033[0m");
 
     for (const auto &m : options) {
-        std::println(stream, "\t{:<30}{}", m.first, m.second);
+        std::println(
+            stream,
+            "\t\033[1m{:<15}\033[0m{:<15}{}",
+            m.at(0), m.at(1), m.at(2)
+        );
     }
+
+    std::println("\n\033[1m\033[4mCopyright (C) 2025 RQuarx\033[0m\n");
+    std::println("This program may be freely redistributed under");
+    std::println("the terms of the GNU General Public License.");
 }

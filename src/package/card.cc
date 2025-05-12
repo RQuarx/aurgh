@@ -34,11 +34,11 @@ using pkg::Card;
 
 
 Card::Card(
-    Json::Value package,
-    const std::string &ui_file,
-    const std::vector<str_pair> &installed_aur_packages,
+    Json::Value                    package,
+    const std::string             &ui_file,
+    const std::vector<str_pair>   &installed_aur_packages,
     const std::shared_ptr<Logger> &logger,
-    std::shared_ptr<Actions> &actions,
+    std::shared_ptr<Actions>      &actions,
     int32_t spacing
 ) :
     m_installed_package(installed_aur_packages),
@@ -64,7 +64,6 @@ Card::Card(
     set_halign(Gtk::ALIGN_FILL);
     set_vexpand(false);
     set_hexpand(true);
-    GtkUtils::set_margin(*this, m_default_spacing);
 
     setup();
 

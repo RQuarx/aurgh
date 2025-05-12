@@ -27,7 +27,7 @@
 
 
 Logger::Logger(const std::shared_ptr<ArgParser> &arg_parser) :
-    m_use_color(utils::term_has_colors())
+    m_use_color(PRETTY_LOGGING)
 {
     std::string option;
     if (arg_parser->option_arg(option, { "-l", "--log" })) {
@@ -37,7 +37,7 @@ Logger::Logger(const std::shared_ptr<ArgParser> &arg_parser) :
                 exit(EXIT_FAILURE);
             }
         } else {
-            if (Str::is_digit(option)) {
+            if (str::is_digit(option)) {
                 if (!set_leveL_threshold(std::stoi(option))) {
                     exit(EXIT_FAILURE);
                 }
@@ -110,9 +110,9 @@ Logger::open_log_file(const std::string &file) -> bool
 auto
 Logger::handle_double_parameters(const std::string &option) -> bool
 {
-    return std::ranges::all_of(Str::splitp(option, option.find(',')),
+    return std::ranges::all_of(str::split(option, option.find(',')),
         [this](const std::string &param){
-            if (Str::is_digit(param)) {
+            if (str::is_digit(param)) {
                 return set_leveL_threshold(std::stoi(param));
             }
 
@@ -125,7 +125,6 @@ Logger::handle_double_parameters(const std::string &option) -> bool
 void
 Logger::log_to_file(Level log_level, std::string_view message)
 {
-    /* Log to file with jthread / multithreading thing */
     std::jthread([this, log_level, message]() {
         std::string_view label = m_labels.at(log_level).second;
         std::println(

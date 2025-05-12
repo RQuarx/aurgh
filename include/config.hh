@@ -37,7 +37,7 @@ class Config
 {
 public:
     Config(
-        const std::shared_ptr<Logger> &logger,
+        const std::shared_ptr<Logger>    &logger,
         const std::shared_ptr<ArgParser> &arg_parser
     );
 
@@ -47,7 +47,8 @@ public:
      */
     [[nodiscard]]
     auto load(
-        bool from_file = false, bool return_val = true
+        bool from_file  = false,
+        bool return_val = true
     ) -> std::optional<Json::Value>;
 
     /**

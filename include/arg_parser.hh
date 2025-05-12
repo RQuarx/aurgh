@@ -29,98 +29,119 @@
 
 /**
  * @class ArgParser
- * @brief A class made to parse command line argument in a perfect way.
+ * @brief Parses command-line arguments in a flexible and POSIX-compliant way.
  *
- * This class provides an advanced way to detect command line arguments,
- * an example:
+ * This class provides advanced parsing of short and long arguments:
  *
- * - '-Syu' would give out '-S' '-y' and '-u'
- *
- * - '-Iinc', '-I=inc', '-I inc' are all valid
- *
- * - '--include inc', '--include=inc' are all also a valid option argument
+ * - '-Syu' is parsed as '-S', '-y', and '-u'
+ * - '-Iinc', '-I=inc', and '-I inc' are all parsed correctly
+ * - '--include inc' and '--include=inc' are supported
  */
 class ArgParser
 {
     using arg_pair = std::pair<std::string_view, std::string_view>;
 public:
     /**
-     * @brief Constructs a ArgParser class.
-     * @param argc The number of given command line arguments
-     * @param argv An array of C-style string representing the arguments
+     * @brief Constructs an ArgParser instance.
      *
-     * The constructor will parses the arguments based on the line-prefixes,
-     * it'll parse:
+     * @param argc Argument count.
+     * @param argv Array of C-style argument strings.
      *
-     * - '-' as a short-form argument
-     *
-     * - '--' as a short-form argument
-     *
-     * - an argument with no line-prefix to be an option to the previous type's argument
+     * The constructor parses the arguments and classifies them based on
+     * their prefix:
+     * - '-' is treated as short-form
+     * - '--' is treated as long-form
+     * - unprefixed values are treated as options/parameters
      */
     ArgParser(int32_t argc, char **argv);
 
+
     /**
-     * @brief Checks if the specified argument exists in the command line arguments
-     * @param arg A pair object containing 2 string_views, which represent the short and long form of the argument
-     * @returns true if a match is found in the command line arguments; otherwise, false
+     * @brief Checks whether a given argument is present.
+     *
+     * @param arg A pair of short and long argument forms.
+     * @return True if found, false otherwise.
      */
+    [[nodiscard]]
     auto find_arg(arg_pair arg) -> bool;
 
+
     /**
-     * @brief Searches for and returns the value of a specified argument.
-     * @param option A reference to a string that will be filled with the value of the argument if found.
-     * @param arg A pair object containing both the short and long form of the argument.
-     * @returns true if a match is found and the option is filled; otherwise, false.
+     * @brief Retrieves the value of a given argument if it exists.
+     *
+     * @param option Output string that receives the value.
+     * @param arg A pair of short and long argument forms.
+     * @return True if the option is found and extracted, false otherwise.
      */
+    [[nodiscard]]
     auto option_arg(std::string &option, arg_pair arg) -> bool;
 
-    /**
-     * @brief Returns the last option arg
-     */
-    auto back() -> std::string;
 
     /**
-     * @brief Prints a help message, and exist the program after it
-     * @param stream An output stream the help message will be printed to
+     * @brief Returns the last non-prefixed argument, if any.
+     *
+     * @return A string representing the last trailing argument.
+     */
+    [[nodiscard]]
+    auto back() -> std::string;
+
+
+    /**
+     * @brief Prints a help message and exits the application.
+     *
+     * @param stream Output stream (e.g., stdout or stderr).
      */
     void print_help_message(FILE *stream);
 
 private:
     /**
      * @enum Type
-     * @brief An enum representing the argument type
+     * @brief Represents argument type: short or long.
      */
     enum Type : uint8_t
     {
-        Short = 0,
-        Long = 1,
+        Short = 0, /* -V, -h */
+        Long  = 1, /* --version, --help */
     };
 
     std::unordered_map<Type, std::vector<std::pair<bool, std::string_view>>>
                      m_arg_list;
     std::string_view m_bin_path;
 
+
     /**
-     * @brief Removes line-prefixes from the arg_input
+     * @brief Looks for a short-form option and retrieves its parameter.
+     *
+     * @param option Output string for the found value.
+     * @param short_arg Short-form argument to search for.
+     * @return True if the value is found and assigned.
+     */
+    auto find_option_short(
+        std::string     &option,
+        std::string_view short_arg
+    ) -> bool;
+
+
+    /**
+     * @brief Looks for a long-form option and retrieves its parameter.
+     *
+     * @param option Output string for the found value.
+     * @param long_arg Long-form argument to search for.
+     * @return True if the value is found and assigned.
+     */
+    auto find_option_long(
+        std::string     &option,
+        std::string_view long_arg
+    ) -> bool;
+
+
+    /**
+     * @brief Strips leading dashes from an argument pair.
+     *
+     * @param input_arg The raw short and long argument views.
+     * @return A cleaned pair with prefixes removed.
      */
     static auto clean_input_arg(const arg_pair &input_arg) -> arg_pair;
-
-    /**
-     * @brief Searches for command-line argument parameter for short argument
-     * @param option A reference to a string that will be filled with the value of the argument if found.
-     * @param short_arg A string_view containing the short argument
-     * @returns true if a match is found and the option is filled; otherwise, false.
-     */
-    auto find_option_short(std::string &option, std::string_view short_arg) -> bool;
-
-    /**
-     * @brief Searches for command-line argument parameter for long argument
-     * @param option A reference to a string that will be filled with the value of the argument if found.
-     * @param long_arg A string_view containing the long argument
-     * @returns true if a match is found and the option is filled; otherwise, false.
-     */
-    auto find_option_long(std::string &option, std::string_view long_arg) -> bool;
 };
 
 #endif /* arg_parser.hh */

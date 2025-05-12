@@ -30,6 +30,7 @@
 
 #include "package/type.hh"
 
+namespace AUR { class Client; }
 namespace Gtk {
     class ScrolledWindow;
     class ComboBoxText;
@@ -40,7 +41,6 @@ namespace Gtk {
     class Spinner;
     class Label;
 }
-namespace AUR { class Client; }
 class ArgParser;
 class Config;
 class Logger;
@@ -58,12 +58,13 @@ namespace pkg {
      */
     class Tab : public Gtk::Box
     {
+        using str_pair_vec = std::vector<std::pair<std::string, std::string>>;
     public:
         Tab(
             const shared_ptr<AUR::Client> &aur_client,
-            const shared_ptr<Logger> &logger,
-            const shared_ptr<Config> &config,
-            const shared_ptr<ArgParser> &arg_parser
+            const shared_ptr<Logger>      &logger,
+            const shared_ptr<Config>      &config,
+            const shared_ptr<ArgParser>   &arg_parser
         );
 
     private:
@@ -97,21 +98,16 @@ namespace pkg {
         Gtk::Spinner *m_spinner{};
 
     protected:
-        void on_dispatch_search_ready();
         auto setup() -> bool;
-        void on_search();
-        auto sort_packages(
-            const Json::Value &packages) -> std::vector<Json::Value>;
-
-        void process_next_package(
-            const std::vector<std::pair<std::string, std::string>> &installed);
-
-        void on_action_button_pressed();
+        auto sort_packages(const Json::Value &pkgs) -> std::vector<Json::Value>;
 
         void on_action_type_opened(GdkEventButton *button_event, pkg::Type type);
+        void process_next_package(const str_pair_vec &installed);
+        void on_action_button_pressed();
+        void on_dispatch_search_ready();
+        void on_search();
 
-        static auto get_installed_pkgs(
-            ) -> std::vector<std::pair<std::string, std::string>>;
+        static auto get_installed_pkgs() -> str_pair_vec;
     };
 } /* namespace pkg */
 

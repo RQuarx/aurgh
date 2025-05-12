@@ -24,12 +24,12 @@ compile:
 install-deps:
 	pacman -S --needed - < required.txt
 
-install:
+install: compile
 	mkdir -p /usr/share/aurgh/
 	cp -r ui /usr/share/aurgh/
 	cp target/aurgh /usr/bin/
 
-uninstall:
+uninstall: install
 	rm -rf /usr/share/aurgh
 	rm /usr/bin/aurgh
 
