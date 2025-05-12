@@ -17,7 +17,6 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <filesystem>
 #include <thread>
 
 #include <gtkmm/scrolledwindow.h>
