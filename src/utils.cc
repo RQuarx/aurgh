@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <cerrno>
+#include <print>
 
 #include <gtkmm/widget.h>
 #include <json/reader.h>
@@ -211,9 +212,12 @@ namespace utils {
             if (valid_file(option)) return option;
         }
 
+        std::string gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
+        std::string path = std::format("ui/gtk{}/{}", gtk_version, file_name);
+
         if (valid_file(file_name)) return file_name;
-        if (valid_file("ui/" + file_name)) return "ui/" + file_name;
-        return "/usr/share/aurgh/ui/" + file_name;
+        if (valid_file(path)) return path;
+        return "/usr/share/aurgh/" + path;
     }
 } /* namespace utils */
 
@@ -223,26 +227,41 @@ namespace GtkUtils {
     set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin)
     {
         widget.set_margin_top(margin.at(0));
-        widget.set_margin_right(margin.at(1));
         widget.set_margin_bottom(margin.at(2));
+#if GTKMM_MAJOR_VERSION == 4
+        widget.set_margin_end(margin.at(1));
+        widget.set_margin_start(margin.at(3));
+#elif
+        widget.set_margin_right(margin.at(1));
         widget.set_margin_left(margin.at(3));
+#endif
     }
 
     void
     set_margin(Gtk::Widget &widget, int32_t margin_y, int32_t margin_x)
     {
         widget.set_margin_top(margin_y);
-        widget.set_margin_right(margin_x);
         widget.set_margin_bottom(margin_y);
+#if GTKMM_MAJOR_VERSION == 4
+        widget.set_margin_end(margin_x);
+        widget.set_margin_start(margin_x);
+#elif
+        widget.set_margin_right(margin_x);
         widget.set_margin_left(margin_x);
+#endif
     }
 
     void
     set_margin(Gtk::Widget &widget, int32_t margin)
     {
         widget.set_margin_top(margin);
-        widget.set_margin_right(margin);
         widget.set_margin_bottom(margin);
+#if GTKMM_MAJOR_VERSION == 4
+        widget.set_margin_end(margin);
+        widget.set_margin_start(margin);
+#elif
+        widget.set_margin_right(margin);
         widget.set_margin_left(margin);
+#endif
     }
 } /* namespace GtkUtils */

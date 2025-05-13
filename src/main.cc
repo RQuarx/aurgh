@@ -17,6 +17,7 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <gtkmm/application.h>
 #include <gtkmm/window.h>
 #include <curl/curl.h>
 
@@ -33,6 +34,38 @@ static const_str APP_ID               = "org.rquarx.aur-graphical-helper";
 static const_str DEFAULT_WINDOW_TITLE = "AUR Graphical Helper";
 
 
+#if GTKMM_MAJOR_VERSION == 4
+namespace {
+    using std::shared_ptr;
+
+
+    class AppWindow : public Gtk::Window
+    {
+    public:
+        AppWindow(
+            const shared_ptr<AUR::Client> &aur_client,
+            const shared_ptr<Logger>      &logger,
+            const shared_ptr<Config>      &config,
+            const shared_ptr<ArgParser>   &arg_parser
+        )
+        {
+            std::string title;
+            if (!arg_parser->option_arg(title, { "-t", "--title" })) {
+                title = DEFAULT_WINDOW_TITLE;
+            }
+
+            set_title(title);
+            set_child(
+                *Gtk::make_managed<pkg::Tab>(
+                    aur_client, logger, config, arg_parser
+                )
+            );
+        }
+    };
+} /* anonymous namespace */
+#endif
+
+
 auto
 main(int32_t argc, char **argv) -> int32_t
 {
@@ -42,12 +75,17 @@ main(int32_t argc, char **argv) -> int32_t
     auto aur_client = std::make_shared<AUR::Client>(logger, "");
     auto config     = std::make_shared<Config>(logger, arg_parser);
 
-    Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
-
     if (curl_global_init(CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE) != 0) {
         logger->log(Logger::Error, "Failed to init curl");
         return EXIT_FAILURE;
     }
+
+#if GTKMM_MAJOR_VERSION == 4
+    return app->make_window_and_run<AppWindow>(
+        0, nullptr, aur_client, logger, config, arg_parser
+    );
+#elif
+    Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
 
     std::string title;
     if (!arg_parser->option_arg(title, { "-t", "--title" })) {
@@ -60,4 +98,5 @@ main(int32_t argc, char **argv) -> int32_t
     window.show_all();
 
     return app->run(window, 0, nullptr);
+#endif
 }

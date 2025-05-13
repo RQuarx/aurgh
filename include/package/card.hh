@@ -34,6 +34,7 @@
 namespace Gtk {
     class LinkButton;
     class Button;
+    class Label;
     class Box;
 }
 class Logger;

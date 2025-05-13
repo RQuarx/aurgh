@@ -25,8 +25,8 @@ src = files(
 )
 
 deps = [
-    dependency('gtkmm-3.0'),
-    dependency('glibmm-2.4'),
+    dependency('gtkmm-4.0'),
+    dependency('glibmm-2.68'),
     dependency('libcurl'),
     dependency('jsoncpp'),
     dependency('libalpm'),
