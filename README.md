@@ -12,7 +12,7 @@ made with C++23 to deal with daily AUR shenanigans.
 [![Badge License]][License]
 ![Badge Language]
 
-<img src=https://github.com/user-attachments/assets/4f2be868-7e7b-4f2d-b373-cfbb484011a5 width=700>
+<img src=https://github.com/user-attachments/assets/cecaa8a3-f690-4cd9-ad73-e8d4377767dd width=700>
 
 </div>
 
