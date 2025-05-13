@@ -231,7 +231,7 @@ namespace GtkUtils {
 #if GTKMM_MAJOR_VERSION == 4
         widget.set_margin_end(margin.at(1));
         widget.set_margin_start(margin.at(3));
-#elif
+#else
         widget.set_margin_right(margin.at(1));
         widget.set_margin_left(margin.at(3));
 #endif
@@ -245,7 +245,7 @@ namespace GtkUtils {
 #if GTKMM_MAJOR_VERSION == 4
         widget.set_margin_end(margin_x);
         widget.set_margin_start(margin_x);
-#elif
+#else
         widget.set_margin_right(margin_x);
         widget.set_margin_left(margin_x);
 #endif
@@ -259,7 +259,7 @@ namespace GtkUtils {
 #if GTKMM_MAJOR_VERSION == 4
         widget.set_margin_end(margin);
         widget.set_margin_start(margin);
-#elif
+#else
         widget.set_margin_right(margin);
         widget.set_margin_left(margin);
 #endif

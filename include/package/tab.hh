@@ -104,7 +104,7 @@ namespace pkg {
 
 #if GTKMM_MAJOR_VERSION == 4
         void on_action_type_opened(pkg::Type type);
-#elif
+#else
         void on_action_type_opened(GdkEventButton *button_event, pkg::Type type);
 #endif
         void process_next_package(const str_pair_vec &installed);

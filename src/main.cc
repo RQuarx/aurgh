@@ -84,7 +84,7 @@ main(int32_t argc, char **argv) -> int32_t
     return app->make_window_and_run<AppWindow>(
         0, nullptr, aur_client, logger, config, arg_parser
     );
-#elif
+#else
     Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
 
     std::string title;

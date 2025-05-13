@@ -12,6 +12,9 @@ all:
 setup:
 	$(MESON) setup -Dbuildtype=debugoptimized $(BUILD_DIR)
 
+setup-gtk4:
+	$(MESON) setup -Dbuildtype=debugoptimized -Duse-gtk4=true $(BUILD_DIR)
+
 setup-release:
 	$(MESON) setup -Dbuildtype=release $(BUILD_DIR)
 

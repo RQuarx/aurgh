@@ -76,19 +76,19 @@ Tab::Tab(
     m_action_widgets[Install] = b->get_widget<Gtk::Expander>("actions_install");
     m_action_widgets[Remove]  = b->get_widget<Gtk::Expander>("actions_remove");
     m_action_widgets[Update]  = b->get_widget<Gtk::Expander>("actions_update");
-#elif
-    builder->get_widget("tab_main",        m_tab_box);
-    builder->get_widget("result_box",      m_result_box);
-    builder->get_widget("search_results",  m_results_scroll);
-    builder->get_widget("search_by",       m_search_by_combo);
-    builder->get_widget("sort_by",         m_sort_by_combo);
-    builder->get_widget("reverse_sort",    m_reverse_sort_check);
-    builder->get_widget("search_entry",    m_search_entry);
-    builder->get_widget("actions_widget",  m_actions_expander);
+#else
+    b->get_widget("tab_main",        m_tab_box);
+    b->get_widget("result_box",      m_result_box);
+    b->get_widget("search_results",  m_results_scroll);
+    b->get_widget("search_by",       m_search_by_combo);
+    b->get_widget("sort_by",         m_sort_by_combo);
+    b->get_widget("reverse_sort",    m_reverse_sort_check);
+    b->get_widget("search_entry",    m_search_entry);
+    b->get_widget("actions_widget",  m_actions_expander);
 
-    builder->get_widget("actions_install", m_action_widgets[Install]);
-    builder->get_widget("actions_remove",  m_action_widgets[Remove]);
-    builder->get_widget("actions_update",  m_action_widgets[Update]);
+    b->get_widget("actions_install", m_action_widgets[Install]);
+    b->get_widget("actions_remove",  m_action_widgets[Remove]);
+    b->get_widget("actions_update",  m_action_widgets[Update]);
 #endif
 
     if (!setup()) {
@@ -97,7 +97,7 @@ Tab::Tab(
 
 #if GTKMM_MAJOR_VERSION == 4
     m_spinner->set_valign(Gtk::Align::CENTER);
-#elif
+#else
     m_spinner->set_valign(Gtk::ALIGN_CENTER);
 #endif
     m_spinner->hide();
@@ -105,7 +105,7 @@ Tab::Tab(
 #if GTKMM_MAJOR_VERSION == 4
     m_result_box->append(*m_spinner);
     append(*m_tab_box);
-#elif
+#else
     m_result_box->pack_start(*m_spinner);
     add(*m_tab_box);
     show_all_children();
@@ -166,7 +166,7 @@ Tab::on_search()
     m_result_box->set_valign(Gtk::Align::CENTER);
     m_spinner->set_visible();
     // m_result_box->append(*m_spinner);
-#elif
+#else
     m_result_box->set_valign(Gtk::ALIGN_CENTER);
     m_result_box->pack_start(*m_spinner);
 #endif
@@ -237,7 +237,7 @@ Tab::on_dispatch_search_ready()
 
 #if GTKMM_MAJOR_VERSION == 4
     m_result_box->set_valign(Gtk::Align::START);
-#elif
+#else
     m_result_box->set_valign(Gtk::ALIGN_START);
 #endif
     m_spinner->set_visible(false);
@@ -258,7 +258,7 @@ Tab::on_dispatch_search_ready()
 
 #if GTKMM_MAJOR_VERSION == 4
         m_result_box->append(*card);
-#elif
+#else
         m_result_box->pack_start(*card);
 #endif
     }
@@ -327,7 +327,7 @@ Tab::on_action_button_pressed()
 #if GTKMM_MAJOR_VERSION == 4
             link->set_halign(Gtk::Align::START);
             box->append(*link);
-#elif
+#else
             link->set_halign(Gtk::ALIGN_START);
             box->pack_start(*link);
 #endif
@@ -344,7 +344,7 @@ Tab::on_action_button_pressed()
 void
 #if GTKMM_MAJOR_VERSION == 4
 Tab::on_action_type_opened(pkg::Type type)
-#elif
+#else
 Tab::on_action_type_opened(GdkEventButton* /*button_event*/, pkg::Type type)
 #endif
 {
@@ -371,7 +371,7 @@ Tab::on_action_type_opened(GdkEventButton* /*button_event*/, pkg::Type type)
 #if GTKMM_MAJOR_VERSION == 4
             link->set_halign(Gtk::Align::START);
             box->append(*link);
-#elif
+#else
             link->set_halign(Gtk::ALIGN_START);
             box->pack_start(*link);
 #endif

@@ -63,7 +63,7 @@ Card::Card(
     set_child(*m_card);
     set_valign(Gtk::Align::START);
     set_halign(Gtk::Align::FILL);
-#elif
+#else
     b->get_widget("card_box", m_card);
     b->get_widget("action_button", m_action_button);
     b->get_widget("version_label", m_version_label);
