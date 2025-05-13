@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=AUR Graphical Helper
+Comment=A graphical Arch User Repository helper.
+Exec=/usr/share/aurgh/run_aurgh.sh
+Type=Application

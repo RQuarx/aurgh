@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <print>
 
+#include <gtkmmconfig.h>
+
 #include "arg_parser.hh"
 #include "utils.hh"
 
@@ -54,10 +56,7 @@ ArgParser::ArgParser(int32_t argc, char **argv) :
     }
 
     if (find_arg({ "-V", "--version" })) {
-        std::println("{} v{}", APP_NAME, APP_VERSION);
-        std::println("Copyright (C) 2025 RQuarx\n");
-        std::println("This program may be freely redistributed under");
-        std::println("the terms of the GNU General Public License.");
+        print_version_message(stdout);
         exit(EXIT_SUCCESS);
     }
 }
@@ -243,4 +242,19 @@ ArgParser::print_help_message(FILE *stream)
     std::println("\n\033[1m\033[4mCopyright (C) 2025 RQuarx\033[0m\n");
     std::println("This program may be freely redistributed under");
     std::println("the terms of the GNU General Public License.");
+}
+
+
+void
+ArgParser::print_version_message(FILE *stream)
+{
+    std::println(
+        stream,
+        "\033[1m\033[4m{} {}\033[0m using \033[1m\033[4mGTK {}.{}\033[0m",
+        APP_NAME, APP_VERSION,
+        GTKMM_MAJOR_VERSION, GTKMM_MINOR_VERSION
+    );
+    std::println(stream, "\n\033[1m\033[4mCopyright (C) 2025 RQuarx\033[0m\n");
+    std::println(stream, "This program may be freely redistributed under");
+    std::println(stream, "the terms of the GNU General Public License.");
 }

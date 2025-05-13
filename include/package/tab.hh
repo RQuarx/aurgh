@@ -93,7 +93,7 @@ namespace pkg {
         Gtk::CheckButton  *m_reverse_sort_check{};
         Gtk::SearchEntry  *m_search_entry{};
 
-        Gtk::Expander                       *m_actions_expander{};
+        Gtk::Label                          *m_no_actions_label{};
         std::map<pkg::Type, Gtk::Expander *> m_action_widgets;
 
         Gtk::Spinner *m_spinner{};

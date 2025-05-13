@@ -71,20 +71,20 @@ Tab::Tab(
     m_sort_by_combo      = b->get_widget<Gtk::ComboBoxText>("sort_by");
     m_reverse_sort_check = b->get_widget<Gtk::CheckButton>("reverse_sort");
     m_search_entry       = b->get_widget<Gtk::SearchEntry>("search_entry");
-    m_actions_expander   = b->get_widget<Gtk::Expander>("actions_widget");
+    m_no_actions_label   = b->get_widget<Gtk::Label>("no_actions_label");
 
     m_action_widgets[Install] = b->get_widget<Gtk::Expander>("actions_install");
     m_action_widgets[Remove]  = b->get_widget<Gtk::Expander>("actions_remove");
     m_action_widgets[Update]  = b->get_widget<Gtk::Expander>("actions_update");
 #else
-    b->get_widget("tab_main",        m_tab_box);
-    b->get_widget("result_box",      m_result_box);
-    b->get_widget("search_results",  m_results_scroll);
-    b->get_widget("search_by",       m_search_by_combo);
-    b->get_widget("sort_by",         m_sort_by_combo);
-    b->get_widget("reverse_sort",    m_reverse_sort_check);
-    b->get_widget("search_entry",    m_search_entry);
-    b->get_widget("actions_widget",  m_actions_expander);
+    b->get_widget("tab_main",         m_tab_box);
+    b->get_widget("result_box",       m_result_box);
+    b->get_widget("search_results",   m_results_scroll);
+    b->get_widget("search_by",        m_search_by_combo);
+    b->get_widget("sort_by",          m_sort_by_combo);
+    b->get_widget("reverse_sort",     m_reverse_sort_check);
+    b->get_widget("search_entry",     m_search_entry);
+    b->get_widget("no_actions_label", m_no_actions_label);
 
     b->get_widget("actions_install", m_action_widgets[Install]);
     b->get_widget("actions_remove",  m_action_widgets[Remove]);
@@ -108,7 +108,7 @@ Tab::Tab(
 #else
     m_result_box->pack_start(*m_spinner);
     add(*m_tab_box);
-    show_all_children();
+    set_visible();
 #endif
 }
 
@@ -157,15 +157,18 @@ Tab::on_search()
     auto children = m_result_box->get_children();
 
     for (auto *child : children) {
+#if GTKMM_MAJOR_VERSION == 4
         if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
+#endif
             m_result_box->remove(*child);
+#if GTKMM_MAJOR_VERSION == 4
         }
+#endif
     }
 
 #if GTKMM_MAJOR_VERSION == 4
     m_result_box->set_valign(Gtk::Align::CENTER);
     m_spinner->set_visible();
-    // m_result_box->append(*m_spinner);
 #else
     m_result_box->set_valign(Gtk::ALIGN_CENTER);
     m_result_box->pack_start(*m_spinner);
@@ -212,15 +215,15 @@ Tab::sort_packages(const Json::Value &pkgs) -> std::vector<Json::Value>
         [this, &sort_by](const Json::Value &a, const Json::Value &b){
         if (a[sort_by].isInt()) {
             if (m_reverse_sort_check->get_active()) {
-                return a[sort_by].asInt64() > b[sort_by].asInt64();
+                return a[sort_by].asInt64() < b[sort_by].asInt64();
             }
-            return a[sort_by].asInt64() < b[sort_by].asInt64();
+            return a[sort_by].asInt64() > b[sort_by].asInt64();
         }
 
         if (m_reverse_sort_check->get_active()) {
-            return a[sort_by].asString() > b[sort_by].asString();
+            return a[sort_by].asString() < b[sort_by].asString();
         }
-        return a[sort_by].asString() < b[sort_by].asString();
+        return a[sort_by].asString() > b[sort_by].asString();
     });
 
     return package;
@@ -239,9 +242,9 @@ Tab::on_dispatch_search_ready()
     m_result_box->set_valign(Gtk::Align::START);
 #else
     m_result_box->set_valign(Gtk::ALIGN_START);
+    m_result_box->remove(*m_spinner);
 #endif
     m_spinner->set_visible(false);
-    // m_result_box->remove(*m_spinner);
 
     for (const auto &pkg : sorted) {
         auto *card = Gtk::make_managed<pkg::Card>(
@@ -299,7 +302,7 @@ Tab::on_action_button_pressed()
 
         if (pkgs->empty()) {
             if (t == Update && all_empty) {
-                m_actions_expander->set_visible(false);
+                m_no_actions_label->set_visible(true);
             }
             action->set_visible(false);
             continue;
@@ -307,7 +310,7 @@ Tab::on_action_button_pressed()
 
         if (all_empty) {
             all_empty = false;
-            m_actions_expander->set_visible(true);
+            m_no_actions_label->set_visible(false);
         }
 
         auto *box     = dynamic_cast<Gtk::Box*>(action->get_child());
@@ -326,6 +329,7 @@ Tab::on_action_button_pressed()
 
 #if GTKMM_MAJOR_VERSION == 4
             link->set_halign(Gtk::Align::START);
+            link->set_visible();
             box->append(*link);
 #else
             link->set_halign(Gtk::ALIGN_START);

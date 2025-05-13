@@ -87,11 +87,19 @@ public:
 
 
     /**
-     * @brief Prints a help message and exits the application.
+     * @brief Prints a help message.
      *
      * @param stream Output stream (e.g., stdout or stderr).
      */
     void print_help_message(FILE *stream);
+
+
+    /**
+     * @brief Prints a version message.
+     *
+     * @param stream Output stream (e.g., stdout or stderr).
+     */
+    static void print_version_message(FILE *stream);
 
 private:
     /**

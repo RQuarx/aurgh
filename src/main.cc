@@ -95,7 +95,7 @@ main(int32_t argc, char **argv) -> int32_t
     window.set_title(title);
     window.add(
         *Gtk::make_managed<pkg::Tab>(aur_client, logger, config, arg_parser));
-    window.show_all();
+    // window.show_all();
 
     return app->run(window, 0, nullptr);
 #endif
