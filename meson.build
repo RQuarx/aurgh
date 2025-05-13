@@ -31,13 +31,13 @@ core_deps = [
 ]
 
 gtk3_deps = [
-    dependency('gtkmm-3.0'),
-    dependency('glibmm-2.4'),
+    'gtkmm-3.0',
+    'glibmm-2.4',
 ]
 
 gtk4_deps = [
-    dependency('gtkmm-4.0'),
-    dependency('glibmm-2.68'),
+    'gtkmm-4.0',
+    'glibmm-2.68',
 ]
 
 foreach dep : core_deps
@@ -46,11 +46,11 @@ endforeach
 
 if get_option('use-gtk4')
     foreach dep : gtk4_deps
-        add_project_dependencies(dep, language: 'cpp')
+        add_project_dependencies(dependency(dep), language: 'cpp')
     endforeach
 else
     foreach dep : gtk3_deps
-        add_project_dependencies(dep, language: 'cpp')
+        add_project_dependencies(dependency(dep), language: 'cpp')
     endforeach
 endif
 
