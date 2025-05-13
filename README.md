@@ -7,7 +7,8 @@ AURGH is an **Arch User Repository Graphical Helper**,
 made with C++23 to deal with daily AUR shenanigans.
 <br>
 
-![Badge Workflow]
+![Badge gtk3]
+![Badge gtk4]
 [![Badge License]][License]
 ![Badge Language]
 
@@ -75,5 +76,7 @@ This project is licensed under the [GNU General Public License v3](LICENSE).
 [License]: LICENSE
 
 [Badge Workflow]: https://github.com/RQuarx/aurgh/actions/workflows/check_build.yml/badge.svg
+[Badge gtk3]: https://github.com/RQuarx/aurgh/actions/workflows/gtk3_build.yml/badge.svg
+[Badge gtk4]: https://github.com/RQuarx/aurgh/actions/workflows/gtk4_build.yml/badge.svg
 [Badge Language]: https://img.shields.io/github/languages/top/RQuarx/aurgh
 [Badge License]: https://img.shields.io/github/license/RQuarx/aurgh
