@@ -2,9 +2,9 @@
 
 # AURGH
 
-AURGH is an **Arch User Repository[^1] Graphical Helper**.
+AURGH is an **Arch User Repository Graphical Helper**,
 <br>
-Built with GTK3/4[^2] and modern C++23 to deal with daily AUR shenanigans.
+made with C++23 to deal with daily AUR shenanigans.
 <br>
 
 ![Badge Workflow]
@@ -19,6 +19,7 @@ Built with GTK3/4[^2] and modern C++23 to deal with daily AUR shenanigans.
 
 - [x] Basic searching of AUR packages.
 - [x] Package information on each package list.
+- [x] Cross compatible with GTK3 and GTK4.
 - [ ] Downloading and installing AUR packages.
 - [ ] Basic AUR package management
 
@@ -27,15 +28,11 @@ Built with GTK3/4[^2] and modern C++23 to deal with daily AUR shenanigans.
 | Package Name                                                  | Uses                       |
 |:--------------------------------------------------------------|:---------------------------|
 | **[meson](https://mesonbuild.com/)**                          | Build system               |
-| **[clang](https://clang.llvm.org/)**                          | Compiler and Linker        |
 | **[curl](https://curl.se/)**                                  | Fetching data from the AUR |
 | **[jsoncpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling              |
 | **[gtkmm-3/4](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK      |
 
 ## Installation
-
->[!NOTE]
->Everything done here would require the user to clone the repo first.
 
 <details>
 <summary>Installing dependencies</summary>
@@ -73,11 +70,7 @@ If you like this project, you could support it by making my parents think that t
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I11ERX5G)
 
 ## License
-This project is licensed under the [GNU General Public License v3](LICENSE)[^3].
-
-[^1]: https://aur.archlinux.org/
-[^2]: https://www.gtk.org/
-[^3]: https://www.gnu.org/licenses/gpl-3.0.html
+This project is licensed under the [GNU General Public License v3](LICENSE).
 
 [License]: LICENSE
 
