@@ -1,4 +1,4 @@
-name: Build AURGH - gtk3
+name: GTK3 Build
 
 on: [push, pull_request]
 
