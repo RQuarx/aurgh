@@ -23,7 +23,7 @@ jobs:
 
       - name: gtk4
         run: |
-          make setup-gtk4
+          meson configure target -Duse-gtk4=true
           make compile
 
   gcc:
@@ -46,5 +46,5 @@ jobs:
 
       - name: gtk4
         run: |
-          meson setup -Dbuildtype=debugoptimized -Duse-gtk4=true target
+          meson configure target -Duse-gtk4=true
           meson compile -C target
