@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   clang:
-    name: "Build AURGH (meson)"
+    name: "Build AURGH - clang"
     runs-on: ubuntu-latest
     container:
       image: archlinux
@@ -16,7 +16,35 @@ jobs:
           sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
           pacman -Syyu --noconfirm --noprogressbar --needed - < required.txt
 
-      - name: Build AURGH
+      - name: gtk3
         run: |
           make setup
           make compile
+
+      - name: gtk4
+        run: |
+          make setup-gtk4
+          make compile
+
+  gcc:
+    name: "Build AURGH - gcc"
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
+          pacman -Syyu --noconfirm --noprogressbar --needed - < required.txt
+
+      - name: gtk3
+        run: |
+          meson setup -Dbuildtype=debugoptimized target
+          meson compile -C target
+
+      - name: gtk4
+        run: |
+          meson setup -Dbuildtype=debugoptimized -Duse-gtk4=true target
+          meson compile -C target

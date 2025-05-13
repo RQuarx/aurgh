@@ -24,9 +24,24 @@ src = files(
     'src/utils.cc'
 )
 
+
+if get_option('use-gtk4')
+    add_project_dependencies(
+        dependency('gtkmm-4.0'), language: 'cpp'
+    )
+    add_project_dependencies(
+        dependency('glibmm-2.68'), language: 'cpp'
+    )
+else
+    add_project_dependencies(
+        dependency('gtkmm-3.0'), language: 'cpp'
+    )
+    add_project_dependencies(
+        dependency('glibmm-2.4'), language: 'cpp'
+    )
+endif
+
 deps = [
-    dependency('gtkmm-3.0'),
-    dependency('glibmm-2.4'),
     dependency('libcurl'),
     dependency('jsoncpp'),
     dependency('libalpm'),

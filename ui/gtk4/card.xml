@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0" />
+
+  <object class="GtkBox" id="card_box">
+    <property name="vexpand">false</property>
+    <property name="hexpand">true</property>
+    <property name="halign">fill</property>
+    <property name="valign">start</property>
+    <property name="margin-start">5</property>
+    <property name="margin-end">5</property>
+    <property name="margin-top">5</property>
+    <property name="margin-bottom">5</property>
+
+    <child>
+      <object class="GtkBox" id="info_box">
+        <property name="orientation">vertical</property>
+        <property name="margin-start">5</property>
+
+        <child>
+          <object class="GtkBox" id="summary_box">
+            <property name="halign">start</property>
+            <property name="valign">start</property>
+            <property name="spacing">5</property>
+
+            <child>
+              <object class="GtkBox" id="name_box">
+                <property name="spacing">5</property>
+
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">package-x-generic-symbolic</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLinkButton" id="name_link">
+                    <child>
+                      <object class="GtkLabel" id="name_label" />
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="version_label" />
+            </child>
+
+            <child>
+              <object class="GtkFrame" id="popularity_frame">
+                <child>
+                  <object class="GtkBox">
+                    <property name="margin-end">5</property>
+                    <property name="margin-start">5</property>
+                    <property name="spacing">5</property>
+
+                    <child>
+                      <object class="GtkLabel" id="popularity_label">
+                        <property name="tooltip-text">Popularity</property>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="orientation">vertical</property>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkLabel" id="votes_label">
+                        <property name="tooltip-text">Number of votes</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkLabel" id="description_label">
+            <property name="halign">start</property>
+            <property name="wrap">true</property>
+            <property name="label">FooBar</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkButton" id="action_button">
+        <property name="valign">center</property>
+        <property name="hexpand">true</property>
+        <property name="halign">end</property>
+        <property name="opacity">1</property>
+        <property name="margin-start">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">5</property>
+      </object>
+    </child>
+  </object>
+</interface>

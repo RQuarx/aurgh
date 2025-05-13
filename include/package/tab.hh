@@ -102,7 +102,11 @@ namespace pkg {
         auto setup() -> bool;
         auto sort_packages(const Json::Value &pkgs) -> std::vector<Json::Value>;
 
+#if GTKMM_MAJOR_VERSION == 4
+        void on_action_type_opened(pkg::Type type);
+#else
         void on_action_type_opened(GdkEventButton *button_event, pkg::Type type);
+#endif
         void process_next_package(const str_pair_vec &installed);
         void on_action_button_pressed();
         void on_dispatch_search_ready();

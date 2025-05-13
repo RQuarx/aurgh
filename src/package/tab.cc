@@ -59,36 +59,58 @@ Tab::Tab(
         on_dispatch_search_ready();
     });
 
-    auto builder = Gtk::Builder::create_from_file(
+    auto b = Gtk::Builder::create_from_file(
         utils::get_ui_file("tab.xml", arg_parser)
     );
 
-    builder->get_widget("tab_main",        m_tab_box);
-    builder->get_widget("result_box",      m_result_box);
-    builder->get_widget("search_results",  m_results_scroll);
-    builder->get_widget("search_by",       m_search_by_combo);
-    builder->get_widget("sort_by",         m_sort_by_combo);
-    builder->get_widget("reverse_sort",    m_reverse_sort_check);
-    builder->get_widget("search_entry",    m_search_entry);
-    builder->get_widget("actions_widget",  m_actions_expander);
+#if GTKMM_MAJOR_VERSION == 4
+    m_tab_box            = b->get_widget<Gtk::Box>("tab_main");
+    m_result_box         = b->get_widget<Gtk::Box>("result_box");
+    m_results_scroll     = b->get_widget<Gtk::ScrolledWindow>("search_results");
+    m_search_by_combo    = b->get_widget<Gtk::ComboBoxText>("search_by");
+    m_sort_by_combo      = b->get_widget<Gtk::ComboBoxText>("sort_by");
+    m_reverse_sort_check = b->get_widget<Gtk::CheckButton>("reverse_sort");
+    m_search_entry       = b->get_widget<Gtk::SearchEntry>("search_entry");
+    m_actions_expander   = b->get_widget<Gtk::Expander>("actions_widget");
 
-    builder->get_widget("actions_install", m_action_widgets[Install]);
-    builder->get_widget("actions_remove",  m_action_widgets[Remove]);
-    builder->get_widget("actions_update",  m_action_widgets[Update]);
+    m_action_widgets[Install] = b->get_widget<Gtk::Expander>("actions_install");
+    m_action_widgets[Remove]  = b->get_widget<Gtk::Expander>("actions_remove");
+    m_action_widgets[Update]  = b->get_widget<Gtk::Expander>("actions_update");
+#else
+    b->get_widget("tab_main",        m_tab_box);
+    b->get_widget("result_box",      m_result_box);
+    b->get_widget("search_results",  m_results_scroll);
+    b->get_widget("search_by",       m_search_by_combo);
+    b->get_widget("sort_by",         m_sort_by_combo);
+    b->get_widget("reverse_sort",    m_reverse_sort_check);
+    b->get_widget("search_entry",    m_search_entry);
+    b->get_widget("actions_widget",  m_actions_expander);
+
+    b->get_widget("actions_install", m_action_widgets[Install]);
+    b->get_widget("actions_remove",  m_action_widgets[Remove]);
+    b->get_widget("actions_update",  m_action_widgets[Update]);
+#endif
 
     if (!setup()) {
         exit(EXIT_FAILURE);
     }
 
+#if GTKMM_MAJOR_VERSION == 4
+    m_spinner->set_valign(Gtk::Align::CENTER);
+#else
     m_spinner->set_valign(Gtk::ALIGN_CENTER);
+#endif
     m_spinner->hide();
 
+#if GTKMM_MAJOR_VERSION == 4
+    m_result_box->append(*m_spinner);
+    append(*m_tab_box);
+#else
     m_result_box->pack_start(*m_spinner);
-
     add(*m_tab_box);
     show_all_children();
+#endif
 }
-
 
 
 auto
@@ -124,7 +146,7 @@ Tab::setup() -> bool
 
     m_search_by_combo->signal_changed().connect(criteria_changed);
     m_sort_by_combo->signal_changed().connect(criteria_changed);
-    m_reverse_sort_check->signal_clicked().connect(criteria_changed);
+    m_reverse_sort_check->signal_toggled().connect(criteria_changed);
     m_search_entry->signal_activate().connect(criteria_changed);
     return true;
 }
@@ -132,15 +154,24 @@ Tab::setup() -> bool
 void
 Tab::on_search()
 {
-    m_result_box->foreach([this](Gtk::Widget &child){
-        m_result_box->remove(child);
-    });
+    auto children = m_result_box->get_children();
 
-    m_spinner->show();
-    m_spinner->start();
+    for (auto *child : children) {
+        if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
+            m_result_box->remove(*child);
+        }
+    }
 
+#if GTKMM_MAJOR_VERSION == 4
+    m_result_box->set_valign(Gtk::Align::CENTER);
+    m_spinner->set_visible();
+    // m_result_box->append(*m_spinner);
+#else
     m_result_box->set_valign(Gtk::ALIGN_CENTER);
     m_result_box->pack_start(*m_spinner);
+#endif
+
+    m_spinner->start();
 
     std::string pkg_name  = m_search_entry->get_text();
     std::string search_by = m_search_by_combo->get_active_text();
@@ -202,12 +233,15 @@ Tab::on_dispatch_search_ready()
     auto       sorted             = sort_packages(m_search_result["results"]);
     const auto installed_packages = get_installed_pkgs();
 
-    m_spinner->set_visible(false);
-    m_spinner->hide();
     m_spinner->stop();
 
+#if GTKMM_MAJOR_VERSION == 4
+    m_result_box->set_valign(Gtk::Align::START);
+#else
     m_result_box->set_valign(Gtk::ALIGN_START);
-    m_result_box->remove(*m_spinner);
+#endif
+    m_spinner->set_visible(false);
+    // m_result_box->remove(*m_spinner);
 
     for (const auto &pkg : sorted) {
         auto *card = Gtk::make_managed<pkg::Card>(
@@ -218,10 +252,20 @@ Tab::on_dispatch_search_ready()
             m_actions
         );
 
+        card->get_action_button()->signal_clicked().connect(sigc::mem_fun(
+            *this, &Tab::on_action_button_pressed
+        ));
+
+#if GTKMM_MAJOR_VERSION == 4
+        m_result_box->append(*card);
+#else
         m_result_box->pack_start(*card);
+#endif
     }
 
+#if GTKMM_MAJOR_VERSION == 3
     m_result_box->show_all_children();
+#endif
     m_running = false;
 }
 
@@ -258,7 +302,6 @@ Tab::on_action_button_pressed()
                 m_actions_expander->set_visible(false);
             }
             action->set_visible(false);
-            action->remove();
             continue;
         }
 
@@ -267,9 +310,11 @@ Tab::on_action_button_pressed()
             m_actions_expander->set_visible(true);
         }
 
-        auto *box = Gtk::make_managed<Gtk::Box>();
-        box->set_orientation(Gtk::ORIENTATION_VERTICAL);
-        box->set_margin_left(10);
+        auto *box     = dynamic_cast<Gtk::Box*>(action->get_child());
+        auto children = box->get_children();
+        for (auto *child : children) {
+            box->remove(*child);
+        }
 
         for (const auto &pkg : *pkgs) {
             auto *link = Gtk::make_managed<Gtk::LinkButton>();
@@ -278,41 +323,58 @@ Tab::on_action_button_pressed()
             link->set_label(pkg);
             link->set_uri(url);
             link->set_tooltip_text(url);
-            link->set_halign(Gtk::ALIGN_START);
 
+#if GTKMM_MAJOR_VERSION == 4
+            link->set_halign(Gtk::Align::START);
+            box->append(*link);
+#else
+            link->set_halign(Gtk::ALIGN_START);
             box->pack_start(*link);
+#endif
+
         }
 
-        action->remove();
-        action->add(*box);
         action->set_visible(true);
+#if GTKMM_MAJOR_VERSION == 3
         action->show_all_children();
+#endif
     }
 }
 
 void
-Tab::on_action_type_opened(GdkEventButton* /*ev*/, pkg::Type type) {
-    if (!m_action_widgets[type]->get_expanded()) {
-        auto pkgs = m_actions->at(type);
-        auto *box = Gtk::make_managed<Gtk::Box>();
+#if GTKMM_MAJOR_VERSION == 4
+Tab::on_action_type_opened(pkg::Type type)
+#else
+Tab::on_action_type_opened(GdkEventButton* /*button_event*/, pkg::Type type)
+#endif
+{
+    auto *action_widget = m_action_widgets.at(type);
 
-        box->set_orientation(Gtk::ORIENTATION_VERTICAL);
-        box->set_margin_left(10);
+    if (!m_action_widgets[type]->get_expanded()) {
+        auto pkgs     = m_actions->at(type);
+        auto *box     = dynamic_cast<Gtk::Box*>(action_widget->get_child());
+        auto children = box->get_children();
+        for (auto *child : children) {
+            box->remove(*child);
+        }
 
         for (const auto &pkg : *pkgs) {
-            auto *link = Gtk::make_managed<Gtk::LinkButton>();
-            std::string url = std::format("https://aur.archlinux.org/packages/{}", pkg);
+            auto *link      = Gtk::make_managed<Gtk::LinkButton>();
+            std::string url = std::format(
+                "https://aur.archlinux.org/packages/{}", pkg
+            );
 
             link->set_label(pkg);
             link->set_uri(url);
             link->set_tooltip_text(url);
+
+#if GTKMM_MAJOR_VERSION == 4
+            link->set_halign(Gtk::Align::START);
+            box->append(*link);
+#else
             link->set_halign(Gtk::ALIGN_START);
-
             box->pack_start(*link);
+#endif
         }
-
-        m_action_widgets[type]->remove();
-        m_action_widgets[type]->add(*box);
-        m_action_widgets[type]->show_all_children();
     }
 }

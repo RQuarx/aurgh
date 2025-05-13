@@ -48,26 +48,40 @@ Card::Card(
     m_default_spacing(spacing),
     m_button_dimmed(false)
 {
-    auto builder = Gtk::Builder::create_from_file(ui_file);
+    auto b = Gtk::Builder::create_from_file(ui_file);
 
-    builder->get_widget("card_box", m_card);
-    builder->get_widget("action_button", m_action_button);
-    builder->get_widget("version_label", m_version_label);
-    builder->get_widget("description_label", m_desc_label);
-    builder->get_widget("name_link", m_name_link);
-    builder->get_widget("name_label", m_name_label);
-    builder->get_widget("popularity_label", m_popularity_label);
-    builder->get_widget("votes_label", m_votes_label);
+#if GTKMM_MAJOR_VERSION == 4
+    m_card             = b->get_widget<Gtk::Box>("card_box");
+    m_action_button    = b->get_widget<Gtk::Button>("action_button");
+    m_version_label    = b->get_widget<Gtk::Label>("version_label");
+    m_desc_label       = b->get_widget<Gtk::Label>("description_label");
+    m_name_link        = b->get_widget<Gtk::LinkButton>("name_link");
+    m_name_label       = b->get_widget<Gtk::Label>("name_label");
+    m_popularity_label = b->get_widget<Gtk::Label>("popularity_label");
+    m_votes_label      = b->get_widget<Gtk::Label>("votes_label");
+
+    set_child(*m_card);
+    set_valign(Gtk::Align::START);
+    set_halign(Gtk::Align::FILL);
+#else
+    b->get_widget("card_box", m_card);
+    b->get_widget("action_button", m_action_button);
+    b->get_widget("version_label", m_version_label);
+    b->get_widget("description_label", m_desc_label);
+    b->get_widget("name_link", m_name_link);
+    b->get_widget("name_label", m_name_label);
+    b->get_widget("popularity_label", m_popularity_label);
+    b->get_widget("votes_label", m_votes_label);
 
     add(*m_card);
     set_valign(Gtk::ALIGN_START);
     set_halign(Gtk::ALIGN_FILL);
+#endif
+
     set_vexpand(false);
     set_hexpand(true);
 
     setup();
-
-    show_all_children();
 }
 
 

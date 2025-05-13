@@ -4,7 +4,7 @@
 
 AURGH is an **Arch User Repository[^1] Graphical Helper**.
 <br>
-Built with GTK3[^2] and modern C++23 to deal with daily AUR shenanigans.
+Built with GTK3/4[^2] and modern C++23 to deal with daily AUR shenanigans.
 <br>
 
 ![Badge Workflow]
@@ -30,7 +30,7 @@ Built with GTK3[^2] and modern C++23 to deal with daily AUR shenanigans.
 | **[clang](https://clang.llvm.org/)**                          | Compiler and Linker        |
 | **[curl](https://curl.se/)**                                  | Fetching data from the AUR |
 | **[jsoncpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling              |
-| **[gtkmm-3.0](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK      |
+| **[gtkmm-3/4.0](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK      |
 
 ## Installation
 

@@ -147,6 +147,16 @@
 
                     <property name="margin-left">10</property>
                     <property name="label">Install</property>
+
+                    <child>
+                      <object class="GtkBox">
+
+                        <property name="orientation">vertical</property>
+                        <property name="margin-left">10</property>
+
+                      </object>
+                    </child>
+
                   </object>
                 </child>
                 <child>
@@ -154,6 +164,16 @@
 
                     <property name="margin-left">10</property>
                     <property name="label">Remove</property>
+
+                    <child>
+                      <object class="GtkBox">
+
+                        <property name="orientation">vertical</property>
+                        <property name="margin-left">10</property>
+
+                      </object>
+                    </child>
+
                   </object>
                 </child>
                 <child>
@@ -161,6 +181,16 @@
 
                     <property name="margin-left">10</property>
                     <property name="label">Update</property>
+
+                    <child>
+                      <object class="GtkBox">
+
+                        <property name="orientation">vertical</property>
+                        <property name="margin-left">10</property>
+
+                      </object>
+                    </child>
+
                   </object>
                 </child>
 
