@@ -73,7 +73,8 @@ namespace pkg {
         shared_ptr<Config>      m_config;
         shared_ptr<Actions>     m_actions;
 
-        std::atomic<bool>        m_stop_search;
+        std::atomic<bool>        m_searching;
+        std::atomic<bool>        m_running;
         Glib::Dispatcher         m_search_dispatcher;
         std::vector<Json::Value> m_package_queue;
         Json::Value              m_search_result;

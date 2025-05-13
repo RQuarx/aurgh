@@ -20,12 +20,12 @@
 #include <gtkmm/window.h>
 #include <curl/curl.h>
 
-#include "package/tab.hh"
 #include "arg_parser.hh"
 #include "aur_client.hh"
 #include "process.hh"
 #include "config.hh"
 #include "logger.hh"
+#include "tab.hh"
 
 using const_str = const std::string;
 

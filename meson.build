@@ -50,5 +50,5 @@ add_project_arguments([
 executable(
     'aurgh',
     src,
-    include_directories: include_directories('include')
+    include_directories: include_directories('include', 'include/package')
 )

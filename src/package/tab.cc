@@ -30,11 +30,11 @@
 #include <gtkmm/label.h>
 #include <gtkmm/builder.h>
 
-#include "package/card.hh"
-#include "package/tab.hh"
 #include "aur_client.hh"
 #include "config.hh"
 #include "logger.hh"
+#include "card.hh"
+#include "tab.hh"
 
 using pkg::Tab;
 
@@ -49,6 +49,7 @@ Tab::Tab(
     m_logger(logger),
     m_config(config),
     m_actions(std::make_shared<pkg::Actions>()),
+    m_searching(false),
     m_card_ui_file(utils::get_ui_file("card.xml", arg_parser)),
     m_spinner(Gtk::make_managed<Gtk::Spinner>())
 {
@@ -79,7 +80,10 @@ Tab::Tab(
         exit(EXIT_FAILURE);
     }
 
-    m_result_box->show_all_children();
+    m_spinner->set_valign(Gtk::ALIGN_CENTER);
+    m_spinner->hide();
+
+    m_result_box->pack_start(*m_spinner);
 
     add(*m_tab_box);
     show_all_children();
@@ -128,6 +132,16 @@ Tab::setup() -> bool
 void
 Tab::on_search()
 {
+    m_result_box->foreach([this](Gtk::Widget &child){
+        m_result_box->remove(child);
+    });
+
+    m_spinner->show();
+    m_spinner->start();
+
+    m_result_box->set_valign(Gtk::ALIGN_CENTER);
+    m_result_box->pack_start(*m_spinner);
+
     std::string pkg_name  = m_search_entry->get_text();
     std::string search_by = m_search_by_combo->get_active_text();
 
@@ -135,9 +149,18 @@ Tab::on_search()
         Logger::Info, "Searching for: {}, by {}", pkg_name, search_by
     );
 
-    m_search_result = m_aur_client->search(pkg_name, search_by);
+    std::thread([this, pkg_name, search_by](){
+        m_searching = true;
+        m_running = true;
 
-    std::jthread([this](){
+        try {
+            m_search_result = m_aur_client->search(pkg_name, search_by);
+        } catch (const std::exception &e) {
+            m_logger->log(Logger::Error, "Failed to search: {}", e.what());
+            m_search_result = Json::Value(Json::arrayValue);
+        }
+
+        m_searching = false;
         m_search_dispatcher.emit();
     }).detach();
 }
@@ -173,6 +196,36 @@ Tab::sort_packages(const Json::Value &pkgs) -> std::vector<Json::Value>
 }
 
 
+void
+Tab::on_dispatch_search_ready()
+{
+    auto       sorted             = sort_packages(m_search_result["results"]);
+    const auto installed_packages = get_installed_pkgs();
+
+    m_spinner->set_visible(false);
+    m_spinner->hide();
+    m_spinner->stop();
+
+    m_result_box->set_valign(Gtk::ALIGN_START);
+    m_result_box->remove(*m_spinner);
+
+    for (const auto &pkg : sorted) {
+        auto *card = Gtk::make_managed<pkg::Card>(
+            pkg,
+            m_card_ui_file,
+            installed_packages,
+            m_logger,
+            m_actions
+        );
+
+        m_result_box->pack_start(*card);
+    }
+
+    m_result_box->show_all_children();
+    m_running = false;
+}
+
+
 auto
 Tab::get_installed_pkgs() -> str_pair_vec
 {
@@ -189,64 +242,6 @@ Tab::get_installed_pkgs() -> str_pair_vec
     }
 
     return installed_packages;
-}
-
-
-void
-Tab::on_dispatch_search_ready()
-{
-    m_package_queue.clear();
-
-    for (auto *child : m_result_box->get_children()) {
-        m_result_box->remove(*child);
-    }
-
-    if (m_search_result["type"].asString() == "error") {
-        auto *label = Gtk::make_managed<Gtk::Label>();
-        label->set_markup("<b>An error has occurred</b>");
-        m_result_box->pack_start(*label);
-        m_result_box->set_halign(Gtk::ALIGN_CENTER);
-    } else if (m_search_result["resultcount"].asInt() == 0) {
-        auto *label = Gtk::make_managed<Gtk::Label>();
-        label->set_markup("<b>No results found</b>");
-        m_result_box->pack_start(*label);
-        m_result_box->set_halign(Gtk::ALIGN_CENTER);
-    } else {
-        for (const auto &pkg : sort_packages(m_search_result["results"])) {
-            m_package_queue.push_back(pkg);
-        }
-
-        m_result_box->set_halign(Gtk::ALIGN_START);
-        process_next_package(get_installed_pkgs());
-    }
-
-    m_result_box->show_all_children();
-}
-
-
-void
-Tab::process_next_package(
-    const str_pair_vec &installed)
-{
-    if (m_package_queue.empty()) return;
-
-    auto pkg = m_package_queue.back();
-    m_package_queue.pop_back();
-
-    auto *card = Gtk::make_managed<Card>(
-        pkg, m_card_ui_file, installed, m_logger, m_actions
-    );
-
-    card->get_action_button()->signal_clicked().connect(
-        sigc::mem_fun(*this, &Tab::on_action_button_pressed)
-    );
-
-    m_result_box->pack_start(*card, true, true);
-    m_result_box->show_all_children();
-
-    Glib::signal_idle().connect_once([this, installed]() {
-        process_next_package(installed);
-    });
 }
 
 void

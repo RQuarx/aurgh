@@ -26,9 +26,9 @@
 
 #include <utility>
 
-#include "package/card.hh"
 #include "logger.hh"
 #include "utils.hh"
+#include "card.hh"
 
 using pkg::Card;
 
