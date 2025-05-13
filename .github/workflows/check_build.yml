@@ -3,8 +3,8 @@ name: Build AURGH
 on: [push, pull_request]
 
 jobs:
-  clang:
-    name: "Build AURGH - clang"
+  gtk3:
+    name: "Build AURGH - gtk3"
     runs-on: ubuntu-latest
     container:
       image: archlinux
@@ -14,20 +14,20 @@ jobs:
         shell: bash
         run: |
           sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
-          pacman -Syyu --noconfirm --noprogressbar --needed - < required.txt
+          pacman -Syyu --noconfirm --noprogressbar --needed - < required-gtk3.txt
 
-      - name: gtk3
+      - name: clang
         run: |
-          make setup
-          make compile
+          CXX=clang++ CXX_LD=lld meson setup -Dbuildtype=debugoptimized clang_target
+          meson compile -C clang_target
 
-      - name: gtk4
+      - name: gcc
         run: |
-          make setup-gtk4
-          make compile
+          meson setup -Dbuildtype=debugoptimized gcc_target
+          meson compile -C gcc_target
 
-  gcc:
-    name: "Build AURGH - gcc"
+  gtk4:
+    name: "Build AURGH - gtk4"
     runs-on: ubuntu-latest
     container:
       image: archlinux
@@ -37,14 +37,14 @@ jobs:
         shell: bash
         run: |
           sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
-          pacman -Syyu --noconfirm --noprogressbar --needed - < required.txt
+          pacman -Syyu --noconfirm --noprogressbar --needed - < required-gtk4.txt
 
-      - name: gtk3
+      - name: clang
         run: |
-          meson setup -Dbuildtype=debugoptimized target
-          meson compile -C target
+          CXX=clang++ CXX_LD=lld meson setup -Dbuildtype=debugoptimized -Duse-gtk4=true clang_target
+          meson compile -C clang_target
 
-      - name: gtk4
+      - name: gcc
         run: |
-          meson setup -Dbuildtype=debugoptimized -Duse-gtk4=true target
-          meson compile -C target
+          meson setup -Dbuildtype=debugoptimized -Duse-gtk4=true gcc_target
+          meson compile -C gcc_target

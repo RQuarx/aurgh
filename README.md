@@ -30,7 +30,7 @@ Built with GTK3/4[^2] and modern C++23 to deal with daily AUR shenanigans.
 | **[clang](https://clang.llvm.org/)**                          | Compiler and Linker        |
 | **[curl](https://curl.se/)**                                  | Fetching data from the AUR |
 | **[jsoncpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling              |
-| **[gtkmm-3/4.0](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK      |
+| **[gtkmm-3/4](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK      |
 
 ## Installation
 
@@ -40,13 +40,13 @@ Built with GTK3/4[^2] and modern C++23 to deal with daily AUR shenanigans.
 <details>
 <summary>Installing dependencies</summary>
 
+For gtk3 builds
 ```bash
-root# pacman -S - < required.txt
+root# pacman -S - < required-gtk3.txt
 ```
-or
-
+or for gtk4 builds
 ```bash
-root# make install-deps
+root# pacman -S - < required-gtk4.txt
 ```
 
 </details>
@@ -54,7 +54,14 @@ root# make install-deps
 ### Installing the package
 
 ```bash
-user$ make setup-release && make compile
+user$ git clone https://github.com/RQuarx/aurgh/
+
+# For gtk3 builds use
+user$ meson setup -Dbuildtype=debugoptimized target
+# and for gtk4 use
+user$ meson setup -Dbuildtype=debugoptimized -Duse-gtk4=true target
+
+user$ meson compile -C target
 root# make install
 ```
 
