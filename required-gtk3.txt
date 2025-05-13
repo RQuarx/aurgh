@@ -5,7 +5,5 @@ meson
 clang
 lld
 gtkmm3
-gtkmm-4.0
 glibmm
-glibmm-2.68
 pkg-config
