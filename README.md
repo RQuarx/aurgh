@@ -3,24 +3,24 @@
 # AURGH
 
 AURGH is an **Arch User Repository Graphical Helper**,
-<br>
+<br/>
 made with C++23 to deal with daily AUR shenanigans.
-<br>
+<br/>
 
 ![Badge gtk3]
 ![Badge gtk4]
 [![Badge License]][License]
 ![Badge Language]
 
-<img src=https://github.com/user-attachments/assets/cecaa8a3-f690-4cd9-ad73-e8d4377767dd width=700>
+<img src=https://github.com/user-attachments/assets/c9ad8212-6e43-493f-94d9-ddb37c222c5c width=700></img>
 
 </div>
 
 ## Features
 
-> [!INFO]
-> AURGH is **not** a pacman frontend, nor is it a frontend of any other helpers.
-> AURGH tries to be independent from any other available frontend.
+>[!IMPORTANT]
+>AURGH is not a pacman frontend, nor is it a frontend of any other helpers.
+>AURGH tries to be independent from any other available frontend.
 
 - [x] Basic searching of AUR packages.
 - [x] Package information on each package list.
