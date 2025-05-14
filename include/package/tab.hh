@@ -39,8 +39,9 @@ namespace Gtk {
     class Expander;
     class Builder;
     class Spinner;
+    class Button;
     class Label;
-}
+} /* namespace Gtk */
 class ArgParser;
 class Config;
 class Logger;
@@ -67,6 +68,58 @@ namespace pkg {
             const shared_ptr<ArgParser>   &arg_parser
         );
 
+    protected:
+        /**
+         * @brief Initializes and connects all widgets from the Gtk::Builder UI.
+         * @param b Reference to the Gtk::Builder used to build the UI.
+         */
+        void setup_widgets(const Glib::RefPtr<Gtk::Builder> &b);
+
+
+        /**
+         * @brief Populates combo boxes, sets initial states, and connects signal handlers.
+         */
+        void setup();
+
+
+        /**
+         * @brief Triggered when a search is requested by the user.
+         */
+        void on_search();
+
+
+        /**
+         * @brief Triggered when the action buttons is pressed.
+         */
+        void on_action_button_pressed();
+
+
+        /**
+         * @brief Handles the event when search results are ready (via dispatcher).
+         */
+        void on_dispatch_search_ready();
+
+
+        /**
+         * @brief Triggered when the execute action button is pressed.
+         */
+        auto on_execute_button_pressed() -> bool;
+
+#if GTKMM_MAJOR_VERSION == 4
+        /**
+         * @brief Opens the appropriate action for a package (GTK4 version).
+         * @param type The type of package action selected.
+         */
+        void on_action_type_opened(pkg::Type type);
+#else
+        /**
+         * @brief Opens the appropriate action for a package (GTK3 version).
+         * @param button_event Pointer to the button press event.
+         * @param type         The type of package action selected.
+         */
+        void on_action_type_opened(GdkEventButton *button_event, pkg::Type type);
+#endif
+
     private:
         shared_ptr<AUR::Client> m_aur_client;
         shared_ptr<Logger>      m_logger;
@@ -78,10 +131,7 @@ namespace pkg {
         Glib::Dispatcher         m_search_dispatcher;
         std::vector<Json::Value> m_package_queue;
         Json::Value              m_search_result;
-
-        std::string m_card_ui_file;
-
-        /* Widgets */
+        std::string              m_card_ui_file;
 
         Gtk::Box *m_tab_box{};
         Gtk::Box *m_result_box{};
@@ -96,23 +146,8 @@ namespace pkg {
         Gtk::Label                          *m_no_actions_label{};
         std::map<pkg::Type, Gtk::Expander *> m_action_widgets;
 
+        Gtk::Button  *m_execute_button{};
         Gtk::Spinner *m_spinner{};
-
-    protected:
-        auto setup() -> bool;
-        auto sort_packages(const Json::Value &pkgs) -> std::vector<Json::Value>;
-
-#if GTKMM_MAJOR_VERSION == 4
-        void on_action_type_opened(pkg::Type type);
-#else
-        void on_action_type_opened(GdkEventButton *button_event, pkg::Type type);
-#endif
-        void process_next_package(const str_pair_vec &installed);
-        void on_action_button_pressed();
-        void on_dispatch_search_ready();
-        void on_search();
-
-        static auto get_installed_pkgs() -> str_pair_vec;
     };
 } /* namespace pkg */
 

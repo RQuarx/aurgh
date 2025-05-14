@@ -26,9 +26,10 @@
 #include <gtkmm/linkbutton.h>
 #include <gtkmm/expander.h>
 #include <gtkmm/spinner.h>
+#include <gtkmm/builder.h>
 #include <gtkmm/button.h>
 #include <gtkmm/label.h>
-#include <gtkmm/builder.h>
+#include <glibmm/refptr.h>
 
 #include "aur_client.hh"
 #include "config.hh"
@@ -37,6 +38,15 @@
 #include "tab.hh"
 
 using pkg::Tab;
+
+using Gtk::ScrolledWindow;
+using Gtk::ComboBoxText;
+using Gtk::CheckButton;
+using Gtk::SearchEntry;
+using Gtk::Expander;
+using Gtk::Button;
+using Gtk::Label;
+using Gtk::Box;
 
 
 Tab::Tab(
@@ -59,50 +69,25 @@ Tab::Tab(
         on_dispatch_search_ready();
     });
 
-    auto b = Gtk::Builder::create_from_file(
-        utils::get_ui_file("tab.xml", arg_parser)
-    );
+    Glib::RefPtr<Gtk::Builder> b;
 
-#if GTKMM_MAJOR_VERSION == 4
-    m_tab_box            = b->get_widget<Gtk::Box>("tab_main");
-    m_result_box         = b->get_widget<Gtk::Box>("result_box");
-    m_results_scroll     = b->get_widget<Gtk::ScrolledWindow>("search_results");
-    m_search_by_combo    = b->get_widget<Gtk::ComboBoxText>("search_by");
-    m_sort_by_combo      = b->get_widget<Gtk::ComboBoxText>("sort_by");
-    m_reverse_sort_check = b->get_widget<Gtk::CheckButton>("reverse_sort");
-    m_search_entry       = b->get_widget<Gtk::SearchEntry>("search_entry");
-    m_no_actions_label   = b->get_widget<Gtk::Label>("no_actions_label");
-
-    m_action_widgets[Install] = b->get_widget<Gtk::Expander>("actions_install");
-    m_action_widgets[Remove]  = b->get_widget<Gtk::Expander>("actions_remove");
-    m_action_widgets[Update]  = b->get_widget<Gtk::Expander>("actions_update");
-#else
-    b->get_widget("tab_main",         m_tab_box);
-    b->get_widget("result_box",       m_result_box);
-    b->get_widget("search_results",   m_results_scroll);
-    b->get_widget("search_by",        m_search_by_combo);
-    b->get_widget("sort_by",          m_sort_by_combo);
-    b->get_widget("reverse_sort",     m_reverse_sort_check);
-    b->get_widget("search_entry",     m_search_entry);
-    b->get_widget("no_actions_label", m_no_actions_label);
-
-    b->get_widget("actions_install", m_action_widgets[Install]);
-    b->get_widget("actions_remove",  m_action_widgets[Remove]);
-    b->get_widget("actions_update",  m_action_widgets[Update]);
-#endif
-
-    if (!setup()) {
-        exit(EXIT_FAILURE);
+    try {
+        b = Gtk::Builder::create_from_file(
+            utils::get_ui_file("tab.xml", arg_parser)
+        );
+    } catch (const Gtk::BuilderError& e) {
+        m_logger->log(
+            Logger::Error,
+            "Failed to parse .xml file: {}",
+            e.what()
+        );
     }
 
-#if GTKMM_MAJOR_VERSION == 4
-    m_spinner->set_valign(Gtk::Align::CENTER);
-#else
-    m_spinner->set_valign(Gtk::ALIGN_CENTER);
-#endif
+    setup_widgets(b);
     m_spinner->hide();
+    setup();
 
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
     m_result_box->append(*m_spinner);
     append(*m_tab_box);
 #else
@@ -113,8 +98,47 @@ Tab::Tab(
 }
 
 
-auto
-Tab::setup() -> bool
+void
+Tab::setup_widgets(const Glib::RefPtr<Gtk::Builder> &b)
+{
+#if GTK4
+    m_tab_box            = b->get_widget<Box>("tab_main");
+    m_result_box         = b->get_widget<Box>("result_box");
+    m_results_scroll     = b->get_widget<ScrolledWindow>("search_results");
+    m_search_by_combo    = b->get_widget<ComboBoxText>("search_by");
+    m_sort_by_combo      = b->get_widget<ComboBoxText>("sort_by");
+    m_reverse_sort_check = b->get_widget<CheckButton>("reverse_sort");
+    m_search_entry       = b->get_widget<SearchEntry>("search_entry");
+    m_no_actions_label   = b->get_widget<Label>("no_actions_label");
+    m_execute_button     = b->get_widget<Button>("execute_actions_button");
+
+    m_action_widgets[Install] = b->get_widget<Expander>("actions_install");
+    m_action_widgets[Remove]  = b->get_widget<Expander>("actions_remove");
+    m_action_widgets[Update]  = b->get_widget<Expander>("actions_update");
+
+    m_spinner->set_valign(Gtk::Align::CENTER);
+#else
+    b->get_widget("tab_main",               m_tab_box);
+    b->get_widget("result_box",             m_result_box);
+    b->get_widget("search_results",         m_results_scroll);
+    b->get_widget("search_by",              m_search_by_combo);
+    b->get_widget("sort_by",                m_sort_by_combo);
+    b->get_widget("reverse_sort",           m_reverse_sort_check);
+    b->get_widget("search_entry",           m_search_entry);
+    b->get_widget("no_actions_label",       m_no_actions_label);
+    b->get_widget("execute_actions_button", m_execute_button);
+
+    b->get_widget("actions_install", m_action_widgets[Install]);
+    b->get_widget("actions_remove",  m_action_widgets[Remove]);
+    b->get_widget("actions_update",  m_action_widgets[Update]);
+
+    m_spinner->set_valign(Gtk::ALIGN_CENTER);
+#endif
+}
+
+
+void
+Tab::setup()
 {
     auto search_by_keywords = AUR::Client::get_search_by_keywords();
     auto sort_by_keywords   = AUR::Client::get_sort_by_keywords();
@@ -136,9 +160,12 @@ Tab::setup() -> bool
     m_reverse_sort_check->set_active(config["reverse-sort-default"].asBool());
 
     auto criteria_changed = sigc::bind([this](Json::Value config){
-        config["sort-by-default"]      = m_sort_by_combo->get_active_text().raw();
-        config["search-by-default"]    = m_search_by_combo->get_active_text().raw();
-        config["reverse-sort-default"] = m_reverse_sort_check->get_active();
+        config["sort-by-default"]      =
+            m_sort_by_combo->get_active_text().raw();
+        config["search-by-default"]    =
+            m_search_by_combo->get_active_text().raw();
+        config["reverse-sort-default"] =
+            m_reverse_sort_check->get_active();
 
         m_config->save(config);
         on_search();
@@ -148,7 +175,12 @@ Tab::setup() -> bool
     m_sort_by_combo->signal_changed().connect(criteria_changed);
     m_reverse_sort_check->signal_toggled().connect(criteria_changed);
     m_search_entry->signal_activate().connect(criteria_changed);
-    return true;
+
+    m_execute_button->signal_clicked().connect([this](){
+        if (!on_execute_button_pressed()) {
+            exit(EXIT_FAILURE);
+        }
+    });
 }
 
 void
@@ -157,16 +189,16 @@ Tab::on_search()
     auto children = m_result_box->get_children();
 
     for (auto *child : children) {
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
         if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
 #endif
             m_result_box->remove(*child);
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
         }
 #endif
     }
 
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
     m_result_box->set_valign(Gtk::Align::CENTER);
     m_spinner->set_visible();
 #else
@@ -200,45 +232,26 @@ Tab::on_search()
 }
 
 
-
-auto
-Tab::sort_packages(const Json::Value &pkgs) -> std::vector<Json::Value>
-{
-    std::vector<Json::Value> package;
-    package.reserve(pkgs.size());
-
-    for (const auto &p : pkgs) package.push_back(p);
-
-    std::string sort_by = m_sort_by_combo->get_active_text();
-
-    std::ranges::sort(package,
-        [this, &sort_by](const Json::Value &a, const Json::Value &b){
-        if (a[sort_by].isInt()) {
-            if (m_reverse_sort_check->get_active()) {
-                return a[sort_by].asInt64() < b[sort_by].asInt64();
-            }
-            return a[sort_by].asInt64() > b[sort_by].asInt64();
-        }
-
-        if (m_reverse_sort_check->get_active()) {
-            return a[sort_by].asString() < b[sort_by].asString();
-        }
-        return a[sort_by].asString() > b[sort_by].asString();
-    });
-
-    return package;
-}
-
-
 void
 Tab::on_dispatch_search_ready()
 {
-    auto       sorted             = sort_packages(m_search_result["results"]);
-    const auto installed_packages = get_installed_pkgs();
+    std::string  sort_by        = m_sort_by_combo->get_active_text();
+    bool         reverse        = m_reverse_sort_check->get_active();
+    Json::Value  pkgs           = m_search_result["results"];
+    Json::Value  sorted         = utils::sort_json(pkgs, sort_by, reverse);
+    auto         local_pkgs     = m_aur_client->get_installed_pkgs();
+    str_pair_vec local_pkgs_str;
+    local_pkgs_str.reserve(local_pkgs.size());
+
+    for (auto *pkg : local_pkgs) {
+        local_pkgs_str.emplace_back(
+            alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)
+        );
+    }
 
     m_spinner->stop();
 
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
     m_result_box->set_valign(Gtk::Align::START);
 #else
     m_result_box->set_valign(Gtk::ALIGN_START);
@@ -250,7 +263,7 @@ Tab::on_dispatch_search_ready()
         auto *card = Gtk::make_managed<pkg::Card>(
             pkg,
             m_card_ui_file,
-            installed_packages,
+            local_pkgs_str,
             m_logger,
             m_actions
         );
@@ -259,37 +272,19 @@ Tab::on_dispatch_search_ready()
             *this, &Tab::on_action_button_pressed
         ));
 
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
         m_result_box->append(*card);
 #else
         m_result_box->pack_start(*card);
 #endif
     }
 
-#if GTKMM_MAJOR_VERSION == 3
+#if GTK3
     m_result_box->show_all_children();
 #endif
     m_running = false;
 }
 
-
-auto
-Tab::get_installed_pkgs() -> str_pair_vec
-{
-    str_pair_vec       installed_packages;
-    std::istringstream iss(utils::run_command("pacman -Qm", 512)->first);
-    std::string        line;
-
-    while (std::getline(iss, line)) {
-        auto package = str::split(line, line.find(' '));
-        installed_packages.emplace_back(
-            str::trim(package.at(0)),
-            str::trim(package.at(1))
-        );
-    }
-
-    return installed_packages;
-}
 
 void
 Tab::on_action_button_pressed()
@@ -327,7 +322,7 @@ Tab::on_action_button_pressed()
             link->set_uri(url);
             link->set_tooltip_text(url);
 
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
             link->set_halign(Gtk::Align::START);
             link->set_visible();
             box->append(*link);
@@ -339,17 +334,17 @@ Tab::on_action_button_pressed()
         }
 
         action->set_visible(true);
-#if GTKMM_MAJOR_VERSION == 3
+#if GTK3
         action->show_all_children();
 #endif
     }
 }
 
 void
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
 Tab::on_action_type_opened(pkg::Type type)
 #else
-Tab::on_action_type_opened(GdkEventButton* /*button_event*/, pkg::Type type)
+Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
 #endif
 {
     auto *action_widget = m_action_widgets.at(type);
@@ -368,11 +363,11 @@ Tab::on_action_type_opened(GdkEventButton* /*button_event*/, pkg::Type type)
                 "https://aur.archlinux.org/packages/{}", pkg
             );
 
+            link->set_tooltip_text(url);
             link->set_label(pkg);
             link->set_uri(url);
-            link->set_tooltip_text(url);
 
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
             link->set_halign(Gtk::Align::START);
             box->append(*link);
 #else
@@ -381,4 +376,20 @@ Tab::on_action_type_opened(GdkEventButton* /*button_event*/, pkg::Type type)
 #endif
         }
     }
+}
+
+
+auto
+Tab::on_execute_button_pressed() -> bool
+{
+    auto removed = m_actions->remove;
+
+    m_aur_client->remove(*removed);
+
+    on_search();
+    for (auto t : { pkg::Update, pkg::Install, pkg::Remove }) {
+        on_action_type_opened(t);
+    }
+
+    return true;
 }

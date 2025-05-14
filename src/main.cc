@@ -72,7 +72,7 @@ main(int32_t argc, char **argv) -> int32_t
     auto app        = Gtk::Application::create(APP_ID);
     auto arg_parser = std::make_shared<ArgParser>(argc, argv);
     auto logger     = std::make_shared<Logger>(arg_parser);
-    auto aur_client = std::make_shared<AUR::Client>(logger, "");
+    auto aur_client = std::make_shared<AUR::Client>(logger, arg_parser);
     auto config     = std::make_shared<Config>(logger, arg_parser);
 
     if (curl_global_init(CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE) != 0) {

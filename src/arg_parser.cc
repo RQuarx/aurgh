@@ -104,10 +104,10 @@ ArgParser::option_arg(std::string &option, arg_pair arg) -> bool
 {
     arg = clean_input_arg(arg);
 
-    return (
-        find_option_short(option, arg.first)
-        || find_option_long(option, arg.second)
-    );
+    if (!find_option_short(option, arg.first)) {
+        return find_option_long(option, arg.second);
+    }
+    return true;
 }
 
 
@@ -173,20 +173,20 @@ ArgParser::find_option_long(
 
         /* Case: --arg=value */
         if (a.second.contains('=')) {
-            size_t eq_pos = a.second.find_first_of('=');
+            size_t eq_pos = a.second.find('=');
 
             arg_pair split_arg = {
                 a.second.substr(0, eq_pos), a.second.substr(eq_pos + 1)
             };
 
-            if (split_arg.first == long_arg.substr(2)) {
+            if (split_arg.first == long_arg) {
                 option = split_arg.second;
                 return true;
             }
         }
 
         /* Case: --arg value */
-        if (a.second == long_arg.substr(2) && i + 1 < args_amount) {
+        if (a.second == long_arg && i + 1 < args_amount) {
             const auto &next_arg = m_arg_list.at(Long).at(i + 1);
 
             if (next_arg.first) {

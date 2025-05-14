@@ -50,7 +50,7 @@ Card::Card(
 {
     auto b = Gtk::Builder::create_from_file(ui_file);
 
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
     m_card             = b->get_widget<Gtk::Box>("card_box");
     m_action_button    = b->get_widget<Gtk::Button>("action_button");
     m_version_label    = b->get_widget<Gtk::Label>("version_label");

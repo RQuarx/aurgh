@@ -44,7 +44,8 @@ foreach dep : core_deps
     add_project_dependencies(dep, language: 'cpp')
 endforeach
 
-if get_option('use-gtk4')
+use_gtk4 = get_option('use-gtk4')
+if use_gtk4
     foreach dep : gtk4_deps
         add_project_dependencies(dependency(dep), language: 'cpp')
     endforeach
@@ -61,8 +62,11 @@ add_project_arguments([
     '-DAPP_VERSION="@0@"'.format(meson.project_version()),
     '-DAPP_NAME="@0@"'.format(meson.project_name()),
     '-DPRETTY_LOGGING=@0@'.format(get_option('pretty-logging')),
+    '-DGTK4=' + (use_gtk4 ? 'true' : 'false'),
+    '-DGTK3=' + (use_gtk4 ? 'false' : 'true'),
 ], language: 'cpp')
 
+subdir('helper')
 
 executable(
     'aurgh',

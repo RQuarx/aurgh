@@ -154,7 +154,7 @@ namespace utils {
 
 
     /**
-     * @brief Sorts a Json::Value array based on a field.
+     * @brief Sorts a Json::Value array based on a field @p sort_by .
      * @param root The JSON array to sort.
      * @param sort_by The field to sort on.
      * @param reverse Whether to reverse the sort order.
@@ -164,7 +164,7 @@ namespace utils {
         const Json::Value &root,
         const std::string &sort_by,
         bool               reverse = false
-    ) -> std::vector<Json::Value>;
+    ) -> Json::Value;
 
 
     /**

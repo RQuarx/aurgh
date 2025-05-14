@@ -2,6 +2,7 @@ install:
 	mkdir -p /usr/share/aurgh/
 	cp -r ui /usr/share/aurgh/
 	cp target/aurgh /usr/bin/
+	cp target/helper/aurgh-helper /usr/bin/
 
 	cp assets/aurgh.desktop /usr/share/applications/
 	chmod a+x assets/run_aurgh.sh
@@ -11,3 +12,4 @@ uninstall:
 	rm -rf /usr/share/aurgh
 	rm /usr/share/applications/aurgh.desktop
 	rm /usr/bin/aurgh
+	rm /usr/bin/aurgh-helper

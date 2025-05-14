@@ -219,6 +219,40 @@ namespace utils {
         if (valid_file(path)) return path;
         return "/usr/share/aurgh/" + path;
     }
+
+
+    auto
+    sort_json(
+        const Json::Value &root,
+        const std::string &sort_by,
+        bool               reverse
+    ) -> Json::Value
+    {
+        Json::Value              result{ root.type() };
+        std::vector<Json::Value> buffer;
+        buffer.reserve(root.size());
+
+        for (const auto &j : root) { buffer.emplace_back(j); }
+
+        std::ranges::sort(buffer,
+        [&sort_by, reverse]
+        (const Json::Value &a, const Json::Value &b){
+            if (a[sort_by].isInt()) {
+                if (reverse) {
+                    return a[sort_by].asInt64() < b[sort_by].asInt64();
+                }
+                return a[sort_by].asInt64() > b[sort_by].asInt64();
+            }
+
+            if (reverse) {
+                return a[sort_by].asString() < b[sort_by].asString();
+            }
+            return a[sort_by].asString() > b[sort_by].asString();
+        });
+
+        for (const auto &j : buffer) { result.append(j); }
+        return result;
+    }
 } /* namespace utils */
 
 
