@@ -204,6 +204,7 @@ Tab::on_search()
 #else
     m_result_box->set_valign(Gtk::ALIGN_CENTER);
     m_result_box->pack_start(*m_spinner);
+    m_spinner->set_visible();
 #endif
 
     m_spinner->start();
@@ -388,7 +389,11 @@ Tab::on_execute_button_pressed() -> bool
 
     on_search();
     for (auto t : { pkg::Update, pkg::Install, pkg::Remove }) {
+#if GTK4
         on_action_type_opened(t);
+#else
+        on_action_type_opened(nullptr, t);
+#endif
     }
 
     return true;
