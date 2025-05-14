@@ -18,6 +18,10 @@ made with C++23 to deal with daily AUR shenanigans.
 
 ## Features
 
+> [!INFO]
+> AURGH is **not** a pacman frontend, nor is it a frontend of any other helpers.
+> AURGH tries to be independent from any other available frontend.
+
 - [x] Basic searching of AUR packages.
 - [x] Package information on each package list.
 - [x] Cross compatible with GTK3 and GTK4.
@@ -26,12 +30,13 @@ made with C++23 to deal with daily AUR shenanigans.
 
 ## Dependencies
 
-| Package Name                                                  | Uses                       |
-|:--------------------------------------------------------------|:---------------------------|
-| **[meson](https://mesonbuild.com/)**                          | Build system               |
-| **[curl](https://curl.se/)**                                  | Fetching data from the AUR |
-| **[jsoncpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling              |
-| **[gtkmm-3/4](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK      |
+| Package Name                                                  | Uses                                      |
+|:--------------------------------------------------------------|:------------------------------------------|
+| **[meson](https://mesonbuild.com/)**                          | Build system                              |
+| **[libalpm](https://man.archlinux.org/man/libalpm.3)**        | library for Arch Linux Package Management |
+| **[curl](https://curl.se/)**                                  | Fetching data from the AUR                |
+| **[jsoncpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling                             |
+| **[gtkmm-3/4](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK                     |
 
 ## Installation
 
@@ -54,9 +59,9 @@ root# pacman -S - < required-gtk4.txt
 ```bash
 user$ git clone https://github.com/RQuarx/aurgh/
 
-# For gtk3 builds use
+# gtk3 build
 user$ meson setup -Dbuildtype=debugoptimized target
-# and for gtk4 use
+# gtk4 build
 user$ meson setup -Dbuildtype=debugoptimized -Duse-gtk4=true target
 
 user$ meson compile -C target
