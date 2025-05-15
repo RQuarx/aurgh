@@ -78,14 +78,10 @@ namespace AUR {
 
         /**
          * @brief Installs an aur package
-         * @param pkg_name The name of the package to be installed
-         * @param prefix The base directory where the git clones will happen
+         * @param pkgs The name of the packages to be removed.
          * @returns true on success, or false on failure
          */
-        auto install(
-            const std::string &pkg_name,
-            const std::string &prefix = ""
-        ) -> bool;
+        auto install(const std::vector<std::string> &pkgs) -> bool;
 
 
         /**
@@ -120,14 +116,15 @@ namespace AUR {
         static const inline std::string DEFAULT_HELPER_PATH =
             "/usr/share/aurgh/helper";
 
-        static const constexpr char *DEFAULT_ROOT_PATH = "/";
-        static const constexpr char *DEFAULT_DB_PATH = "/var/lib/pacman";
+        static const constexpr char *DEFAULT_ROOT_PATH  = "/";
+        static const constexpr char *DEFAULT_DB_PATH    = "/var/lib/pacman";
 
         std::string_view           m_url;
         std::shared_ptr<Logger>    m_logger;
         std::shared_ptr<ArgParser> m_arg_parser;
 
         std::string m_helper_path;
+        std::string m_prefix_path;
         std::string m_root_path;
         std::string m_db_path;
 

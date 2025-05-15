@@ -17,68 +17,67 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <cstdint>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <print>
 
-#include <alpm.h>
+#include <json/reader.h>
+#include <json/value.h>
 
-#include "remove.hh"
+#include "alpm.hh"
 
 
 auto
 main(int32_t argc, char **argv) -> int32_t
 {
     if (getuid() != 0) {
-        std::println("This helper must be run as superuser!");
+        std::println("This program must be run as superuser!");
         return EXIT_FAILURE;
     }
 
     std::vector<std::string> args{ argv, argv + argc };
 
     if (args.at(1) == "help") {
-        std::println("Usage: {} <options {{args}}>", args.at(0));
-        std::println("\nOptions:");
-        std::println(
-            "\t{:<15}{:<15}{}",
-            "install",
-            "{paths pkgs}",
-            "The first 2 args must be root path and db path."
-        );
-        std::println(
-            "\t{:<15}{:<15}{}",
-            "remove",
-            "{paths pkgs}",
-            "The first 2 args must be root path and db path."
-        );
+        std::println("Usage: {} <prefix-path>", args.at(0));
     }
 
-    std::string              root_path = args.at(2);
-    std::string              db_path   = args.at(3);
-    std::vector<std::string> pkgs{ args.begin() + 4, args.end() };
 
-    alpm_errno_t   alpm_ernno = ALPM_ERR_OK;
-    alpm_handle_t *handle     = alpm_initialize(
-        root_path.c_str(), db_path.c_str(), &alpm_ernno
-    );
 
-    std::print("{{");
+    std::string prefix_path         { args.at(1) };
+    std::string operation_file_path { prefix_path + "/operation.json" };
+    Json::Value operation           { Json::objectValue };
+    std::ifstream operation_file    { operation_file_path };
 
-    if (args.at(1) == "remove") {
-        if (remove(handle, &alpm_ernno, pkgs)) {
-            alpm_release(handle);
-            std::print(R"({{"type": "success"}}}})");
-            return EXIT_SUCCESS;
-        }
-        alpm_release(handle);
-        std::print("}}");
-        return EXIT_FAILURE;
+    operation_file >> operation;
+    operation_file.close();
+
+    std::string  type      { operation["operation"].asString() };
+    std::string  root_path { operation["root"].asString() };
+    std::string  db_path   { operation["db-path"].asString() };
+    alpm_errno_t err       { ALPM_ERR_OK };
+    Alpm         alpm      { root_path, db_path, err };
+
+    std::vector<std::string> pkgs;
+    pkgs.reserve(operation["pkgs"].size());
+
+    for (const auto &p : operation["pkgs"]) {
+        pkgs.push_back(p.asString());
     }
 
-    if (args.at(1) == "install") {
+    std::filesystem::remove(operation_file_path);
 
-        alpm_release(handle);
+    if (err != ALPM_ERR_OK) return static_cast<int32_t>(err);
+
+    if (type == "remove") {
+        bool _ = alpm.remove_packages(pkgs);
+        return static_cast<int32_t>(err);
+    }
+
+    if (type == "install") {
+
         return EXIT_SUCCESS;
     }
 }

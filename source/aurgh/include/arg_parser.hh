@@ -23,8 +23,10 @@
 
 #include <unordered_map>
 #include <cstdint>
+#include <format>
 #include <string>
 #include <vector>
+#include <print>
 
 
 /**
@@ -99,7 +101,7 @@ public:
      *
      * @param stream Output stream (e.g., stdout or stderr).
      */
-    static void print_version_message(FILE *stream);
+    void print_version_message(FILE *stream);
 
 private:
     /**
@@ -112,9 +114,14 @@ private:
         Long  = 1, /* --version, --help */
     };
 
+    static const constexpr std::string_view bold  = "\033[1m";
+    static const constexpr std::string_view line  = "\033[4m";
+    static const constexpr std::string_view reset = "\033[0m";
+
     std::unordered_map<Type, std::vector<std::pair<bool, std::string_view>>>
                      m_arg_list;
     std::string_view m_bin_path;
+    FILE            *m_print_stream{};
 
 
     /**
@@ -141,6 +148,14 @@ private:
         std::string     &option,
         std::string_view long_arg
     ) -> bool;
+
+
+    template<typename... T_Args>
+    auto print_arg(std::string_view fmt, T_Args&&... args)
+    {
+        std::string msg = std::vformat(fmt, std::make_format_args(args...));
+        std::println(m_print_stream, "{}", msg);
+    }
 
 
     /**

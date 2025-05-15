@@ -26,6 +26,20 @@
 #include "arg_parser.hh"
 #include "utils.hh"
 
+static const constexpr std::string_view HELP_MSG =
+"\t{0}-h,--help       {1}                Prints the help message.\n"
+"\t{0}-V,--version    {1}                Prints the current version.\n"
+"\t{0}-l,--log        {1} {{file,level}}   Shows or outputs the logs.\n"
+"\t{0}-t,--title      {1} {{title}}        Changes the window title.\n"
+"\t{0}-c,--config     {1} {{path}}         Specify a non-default config path.\n"
+"\t{0}-u,--ui         {1} {{path}}         Specify a non-default ui-file path.\n"
+"\t{0}-r,--root       {1} {{path}}         Specify the filesystem root path.\n"
+"\t{0}-b,--db-path    {1} {{path}}         Specify the pacman database path.\n"
+"\t{0}   --helper-path{1} {{path}}         Specify the helper binary path.\n"
+"\t{0}   --prefix-path{1} {{path}}         Specify the prefix/cache path.\n"
+"\t{0}   --no-cache   {1}                Forces the program to not cache.\n";
+
+
 
 ArgParser::ArgParser(int32_t argc, char **argv) :
     m_bin_path(argv[0])
@@ -174,11 +188,7 @@ ArgParser::find_option_long(
 
         /* Case: --arg=value */
         if (a.second.contains('=')) {
-            size_t eq_pos = a.second.find('=');
-
-            arg_pair split_arg = {
-                a.second.substr(0, eq_pos), a.second.substr(eq_pos + 1)
-            };
+            arg_pair split_arg = str::split(a.second, a.second.find('='));
 
             if (split_arg.first == long_arg) {
                 option = split_arg.second;
@@ -218,48 +228,30 @@ ArgParser::back() -> std::string
 void
 ArgParser::print_help_message(FILE *stream)
 {
-    std::vector<std::array<std::string, 3>> options{{
-        {{ "-h,--help", "", "Prints the help message." }},
-        {{ "-V,--version", "", "Prints the current version." }},
-        {{ "-l,--log", "{file,level}", "Shows or outputs the logs." }},
-        {{ "-t,--title", "{title}", "Changes the window title." }},
-        {{ "-c,--config", "{path}", "Specify a non-default config path." }},
-        {{ "-u,--ui", "{path}", "Specify a non-default ui-file path." }},
-        {{ "-r,--root", "{path}", "Specify the filesystem root path." }},
-        {{ "-b,--db-path", "{path}", "Specify the pacman database path." }},
-        {{ "-H,--helper-path", "{path}", "Specify the helper path." }},
-        {{ "   --no-cache", "", "Forces the program to not cache." }},
-    }};
+    m_print_stream = stream;
 
-    std::println(stream, "\033[1m\033[4mUsage:\033[0m");
-    std::println(stream, "\t\033[1m{}\033[0m <options {{params}}>\n", m_bin_path);
-    std::println(stream, "\033[1m\033[4mOptions:\033[0m");
-
-    for (const auto &m : options) {
-        std::println(
-            stream,
-            "\t\033[1m{:<15}\033[0m{:<15}{}",
-            m.at(0), m.at(1), m.at(2)
-        );
-    }
-
-    std::println("\n\033[1m\033[4mCopyright (C) 2025 RQuarx\033[0m\n");
-    std::println("This program may be freely redistributed under");
-    std::println("the terms of the GNU General Public License.");
+    print_arg("{}{}Usage:{}", bold, line, reset);
+    print_arg("\t{}{}{} <options {{params}}>\n", bold, m_bin_path, reset);
+    print_arg("{}{}Options:{}", bold, line, reset);
+    print_arg("{}", utils::format(HELP_MSG, bold, reset));
+    print_arg("\n{}{}Copyright (C) 2025 RQuarx{}\n", bold, line, reset);
+    print_arg("This program may be freely redistributed under");
+    print_arg("the terms of the GNU General Public License.");
 }
 
 
 void
 ArgParser::print_version_message(FILE *stream)
 {
-    std::println(
-        stream,
+    m_print_stream = stream;
+
+    print_arg(
         "{} {} - {} {}\nGTK {}.{}",
         APP_NAME, APP_VERSION,
         "libalpm", alpm_version(),
         GTKMM_MAJOR_VERSION, GTKMM_MINOR_VERSION
     );
-    std::println(stream, "\n\033[1m\033[4mCopyright (C) 2025 RQuarx\033[0m\n");
-    std::println(stream, "This program may be freely redistributed under");
-    std::println(stream, "the terms of the GNU General Public License.");
+    print_arg("\n{}{}Copyright (C) 2025 RQuarx{}\n", bold, line, reset);
+    print_arg("This program may be freely redistributed under");
+    print_arg("the terms of the GNU General Public License.");
 }

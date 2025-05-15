@@ -42,6 +42,7 @@ Client::Client(
     m_logger(logger),
     m_arg_parser(arg_parser),
     m_helper_path(initialize_path(2)),
+    m_prefix_path(initialize_path(3)),
     m_root_path(initialize_path(0)),
     m_db_path(initialize_path(1)),
     m_alpm_errno(ALPM_ERR_OK),
@@ -125,28 +126,58 @@ Client::info(const std::string &args) -> Json::Value
 
 
 auto
-Client::install(
-    const std::string &pkg_name, const std::string &prefix) -> bool
+Client::install(const std::vector<std::string> &pkgs) -> bool
 {
-    std::string url = std::format("https://aur.archlinux.org/{}.git", pkg_name);
-    Process git("git", { "clone", url }, m_logger, prefix);
+    Json::Value root { Json::objectValue };
 
-    while (git.is_done() < 0) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+    root["operation"] = "install";
+    root["root"]      = m_root_path;
+    root["db-path"]   = m_db_path;
+    root["pkgs"]      = Json::arrayValue;
+
+    for (const auto &pkg : pkgs) {
+        root["pkgs"].append(pkg);
     }
 
-    if (git.is_done() == std::nullopt) return false;
-    git.kill();
+    m_logger->log(
+        Logger::Info, "Installing: {}", root["pkgs"].toStyledString()
+    );
 
-    if (!std::filesystem::exists(pkg_name)) {
-        m_logger->log(Logger::Error, "Failed to git clone.");
+    std::ofstream operation_file(m_prefix_path + "/operation.json");
+    operation_file << root;
+    operation_file.close();
+
+    auto res = utils::run_command(std::format(
+        "pkexec {} {}",
+        m_helper_path,
+        m_prefix_path
+    ));
+
+    if (res->second != ALPM_ERR_OK) {
+        m_logger->log(
+            Logger::Error,
+            "Failed to install package{} {}",
+            pkgs.size() == 1 ? "" : "s",
+            alpm_strerror(alpm_errno_t(res->second))
+        );
         return false;
     }
 
-    chdir(pkg_name.c_str());
+    alpm_release(m_alpm_handle);
+    m_alpm_handle = alpm_initialize(
+        m_root_path.c_str(), m_db_path.c_str(), &m_alpm_errno
+    );
 
-    Process ls("ls", {}, m_logger, prefix + pkg_name);
-    return false;
+    if (m_alpm_handle == nullptr) {
+        m_logger->log(
+            Logger::Error,
+            "Failed to initialize alpm: {}",
+            alpm_strerror(m_alpm_errno)
+        );
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -155,13 +186,13 @@ Client::get_search_by_keywords(
     ) -> std::vector<std::string>
 {
     return {
-        "name", "name-desc",
-        "depends", "checkdepends",
+        "name",       "name-desc",
+        "depends",    "checkdepends",
         "optdepends", "makedepends",
         "maintainer", "submitter",
-        "provides", "conflicts",
-        "replaces", "keywords",
-        "groups", "comaintainers"
+        "provides",   "conflicts",
+        "replaces",   "keywords",
+        "groups",     "comaintainers"
     };
 }
 
@@ -230,27 +261,35 @@ Client::get_pkg_locality(
 auto
 Client::remove(const std::vector<std::string> &pkgs) -> bool
 {
-    std::string args{
-        "pkexec "     +
-        m_helper_path +
-        " remove "    +
-        m_root_path   +
-        " "           +
-        m_db_path
-    };
+    Json::Value root { Json::objectValue };
+
+    root["operation"] = "remove";
+    root["root"]      = m_root_path;
+    root["db-path"]   = m_db_path;
+    root["pkgs"]      = Json::arrayValue;
 
     for (const auto &pkg : pkgs) {
-        args += " " + pkg;
+        root["pkgs"].append(pkg);
     }
 
-    auto res = utils::run_command(args);
-    m_logger->log(Logger::Debug, "{{{}}} returns: {}", args, res->first);
+    m_logger->log(Logger::Info, "Removing: {}", root["pkgs"].toStyledString());
 
-    if (res->second != EXIT_SUCCESS) {
+    std::ofstream operation_file(m_prefix_path + "/operation.json");
+    operation_file << root;
+    operation_file.close();
+
+    auto res = utils::run_command(std::format(
+        "pkexec {} {}",
+        m_helper_path,
+        m_prefix_path
+    ));
+
+    if (res->second != ALPM_ERR_OK) {
         m_logger->log(
             Logger::Error,
-            "{}",
-            res->first
+            "Failed to remove package{} {}",
+            pkgs.size() == 1 ? "" : "s",
+            alpm_strerror(alpm_errno_t(res->second))
         );
         return false;
     }
@@ -287,6 +326,28 @@ Client::initialize_path(uint8_t t) -> std::string
         exit(EXIT_FAILURE);
     };
 
+    auto check = [this](
+        const std::string &path_name,
+        const std::string &path
+    )
+    {
+        if (!std::filesystem::exists(path)) {
+            m_logger->log(
+                Logger::Error,
+                "{} path {} not a valid path.", path_name, path
+            );
+            exit(EXIT_FAILURE);
+        }
+
+        if (!std::filesystem::is_directory(path)) {
+            m_logger->log(
+                Logger::Error,
+                "{} path {} not a directory.", path_name, path
+            );
+            exit(EXIT_FAILURE);
+        }
+    };
+
     std::string path;
 
     if (t == 0) {
@@ -294,35 +355,17 @@ Client::initialize_path(uint8_t t) -> std::string
             return DEFAULT_ROOT_PATH;
         }
 
-        if (!std::filesystem::exists(path)) {
-            log_exit("Root path {} not a valid path.", path);
-        }
+        check("Root", path);
 
-        if (!std::filesystem::is_directory(path)) {
-            log_exit("Root path {} is not a directory.", path);
-        }
-
-        return path;
-    }
-
-    if (t == 1) {
+    } else if (t == 1) {
         if (!m_arg_parser->option_arg(path, { "-b", "--db-path" })) {
             return DEFAULT_DB_PATH;
         }
 
-        if (!std::filesystem::exists(path)) {
-            log_exit("Database path {} not a valid path.", path);
-        }
+        check("Database", path);
 
-        if (!std::filesystem::is_directory(path)) {
-            log_exit("Database path {} is not a directory.", path);
-        }
-
-        return path;
-    }
-
-    if (t == 2) {
-        if (!m_arg_parser->option_arg(path, { "-H", "--helper-path" })) {
+    } else if (t == 2) {
+        if (!m_arg_parser->option_arg(path, { "", "--helper-path" })) {
             return DEFAULT_HELPER_PATH;
         }
 
@@ -338,8 +381,13 @@ Client::initialize_path(uint8_t t) -> std::string
             log_exit("Helper path {} is not an executable.", path);
         }
 
-        return path;
+    } else if (t == 3) {
+        if (!m_arg_parser->option_arg(path, { "", "--prefix-path" })) {
+            return std::format("{}/.cache/aurgh", utils::get_env("HOME"));
+        }
+
+        check("Prefix", path);
     }
 
-    return "";
+    return path;
 }

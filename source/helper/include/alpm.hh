@@ -18,25 +18,42 @@
  */
 
 #pragma once
+#ifndef ALPM_HH__
+#define ALPM_HH__
+
 #include <string>
 #include <vector>
-#ifndef REMOVE_HH__
-#define REMOVE_HH__
 
 #include <alpm.h>
 
 
-auto remove(
-    alpm_handle_t                  *handle,
-    const alpm_errno_t             *alpm_errno,
-    const std::vector<std::string> &pkgs
-) -> bool;
+class Alpm
+{
+public:
+    Alpm(
+        const std::string &root_path,
+        const std::string &db_path,
+        alpm_errno_t      &err
+    );
 
-void remove_pkg(
-    alpm_handle_t                  *handle,
-    alpm_db_t                      *local_db,
-    const alpm_errno_t             *alpm_errno,
-    const std::vector<std::string> &pkgs
-);
+    ~Alpm();
 
-#endif /* remove.hh */
+
+    [[nodiscard]]
+    auto remove_packages(const std::vector<std::string> &pkgs) -> bool;
+
+
+    [[nodiscard]]
+    auto install_packages(const std::vector<std::string> &paths) -> bool;
+
+
+    void set_removal_flags(int32_t flag);
+
+private:
+
+    alpm_errno_t   m_err;
+    alpm_handle_t *m_handle{};
+    int32_t        m_removal_flags;
+};
+
+#endif /* alpm.hh */

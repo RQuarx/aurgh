@@ -317,7 +317,9 @@ Tab::on_action_button_pressed()
 
         for (const auto &pkg : *pkgs) {
             auto *link = Gtk::make_managed<Gtk::LinkButton>();
-            std::string url = std::format("https://aur.archlinux.org/packages/{}", pkg);
+            std::string url = std::format(
+                "https://aur.archlinux.org/packages/{}", pkg
+            );
 
             link->set_label(pkg);
             link->set_uri(url);
@@ -383,11 +385,16 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
 auto
 Tab::on_execute_button_pressed() -> bool
 {
-    auto removed = m_actions->remove;
+    if (!m_actions->remove->empty()) {
+        m_aur_client->remove(*m_actions->remove);
+        m_actions->remove->clear();
+    }
 
-    m_aur_client->remove(*removed);
+    if (!m_actions->install->empty()) {
+        m_aur_client->install(*m_actions->install);
+        m_actions->install->clear();
+    }
 
-    on_search();
     for (auto t : { pkg::Update, pkg::Install, pkg::Remove }) {
 #if GTK4
         on_action_type_opened(t);
@@ -395,6 +402,8 @@ Tab::on_execute_button_pressed() -> bool
         on_action_type_opened(nullptr, t);
 #endif
     }
+    on_search();
+    on_action_button_pressed();
 
     return true;
 }

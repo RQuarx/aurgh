@@ -1,7 +1,6 @@
 helper_src = files(
-    'src/install.cc',
+    'src/alpm.cc',
     'src/main.cc',
-    'src/remove.cc'
 )
 
 
