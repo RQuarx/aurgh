@@ -1,5 +1,5 @@
-CXX    ?= $(shell which clang++)
-CXX_LD ?= $(shell which lld)
+CXX    ?= clang++
+CXX_LD ?= lld
 
 TARGET_DIR  := ./target
 GTK_VERSION ?= 4

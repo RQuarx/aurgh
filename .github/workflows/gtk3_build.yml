@@ -33,4 +33,4 @@ jobs:
           pacman -Syyu --noconfirm --noprogressbar --needed - < assets/required-gtk3.txt
       - name: compile
         run: |
-          make CXX=g++ CXX_LD=ld GTK_VERSION=3
+          make CXX=g++ CXX_LD=bfd GTK_VERSION=3

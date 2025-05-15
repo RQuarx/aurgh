@@ -34,4 +34,4 @@ jobs:
 
       - name: compile
         run: |
-          make CXX=g++ CXX_LD=ld GTK_VERSION=4
+          make CXX=g++ CXX_LD=bfd GTK_VERSION=4
