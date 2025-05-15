@@ -59,12 +59,10 @@ root# pacman -S - < required-gtk4.txt
 ```bash
 user$ git clone https://github.com/RQuarx/aurgh/
 
-# gtk3 build
-user$ meson setup -Dbuildtype=debugoptimized target
-# gtk4 build
-user$ meson setup -Dbuildtype=debugoptimized -Duse-gtk4=true target
+# This will defaults to 4.
+user$ make GTK_VERSION=x
+# Where x is 3 or 4
 
-user$ meson compile -C target
 root# make install
 ```
 

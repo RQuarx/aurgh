@@ -1,7 +1,7 @@
 project(
     'aurgh',
     'cpp',
-    version: '0.1.1',
+    version: '0.2.0',
     default_options: [
         'cpp_std=c++23',
         'optimization=2',
@@ -9,19 +9,6 @@ project(
     ],
     license: 'GPL-3.0-or-later',
     license_files: 'LICENSE'
-)
-
-src = files(
-    'src/package/card.cc',
-    'src/package/tab.cc',
-
-    'src/arg_parser.cc',
-    'src/aur_client.cc',
-    'src/config.cc',
-    'src/logger.cc',
-    'src/main.cc',
-    'src/process.cc',
-    'src/utils.cc'
 )
 
 core_deps = [
@@ -47,11 +34,15 @@ endforeach
 use_gtk4 = get_option('use-gtk4')
 if use_gtk4
     foreach dep : gtk4_deps
-        add_project_dependencies(dependency(dep), language: 'cpp')
+        add_project_dependencies(
+            dependency(dep), language: 'cpp'
+        )
     endforeach
 else
     foreach dep : gtk3_deps
-        add_project_dependencies(dependency(dep), language: 'cpp')
+        add_project_dependencies(
+            dependency(dep), language: 'cpp'
+        )
     endforeach
 endif
 
@@ -66,10 +57,5 @@ add_project_arguments([
     '-DGTK3=' + (use_gtk4 ? 'false' : 'true'),
 ], language: 'cpp')
 
-subdir('helper')
-
-executable(
-    'aurgh',
-    src,
-    include_directories: include_directories('include', 'include/package')
-)
+subdir('source/helper')
+subdir('source/aurgh')
