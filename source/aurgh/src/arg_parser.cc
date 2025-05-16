@@ -36,8 +36,7 @@ static const constexpr std::string_view HELP_MSG =
 "\t{0}-r,--root       {1} {{path}}         Specify the filesystem root path.\n"
 "\t{0}-b,--db-path    {1} {{path}}         Specify the pacman database path.\n"
 "\t{0}   --helper-path{1} {{path}}         Specify the helper binary path.\n"
-"\t{0}   --prefix-path{1} {{path}}         Specify the prefix/cache path.\n"
-"\t{0}   --no-cache   {1}                Forces the program to not cache.\n";
+"\t{0}   --prefix-path{1} {{path}}         Specify the prefix/cache path.\n";
 
 
 

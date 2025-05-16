@@ -175,23 +175,19 @@ namespace utils {
 
 
     /**
-     * @brief Resolves the full UI file path from a filename.
-     * @param file_name Name of the UI file.
-     * @param arg_parser ArgParser for config paths.
-     * @return Full file path to the UI resource.
-     */
-    auto get_ui_file(
-        const std::string                &file_name,
-        const std::shared_ptr<ArgParser> &arg_parser
-    ) -> std::string;
-
-
-    /**
      * @brief Safe wrapper around std::getenv that returns a string.
      * @param name Environment variable name.
      * @return The variable's value or empty string.
      */
     auto get_env(const std::string &name) -> std::string;
+
+
+    /**
+     * @brief Expand all environment variables inside @p str .
+     * @param str The string that will be expanded.
+     * @return The expanded string.
+     */
+    auto expand_envs(const std::string &str) -> std::string;
 
 
     /**

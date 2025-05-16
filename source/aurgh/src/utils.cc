@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <cerrno>
 #include <print>
+#include <regex>
 
 #include <gtkmm/widget.h>
 #include <json/reader.h>
@@ -192,36 +193,6 @@ namespace utils {
 
 
     auto
-    get_ui_file(
-        const std::string                &file_name,
-        const std::shared_ptr<ArgParser> &arg_parser
-    ) -> std::string
-    {
-        namespace fs = std::filesystem;
-
-        auto valid_file = [](const std::string &file){
-            return fs::exists(file)
-                && fs::is_regular_file(file)
-                && fs::path(file).extension() == ".xml";
-        };
-
-        std::string option;
-        if (arg_parser->option_arg(option, { "-u","--ui" })) {
-            option.append(file_name);
-
-            if (valid_file(option)) return option;
-        }
-
-        std::string gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
-        std::string path = std::format("ui/gtk{}/{}", gtk_version, file_name);
-
-        if (valid_file(file_name)) return file_name;
-        if (valid_file(path)) return path;
-        return "/usr/share/aurgh/" + path;
-    }
-
-
-    auto
     sort_json(
         const Json::Value &root,
         const std::string &sort_by,
@@ -251,6 +222,33 @@ namespace utils {
         });
 
         for (const auto &j : buffer) { result.append(j); }
+        return result;
+    }
+
+
+    auto
+    expand_envs(const std::string &str) -> std::string
+    {
+        std::regex           envar_regex { R"(\$([A-Za-z_][A-Za-z0-9_]*))" };
+        std::sregex_iterator it          { str.begin(), str.end(), envar_regex };
+        std::sregex_iterator end;
+        std::string          result;
+        size_t               last_pos = 0;
+
+        for (; it != end; it++) {
+            const std::smatch &match     = *it;
+            size_t             match_pos = match.position();
+            size_t             match_len = match.length();
+            std::string        var_name  = match.str(1);
+            std::string        value     = utils::get_env(var_name);
+
+            result += str.substr(last_pos, match_pos - last_pos);
+            result += (value.empty() ? match.str(1) : value );
+
+            last_pos = match_pos + match_len;
+        }
+
+        result += str.substr(last_pos);
         return result;
     }
 } /* namespace utils */

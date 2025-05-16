@@ -31,6 +31,7 @@
 
 namespace Json { class Value; }
 class ArgParser;
+class Config;
 class Logger;
 
 
@@ -49,6 +50,7 @@ namespace AUR {
         explicit Client(
             const std::shared_ptr<Logger>    &logger,
             const std::shared_ptr<ArgParser> &arg_parser,
+            const std::shared_ptr<Config>    &config,
             std::string_view                  url = ""
         );
 
@@ -111,25 +113,19 @@ namespace AUR {
         static auto get_sort_by_keywords() -> std::vector<std::string>;
 
     private:
-        static const inline std::string DEFAULT_AUR_URL =
-            "https://aur.archlinux.org/rpc/v5";
-        static const inline std::string DEFAULT_HELPER_PATH =
-            "/usr/share/aurgh/helper";
-
-        static const constexpr char *DEFAULT_ROOT_PATH  = "/";
-        static const constexpr char *DEFAULT_DB_PATH    = "/var/lib/pacman";
-
-        std::string_view           m_url;
-        std::shared_ptr<Logger>    m_logger;
-        std::shared_ptr<ArgParser> m_arg_parser;
+        std::shared_ptr<Json::Value> m_config;
+        std::string                  m_url;
+        std::shared_ptr<Logger>      m_logger;
+        std::shared_ptr<ArgParser>   m_arg_parser;
 
         std::string m_helper_path;
         std::string m_prefix_path;
         std::string m_root_path;
         std::string m_db_path;
+        std::string m_pkexec;
 
-        alpm_errno_t            m_alpm_errno;
-        alpm_handle_t          *m_alpm_handle{};
+        alpm_errno_t   m_alpm_errno;
+        alpm_handle_t *m_alpm_handle{};
 
         /**
          * @brief Initialize root, database, or helper path.

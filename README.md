@@ -58,10 +58,10 @@ root# pacman -S - < required-gtk4.txt
 
 ```bash
 user$ git clone https://github.com/RQuarx/aurgh/
+user$ cd aurgh
 
-# This will defaults to 4.
-user$ make GTK_VERSION=x
-# Where x is 3 or 4
+# This will defaults to clang++, lld, and GTK4.
+user$ make CXX=... CXX_LD=... GTK_VERSION=...
 
 root# make install
 ```

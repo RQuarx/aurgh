@@ -18,8 +18,6 @@
  */
 
 #include <filesystem>
-#include <chrono>
-#include <thread>
 
 #include <json/reader.h>
 #include <json/json.h>
@@ -28,6 +26,7 @@
 #include "arg_parser.hh"
 #include "aur_client.hh"
 #include "process.hh"
+#include "config.hh"
 #include "logger.hh"
 
 using AUR::Client;
@@ -36,9 +35,10 @@ using AUR::Client;
 Client::Client(
     const std::shared_ptr<Logger>    &logger,
     const std::shared_ptr<ArgParser> &arg_parser,
+    const std::shared_ptr<Config>    &config,
     std::string_view                  url
 ) :
-    m_url(!url.empty() ? url : DEFAULT_AUR_URL),
+    m_config(config->get_config()),
     m_logger(logger),
     m_arg_parser(arg_parser),
     m_helper_path(initialize_path(2)),
@@ -50,6 +50,11 @@ Client::Client(
         m_root_path.c_str(), m_db_path.c_str(), &m_alpm_errno
     ))
 {
+    if (!url.empty()) { m_url = url; }
+    else { m_url = (*m_config)["default-aur-url"].asString(); }
+
+    m_pkexec = (*m_config)["pkexec-binary"].asString();
+
     if (m_alpm_handle == nullptr) {
         m_logger->log(
             Logger::Error,
@@ -135,9 +140,7 @@ Client::install(const std::vector<std::string> &pkgs) -> bool
     root["db-path"]   = m_db_path;
     root["pkgs"]      = Json::arrayValue;
 
-    for (const auto &pkg : pkgs) {
-        root["pkgs"].append(pkg);
-    }
+    for (const auto &pkg : pkgs) { root["pkgs"].append(pkg); }
 
     m_logger->log(
         Logger::Info, "Installing: {}", root["pkgs"].toStyledString()
@@ -148,7 +151,8 @@ Client::install(const std::vector<std::string> &pkgs) -> bool
     operation_file.close();
 
     auto res = utils::run_command(std::format(
-        "pkexec {} {}",
+        "{} {} {}",
+        m_pkexec,
         m_helper_path,
         m_prefix_path
     ));
@@ -268,9 +272,7 @@ Client::remove(const std::vector<std::string> &pkgs) -> bool
     root["db-path"]   = m_db_path;
     root["pkgs"]      = Json::arrayValue;
 
-    for (const auto &pkg : pkgs) {
-        root["pkgs"].append(pkg);
-    }
+    for (const auto &pkg : pkgs) { root["pkgs"].append(pkg); }
 
     m_logger->log(Logger::Info, "Removing: {}", root["pkgs"].toStyledString());
 
@@ -279,7 +281,8 @@ Client::remove(const std::vector<std::string> &pkgs) -> bool
     operation_file.close();
 
     auto res = utils::run_command(std::format(
-        "pkexec {} {}",
+        "{} {} {}",
+        m_pkexec,
         m_helper_path,
         m_prefix_path
     ));
@@ -352,21 +355,21 @@ Client::initialize_path(uint8_t t) -> std::string
 
     if (t == 0) {
         if (!m_arg_parser->option_arg(path, { "-r", "--root" })) {
-            return DEFAULT_ROOT_PATH;
+            return (*m_config)["default-root-path"].asString();
         }
 
         check("Root", path);
 
     } else if (t == 1) {
         if (!m_arg_parser->option_arg(path, { "-b", "--db-path" })) {
-            return DEFAULT_DB_PATH;
+            return (*m_config)["default-db-path"].asString();
         }
 
         check("Database", path);
 
     } else if (t == 2) {
         if (!m_arg_parser->option_arg(path, { "", "--helper-path" })) {
-            return DEFAULT_HELPER_PATH;
+            return (*m_config)["default-helper-path"].asString();
         }
 
         if (!std::filesystem::exists(path)) {
@@ -383,7 +386,9 @@ Client::initialize_path(uint8_t t) -> std::string
 
     } else if (t == 3) {
         if (!m_arg_parser->option_arg(path, { "", "--prefix-path" })) {
-            return std::format("{}/.cache/aurgh", utils::get_env("HOME"));
+            return utils::expand_envs(
+                (*m_config)["default-prefix-path"].asString()
+            );
         }
 
         check("Prefix", path);

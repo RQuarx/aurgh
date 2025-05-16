@@ -30,8 +30,7 @@
 
 using const_str = const std::string;
 
-static const_str APP_ID               = "org.rquarx.aur-graphical-helper";
-static const_str DEFAULT_WINDOW_TITLE = "AUR Graphical Helper";
+static const_str APP_ID = "org.rquarx.aur-graphical-helper";
 
 
 #if GTKMM_MAJOR_VERSION == 4
@@ -51,7 +50,7 @@ namespace {
         {
             std::string title;
             if (!arg_parser->option_arg(title, { "-t", "--title" })) {
-                title = DEFAULT_WINDOW_TITLE;
+                title = (*config->get_config())["default-title"].asString();
             }
 
             set_title(title);
@@ -70,10 +69,10 @@ auto
 main(int32_t argc, char **argv) -> int32_t
 {
     auto app        = Gtk::Application::create(APP_ID);
-    auto arg_parser = std::make_shared<ArgParser>(argc, argv);
-    auto logger     = std::make_shared<Logger>(arg_parser);
-    auto aur_client = std::make_shared<AUR::Client>(logger, arg_parser);
-    auto config     = std::make_shared<Config>(logger, arg_parser);
+    auto arg_parser = std::make_shared<ArgParser>  (argc, argv);
+    auto logger     = std::make_shared<Logger>     (arg_parser);
+    auto config     = std::make_shared<Config>     (logger, arg_parser);
+    auto aur_client = std::make_shared<AUR::Client>(logger, arg_parser, config);
 
     if (curl_global_init(CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE) != 0) {
         logger->log(Logger::Error, "Failed to init curl");
@@ -89,13 +88,13 @@ main(int32_t argc, char **argv) -> int32_t
 
     std::string title;
     if (!arg_parser->option_arg(title, { "-t", "--title" })) {
-        title = DEFAULT_WINDOW_TITLE;
+        title = (*config->get_config())["default-title"].asString();
     }
 
     window.set_title(title);
     window.add(
-        *Gtk::make_managed<pkg::Tab>(aur_client, logger, config, arg_parser));
-    // window.show_all();
+        *Gtk::make_managed<pkg::Tab>(aur_client, logger, config, arg_parser)
+    );
 
     return app->run(window, 0, nullptr);
 #endif

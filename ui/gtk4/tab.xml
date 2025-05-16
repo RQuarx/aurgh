@@ -125,6 +125,7 @@
       <object class="GtkBox" id="results_container">
 
         <property name="orientation">horizontal</property>
+        <property name="margin-bottom">5</property>
         <property name="visible">true</property>
         <property name="vexpand">true</property>
         <property name="valign">fill</property>

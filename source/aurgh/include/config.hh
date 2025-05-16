@@ -18,15 +18,17 @@
  */
 
 #pragma once
-#include <json/value.h>
 #ifndef CONFIG_HH__
 #define CONFIG_HH__
 
-#include <optional>
 #include <memory>
+
+#include <json/value.h>
 
 class ArgParser;
 class Logger;
+
+static const std::string GLOBAL_CONFIG_PATH = "/etc/aurgh/config.json";
 
 
 /**
@@ -41,55 +43,52 @@ public:
         const std::shared_ptr<ArgParser> &arg_parser
     );
 
-    /**
-     * @brief Loads a config from the configuration file.
-     * @returns a Json::Value on success, or an std::nullopt on failure.
-     */
-    [[nodiscard]]
-    auto load(
-        bool from_file  = false,
-        bool return_val = true
-    ) -> std::optional<Json::Value>;
 
     /**
-     * @brief Saves a config from the configuration file.
-     * @returns true on success, or false on failure
+     * @brief Retrieves the loaded configuration data.
+     * @return A shared pointer to a Json::Value representing the configuration.
      */
-    auto save(const Json::Value &config) -> bool;
+    [[nodiscard]]
+    auto get_config() -> std::shared_ptr<Json::Value>;
+
+
+    /**
+     * @brief Retrieves the loaded cache data.
+     * @return A shared pointer to a Json::Value representing the cache.
+     */
+    [[nodiscard]]
+    auto get_cache() -> std::shared_ptr<Json::Value>;
+
+
+    /**
+     * @brief Saves the config and cache to disk.
+     * @return true on success, or false on failure.
+     */
+    auto save() -> bool;
 
 private:
     std::shared_ptr<ArgParser> m_arg_parser;
     std::shared_ptr<Logger>    m_logger;
 
+    std::shared_ptr<Json::Value> m_config;
+    std::shared_ptr<Json::Value> m_cache;
+
     std::string m_config_path;
     std::string m_cache_path;
 
-    std::string m_home;
-    std::string m_xdg_cache_home;
-    std::string m_xdg_config_home;
-
-    bool m_should_cache;
-
-    Json::Value m_cache;
-    Json::Value m_config;
 
     /**
-     * @brief Searches for config path.
-     * @returns true on success, or false on failure.
+     * @brief Loads the config from file to memory.
+     * @return true on success, or false on failure.
      */
-    auto search_config_path() -> bool;
+    auto load_config() -> bool;
+
 
     /**
-     * @brief Searches for config path in the cli arg.
-     * @returns true on found, or false on not found.
+     * @brief Loads the cache from file to memory.
+     * @return true on success, or false on failure.
      */
-    auto search_config_from_arg() -> bool;
-
-    /**
-     * @brief Searches for cache path.
-     * @returns true on success, or false on failure.
-     */
-    auto search_cache_path() -> bool;
+    auto load_cache() -> bool;
 };
 
 #endif /* config.hh */

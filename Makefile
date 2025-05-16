@@ -28,6 +28,10 @@ install:
 	chmod a+x assets/run_aurgh.sh
 	cp assets/run_aurgh.sh /usr/share/aurgh/
 
+	mkdir /etc/aurgh
+	cp config.json /etc/aurgh
+	chmod -R a+rw /etc/aurgh
+
 uninstall:
 	rm -rf /usr/share/aurgh
 	rm /usr/share/applications/aurgh.desktop

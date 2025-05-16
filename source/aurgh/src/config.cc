@@ -29,138 +29,127 @@
 
 
 Config::Config(
-    const std::shared_ptr<Logger> &logger,
+    const std::shared_ptr<Logger>    &logger,
     const std::shared_ptr<ArgParser> &arg_parser
 ) :
     m_arg_parser(arg_parser),
     m_logger(logger),
-    m_home(utils::get_env("HOME")),
-    m_xdg_cache_home(utils::get_env("XDG_CACHE_HOME")),
-    m_xdg_config_home(utils::get_env("XDG_CONFIG_HOME")),
-    m_should_cache(m_arg_parser->find_arg({ "", "--no-cache" }))
+    m_config(std::make_shared<Json::Value>(Json::objectValue)),
+    m_cache(std::make_shared<Json::Value>(Json::objectValue))
 {
-    if (m_xdg_cache_home.empty()) {
-        m_xdg_cache_home = std::format("{}/.cache", m_home);
+    using std::filesystem::is_regular_file;
+    using std::filesystem::exists;
+
+    auto valid_file = [](const std::string &path){
+        return exists(path) && is_regular_file(path);
+    };
+
+    bool arg_config = false;
+
+    if (arg_parser->option_arg(m_config_path, { "-c", "--config" })) {
+        arg_config = true;
     }
 
-    if (m_xdg_config_home.empty()) {
-        m_xdg_config_home = std::format("{}/.config", m_home);
+    if (!arg_config) {
+        m_config_path = std::format(
+            "{}/.config/aurgh/config.json",
+            utils::get_env("HOME")
+        );
     }
 
-    if (!search_config_path())                   exit(EXIT_FAILURE);
-    if (m_should_cache && !search_cache_path())  exit(EXIT_FAILURE);
+    m_cache_path = std::format(
+        "{}/.cache/aurgh/cache.json",
+        utils::get_env("HOME")
+    );
+
+    if (!valid_file(m_config_path)) {
+        m_logger->log(
+            Logger::Warn,
+            "Config file {} doesn't exist! Using systemwide config path: {}",
+            m_config_path, GLOBAL_CONFIG_PATH
+        );
+
+        m_config_path = GLOBAL_CONFIG_PATH;
+    }
+
+    if (!load_config()) {
+        throw std::runtime_error("Invalid config file");
+    }
+
+    if (!load_cache()) {
+        throw std::runtime_error("Invalid config file");
+    }
 }
 
 
 auto
-Config::search_config_path() -> bool
+Config::save() -> bool
 {
-    using std::filesystem::create_directory;
-    using std::filesystem::exists;
     using std::filesystem::path;
 
-    if (!search_config_from_arg()) {
-        m_config_path = std::format("{}/aurgh/aurgh.json", m_xdg_config_home);
-        if (exists(m_config_path)) return true;
+    path cache_path  = m_cache_path;
 
-        std::error_code error_code;
-
-        if (!create_directory(path( m_config_path ).parent_path(), error_code)) {
+    if (!cache_path.parent_path().string().empty() &&
+        !std::filesystem::exists(cache_path.parent_path())) {
+        try {
+            std::filesystem::create_directory(cache_path.parent_path());
+        } catch (const std::exception &e) {
             m_logger->log(
                 Logger::Error,
-                "Failed to create config directory: {}",
-                error_code.message()
+                "Failed to create directory {}: {}",
+                cache_path.parent_path().string(), e.what()
             );
             return false;
         }
-
-        std::ofstream p { m_config_path };
-        return true;
     }
 
-    return true;
-}
+    std::ofstream file;
 
-
-auto
-Config::search_config_from_arg() -> bool
-{
-    using std::filesystem::create_directory;
-    using std::filesystem::is_regular_file;
-    using std::filesystem::exists;
-    using std::filesystem::path;
-
-    std::string option;
-    if (!m_arg_parser->option_arg(option, { "-c", "--config" })) {
-        return false;
-    }
-
-    if (!exists(option)) {
-        m_logger->log(
-            Logger::Warn,
-            "Provided config file does not exist, using default config path."
-        );
-
-        return false;
-    }
-
-    if (!is_regular_file(option)) {
-        m_logger->log(
-            Logger::Warn,
-            "Provided config option was not a file, using default config path."
-        );
-
-        return false;
-    }
-
-    path        config_path { option };
-    std::string extension   { config_path.extension() };
-
-    if (extension != ".json" && extension != ".jsonc") {
-        m_logger->log(
-            Logger::Warn,
-            "Provided config file isnt a json type, using default config path."
-        );
-
-        return false;
-    }
-
-    m_config_path = config_path.string();
-    return true;
-}
-
-
-auto
-Config::search_cache_path() -> bool
-{
-    using std::filesystem::create_directory;
-    using std::filesystem::exists;
-    using std::filesystem::path;
-
-    m_cache_path = std::format("{}/aurgh/aurgh.json", m_xdg_cache_home);
-    if (exists(m_cache_path)) return true;
-
-    std::error_code error_code;
-
-    if (!create_directory(path(m_cache_path).parent_path(), error_code)) {
+    try {
+        file.open(m_cache_path);
+    } catch (const std::exception &e) {
         m_logger->log(
             Logger::Error,
-            "Failed to create cache directory: {}",
-            error_code.message()
+            "Failed to open file {}: {}",
+            m_cache_path, e.what()
         );
         return false;
     }
 
-    std::ofstream p { m_cache_path };
+    try {
+        file << *m_cache;
+    } catch (const std::exception &e) {
+        m_logger->log(
+            Logger::Error,
+            "Failed to write to file {}: {}",
+            m_cache_path, e.what()
+        );
+        return false;
+    }
+
+    m_logger->log(
+        Logger::Debug,
+        "Writting to cache file: {}",
+        m_cache_path
+    );
+
     return true;
 }
 
 
 auto
-Config::load(bool from_file, bool return_val) -> std::optional<Json::Value>
-{
-    if (!m_config.empty() && !from_file && return_val) return m_config;
+Config::get_config() -> std::shared_ptr<Json::Value>
+{ return m_config; }
 
+
+auto
+Config::get_cache() -> std::shared_ptr<Json::Value>
+{ return m_cache; }
+
+
+auto
+Config::load_config() -> bool
+{
     std::ifstream config_file;
 
     try {
@@ -168,46 +157,53 @@ Config::load(bool from_file, bool return_val) -> std::optional<Json::Value>
     } catch (const std::exception &e) {
         m_logger->log(
             Logger::Error,
-            "Failed to open config file: {}, {}",
-            m_config_path, e.what()
-        );
-        return std::nullopt;
-    }
-
-    try {
-        Json::Reader reader;
-        reader.parse(config_file, m_config);
-    } catch (const std::exception &e) {
-        m_logger->log(
-            Logger::Warn,
-            "Failed to parse json file: {}",
-            e.what()
-        );
-        return std::nullopt;
-    }
-
-    if (return_val) return m_config;
-    return std::nullopt;
-}
-
-
-auto
-Config::save(const Json::Value &config) -> bool
-{
-    std::ofstream config_file;
-
-    try {
-        config_file.open(m_config_path);
-    } catch (const std::exception &e) {
-        m_logger->log(
-            Logger::Error,
-            "Failed to open config file: {}, {}",
+            "Failed to read config file {}: {}",
             m_config_path, e.what()
         );
         return false;
     }
 
-    config_file << config;
 
-    return load(true, false) == std::nullopt;
+    try {
+        config_file >> *m_config;
+    } catch (const std::exception &e) {
+        m_logger->log(
+            Logger::Error,
+            "Failed to parse json from config file {}: {}",
+            m_config_path, e.what()
+        );
+        return false;
+    }
+
+    return !m_config->empty();
+}
+
+
+auto
+Config::load_cache() -> bool
+{
+    std::ifstream cache_file;
+
+    try {
+        cache_file.open(m_cache_path);
+    } catch (const std::exception &e) {
+        return true;
+    }
+
+    if (cache_file.peek() == std::ifstream::traits_type::eof()) {
+        return true;
+    }
+
+    try {
+        cache_file >> *m_cache;
+    } catch (const std::exception &e) {
+        m_logger->log(
+            Logger::Error,
+            "Failed to parse json from cache file {}: {}",
+            m_cache_path, e.what()
+        );
+        return false;
+    }
+
+    return !m_cache->empty();
 }

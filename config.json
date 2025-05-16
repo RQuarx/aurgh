@@ -1,0 +1,10 @@
+{
+	"default-aur-url" : "https://aur.archlinux.org/rpc/v5",
+	"default-db-path" : "/var/lib/pacman",
+	"default-helper-path" : "/usr/share/aurgh/helper",
+	"default-prefix-path" : "$XDG_CACHE_HOME/aurgh",
+	"default-root-path" : "/",
+	"default-title" : "AUR Graphical Helper",
+	"default-ui-path" : "/usr/share/aurgh",
+	"pkexec-binary" : "/usr/bin/pkexec"
+}

@@ -17,6 +17,7 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <thread>
 
 #include <gtkmm/scrolledwindow.h>
@@ -31,6 +32,7 @@
 #include <gtkmm/label.h>
 #include <glibmm/refptr.h>
 
+#include "arg_parser.hh"
 #include "aur_client.hh"
 #include "config.hh"
 #include "logger.hh"
@@ -57,10 +59,11 @@ Tab::Tab(
 ) :
     m_aur_client(aur_client),
     m_logger(logger),
+    m_arg_parser(arg_parser),
     m_config(config),
     m_actions(std::make_shared<pkg::Actions>()),
     m_searching(false),
-    m_card_ui_file(utils::get_ui_file("card.xml", arg_parser)),
+    m_card_ui_file(get_ui_file("card.xml")),
     m_spinner(Gtk::make_managed<Gtk::Spinner>())
 {
     m_logger->log(Logger::Debug, "Creating packages tab");
@@ -72,9 +75,7 @@ Tab::Tab(
     Glib::RefPtr<Gtk::Builder> b;
 
     try {
-        b = Gtk::Builder::create_from_file(
-            utils::get_ui_file("tab.xml", arg_parser)
-        );
+        b = Gtk::Builder::create_from_file(get_ui_file("tab.xml"));
     } catch (const Gtk::BuilderError& e) {
         m_logger->log(
             Logger::Error,
@@ -146,30 +147,25 @@ Tab::setup()
     for (const auto &w : search_by_keywords) m_search_by_combo->append(w);
     for (const auto &w : sort_by_keywords)   m_sort_by_combo->append(w);
 
-    auto opt = m_config->load(true);
-    Json::Value config;
+    auto cache = m_config->get_cache();
 
-    if (opt == std::nullopt) {
-        config["sort-by-default"]      = sort_by_keywords.at(0);
-        config["search-by-default"]    = search_by_keywords.at(0);
-        config["reverse-sort-default"] = false;
-    } else { config = *opt; }
+    m_search_by_combo->set_active_text((*cache)["search-by-default"].asString());
+    m_sort_by_combo->set_active_text((*cache)["sort-by-default"].asString());
+    m_reverse_sort_check->set_active((*cache)["reverse-sort-default"].asBool());
 
-    m_search_by_combo->set_active_text(config["search-by-default"].asString());
-    m_sort_by_combo->set_active_text(config["sort-by-default"].asString());
-    m_reverse_sort_check->set_active(config["reverse-sort-default"].asBool());
-
-    auto criteria_changed = sigc::bind([this](Json::Value config){
-        config["sort-by-default"]      =
+    auto criteria_changed = sigc::bind(
+    [this](const std::shared_ptr<Json::Value> &cache)
+    {
+        (*cache)["sort-by-default"]      =
             m_sort_by_combo->get_active_text().raw();
-        config["search-by-default"]    =
+        (*cache)["search-by-default"]    =
             m_search_by_combo->get_active_text().raw();
-        config["reverse-sort-default"] =
+        (*cache)["reverse-sort-default"] =
             m_reverse_sort_check->get_active();
 
-        m_config->save(config);
+        m_config->save();
         on_search();
-    }, config);
+    }, cache);
 
     m_search_by_combo->signal_changed().connect(criteria_changed);
     m_sort_by_combo->signal_changed().connect(criteria_changed);
@@ -406,4 +402,31 @@ Tab::on_execute_button_pressed() -> bool
     on_action_button_pressed();
 
     return true;
+}
+
+
+auto
+Tab::get_ui_file(const std::string &file_name) -> std::string
+{
+    namespace fs = std::filesystem;
+
+    auto valid_file = [](const std::string &file){
+        return fs::exists(file)
+            && fs::is_regular_file(file)
+            && fs::path(file).extension() == ".xml";
+    };
+
+    std::string option;
+    if (m_arg_parser->option_arg(option, { "-u","--ui" })) {
+        option.append(file_name);
+
+        if (valid_file(option)) return option;
+    }
+
+    std::string gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
+    std::string path = std::format("/ui/gtk{}/{}", gtk_version, file_name);
+
+    if (valid_file(file_name)) return file_name;
+    if (valid_file(path)) return path;
+    return (*m_config->get_config())["default-ui-path"].asString() + path;
 }

@@ -120,6 +120,7 @@
       <object class="GtkBox" id="results_container">
 
         <property name="orientation">horizontal</property>
+        <property name="margin-bottom">5</property>
         <property name="visible">true</property>
         <property name="vexpand">true</property>
         <property name="valign">fill</property>
@@ -255,114 +256,6 @@
 
               </object>
             </child>
-          </object>
-        </child>
-
-      </object>
-    </child>
-
-    <child>
-      <object class="GtkFrame">
-
-        <property name="margin-bottom">5</property>
-        <property name="margin-start">5</property>
-        <property name="margin-end">5</property>
-        <property name="margin-top">5</property>
-        <property name="visible">true</property>
-        <property name="valign">end</property>
-
-        <child>
-          <object class="GtkBox">
-
-            <property name="visible">true</property>
-            <property name="hexpand">true</property>
-            <property name="valign">end</property>
-            <property name="spacing">5</property>
-
-            <child>
-              <object class="GtkBox">
-
-                <property name="visible">true</property>
-                <property name="spacing">10</property>
-                <property name="margin">5</property>
-
-                <child>
-                  <object class="GtkLabel">
-
-                    <property name="label">install:</property>
-                    <property name="visible">true</property>
-
-                  </object>
-                </child>
-
-                <child>
-                  <object class="GtkButton">
-
-                    <property name="visible">true</property>
-                    <property name="label">0</property>
-
-                  </object>
-                </child>
-
-              </object>
-            </child>
-
-            <child>
-              <object class="GtkBox">
-
-                <property name="visible">true</property>
-                <property name="spacing">10</property>
-                <property name="margin">5</property>
-
-                <child>
-                  <object class="GtkLabel">
-
-                    <property name="label">remove:</property>
-                    <property name="visible">true</property>
-
-                  </object>
-                </child>
-
-                <child>
-                  <object class="GtkButton">
-
-                    <property name="visible">true</property>
-                    <property name="label">0</property>
-
-                  </object>
-                </child>
-
-              </object>
-            </child>
-
-            <child>
-              <object class="GtkBox">
-
-                <property name="visible">true</property>
-                <property name="spacing">10</property>
-                <property name="margin">5</property>
-
-                <child>
-                  <object class="GtkLabel">
-
-                    <property name="label">update:</property>
-                    <property name="visible">true</property>
-
-                  </object>
-                </child>
-
-                <child>
-                  <object class="GtkButton">
-
-                    <property name="visible">true</property>
-                    <property name="label">0</property>
-
-                  </object>
-                </child>
-
-              </object>
-            </child>
-
           </object>
         </child>
 

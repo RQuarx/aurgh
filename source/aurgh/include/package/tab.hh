@@ -105,6 +105,14 @@ namespace pkg {
          */
         auto on_execute_button_pressed() -> bool;
 
+
+        /**
+         * @brief Resolves the full UI file path from a filename.
+         * @param file_name Name of the UI file.
+         * @return Full file path to the UI resource.
+         */
+        auto get_ui_file(const std::string &file_name) -> std::string;
+
 #if GTKMM_MAJOR_VERSION == 4
         /**
          * @brief Opens the appropriate action for a package (GTK4 version).
@@ -123,6 +131,7 @@ namespace pkg {
     private:
         shared_ptr<AUR::Client> m_aur_client;
         shared_ptr<Logger>      m_logger;
+        shared_ptr<ArgParser>   m_arg_parser;
         shared_ptr<Config>      m_config;
         shared_ptr<Actions>     m_actions;
 
