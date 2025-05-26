@@ -10,8 +10,8 @@ all:
 		CXX=$(CXX) CXX_LD=$(CXX_LD) meson setup $(TARGET_DIR); \
 	fi
 
-	meson configure $(TARGET_DIR) -Dgtk-version=$(GTK_VERSION)
-	meson compile -C $(TARGET_DIR)
+	CXX=$(CXX) CXX_LD=$(CXX_LD) meson configure $(TARGET_DIR) -Dgtk-version=$(GTK_VERSION)
+	CXX=$(CXX) CXX_LD=$(CXX_LD) meson compile -C $(TARGET_DIR)
 
 
 install:

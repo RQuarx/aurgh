@@ -18,7 +18,7 @@ jobs:
 
       - name: compile
         run: |
-          CXX=clang++ CXX_LD=lld meson setup -Duse-gtk4=true target
+          make GTK_VERSION=4 CXX=clang++ CXX_LD=lld
           meson compile -C target
   gcc:
     name: "Build AURGH - gcc"
@@ -35,6 +35,5 @@ jobs:
 
       - name: compile
         run: |
-          meson setup -Duse-gtk4=true target
-          meson compile -C target
+          make GTK_VERSION=4 CXX=g++ CXX_LD=bfd
 
