@@ -12,8 +12,8 @@
         "--header-insertion-decorators",
         "--enable-config",
         "--header-insertion=never",
-        "-j=8",
         "--malloc-trim",
-        "--compile-commands-dir=./target"
+        "--compile-commands-dir=./target",
+        "-j=8",
     ],
 }

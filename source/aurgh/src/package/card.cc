@@ -173,3 +173,22 @@ Card::find_package(const str_pair &package) const -> int8_t
     }
     return -1;
 }
+
+
+void
+Card::refresh()
+{
+    for (auto t : { pkg::Update, pkg::Install, pkg::Remove }) {
+        auto action = m_actions->at(t);
+        auto pkg    = m_package["Name"].asString();
+        if (!m_button_dimmed && utils::find(*action, pkg)) {
+            m_button_dimmed = true;
+            m_action_button->set_opacity(0.5);
+            return;
+        }
+    }
+
+    m_button_dimmed = false;
+    m_action_button->set_opacity(1);
+    return;
+}

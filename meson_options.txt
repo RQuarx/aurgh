@@ -5,8 +5,8 @@ option(
     description: 'Show colours in log messages.'
 )
 option(
-    'use-gtk4',
-    type:        'boolean',
-    value:        false,
-    description: 'Wheter to use GTK4 or GTK3'
+    'gtk-version',
+    type:        'integer',
+    value:        4,
+    description: 'Specify the GTK version. (3/4)'
 )

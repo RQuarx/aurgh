@@ -18,6 +18,7 @@
  */
 
 #include <filesystem>
+#include <regex>
 #include <thread>
 
 #include <gtkmm/scrolledwindow.h>
@@ -30,6 +31,7 @@
 #include <gtkmm/builder.h>
 #include <gtkmm/button.h>
 #include <gtkmm/label.h>
+#include <glibmm/fileutils.h>
 #include <glibmm/refptr.h>
 
 #include "arg_parser.hh"
@@ -76,7 +78,7 @@ Tab::Tab(
 
     try {
         b = Gtk::Builder::create_from_file(get_ui_file("tab.xml"));
-    } catch (const Gtk::BuilderError& e) {
+    } catch (const Glib::FileError &e) {
         m_logger->log(
             Logger::Error,
             "Failed to parse .xml file: {}",
@@ -232,11 +234,17 @@ Tab::on_search()
 void
 Tab::on_dispatch_search_ready()
 {
+    m_logger->log(
+        Logger::Debug,
+        "Found {} packages.",
+        m_search_result["resultcount"].asInt()
+    );
+
     std::string  sort_by        = m_sort_by_combo->get_active_text();
     bool         reverse        = m_reverse_sort_check->get_active();
     Json::Value  pkgs           = m_search_result["results"];
     Json::Value  sorted         = utils::sort_json(pkgs, sort_by, reverse);
-    auto         local_pkgs     = m_aur_client->get_installed_pkgs();
+    auto         local_pkgs     = m_aur_client->get_locally_installed_pkgs();
     str_pair_vec local_pkgs_str;
     local_pkgs_str.reserve(local_pkgs.size());
 
@@ -265,8 +273,8 @@ Tab::on_dispatch_search_ready()
             m_actions
         );
 
-        card->get_action_button()->signal_clicked().connect(sigc::mem_fun(
-            *this, &Tab::on_action_button_pressed
+        card->get_action_button()->signal_clicked().connect(sigc::bind(
+            sigc::mem_fun(*this, &Tab::on_action_button_pressed), pkg
         ));
 
 #if GTK4
@@ -284,8 +292,14 @@ Tab::on_dispatch_search_ready()
 
 
 void
-Tab::on_action_button_pressed()
+Tab::on_action_button_pressed(const Json::Value &pkg)
 {
+    m_logger->log(Logger::Debug, "Start");
+    if (has_unresolved_dependencies(pkg)) {
+        m_logger->log(Logger::Debug, "End");
+    }
+    m_logger->log(Logger::Debug, "End");
+
     bool all_empty = true;
 
     for (auto t : { Install, Remove, Update }) {
@@ -399,7 +413,14 @@ Tab::on_execute_button_pressed() -> bool
 #endif
     }
     on_search();
-    on_action_button_pressed();
+    std::ranges::for_each(m_result_box->get_children(),
+    [](Gtk::Widget* c)
+    {
+        auto *card = dynamic_cast<pkg::Card*>(c);
+        if (card != nullptr) {
+            card->refresh();
+        }
+    });
 
     return true;
 }
@@ -416,17 +437,78 @@ Tab::get_ui_file(const std::string &file_name) -> std::string
             && fs::path(file).extension() == ".xml";
     };
 
-    std::string option;
-    if (m_arg_parser->option_arg(option, { "-u","--ui" })) {
-        option.append(file_name);
+    std::string gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
+    std::string ui_path     = m_arg_parser->get_option("ui");
 
-        if (valid_file(option)) return option;
+    if (!ui_path.empty()) {
+        ui_path.append(std::format("/gtk{}/{}", gtk_version, file_name));
+
+        ui_path = std::filesystem::absolute(ui_path);
+
+        if (valid_file(ui_path)) return ui_path;
     }
 
-    std::string gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
     std::string path = std::format("/ui/gtk{}/{}", gtk_version, file_name);
 
     if (valid_file(file_name)) return file_name;
     if (valid_file(path)) return path;
     return (*m_config->get_config())["default-ui-path"].asString() + path;
+}
+
+
+auto
+Tab::has_unresolved_dependencies(const Json::Value &pkg) -> bool
+{
+    auto info = m_aur_client->info(pkg["Name"].asString());
+
+    auto installed_pkgs       = m_aur_client->get_installed_pkgs();
+    auto local_installed_pkgs = m_aur_client->get_locally_installed_pkgs();
+
+    installed_pkgs.insert(
+        installed_pkgs.end(),
+        local_installed_pkgs.begin(), local_installed_pkgs.end()
+    );
+
+    auto &depends = info["Depends"];
+    depends.append(info["MakeDepends"]);
+    if (!depends.isArray()) { return false; }
+
+    auto extract_dep_name = [](const std::string &dep) -> std::string {
+        static const std::regex versioned_dep_regex(R"(([^<>=]+))");
+        std::smatch match;
+        if (std::regex_search(dep, match, versioned_dep_regex)) {
+            return match.str(1);
+        }
+        return dep;
+    };
+
+    for (const auto &dep : depends) {
+        const std::string full_dep = dep.asString();
+        const std::string dep_name = extract_dep_name(full_dep);
+
+        bool found = false;
+
+        for (auto *pkg : installed_pkgs) {
+            if (dep_name == alpm_pkg_get_name(pkg)) {
+                found = true;
+                break;
+            }
+
+            alpm_list_t *provides = alpm_pkg_get_provides(pkg);
+            for (auto *p = provides; p != nullptr; p = p->next) {
+                auto *prov = static_cast<alpm_depend_t *>(p->data);
+
+                if (dep_name == prov->name) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) break;
+        }
+
+        if (!found) { return true; }
+    }
+
+    return false;
 }

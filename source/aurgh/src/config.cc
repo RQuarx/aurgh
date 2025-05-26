@@ -35,7 +35,8 @@ Config::Config(
     m_arg_parser(arg_parser),
     m_logger(logger),
     m_config(std::make_shared<Json::Value>(Json::objectValue)),
-    m_cache(std::make_shared<Json::Value>(Json::objectValue))
+    m_cache(std::make_shared<Json::Value>(Json::objectValue)),
+    m_config_path(m_arg_parser->get_option("config"))
 {
     using std::filesystem::is_regular_file;
     using std::filesystem::exists;
@@ -44,13 +45,7 @@ Config::Config(
         return exists(path) && is_regular_file(path);
     };
 
-    bool arg_config = false;
-
-    if (arg_parser->option_arg(m_config_path, { "-c", "--config" })) {
-        arg_config = true;
-    }
-
-    if (!arg_config) {
+    if (m_config_path.empty()) {
         m_config_path = std::format(
             "{}/.config/aurgh/config.json",
             utils::get_env("HOME")

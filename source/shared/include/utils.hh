@@ -24,7 +24,6 @@
 #include <algorithm>
 #include <optional>
 #include <format>
-#include <memory>
 #include <string>
 #include <vector>
 #include <array>
@@ -211,33 +210,5 @@ namespace utils {
     auto find(const std::vector<T> &vec, const T &obj) -> bool
     { return std::ranges::find(vec, obj) != vec.end(); }
 } /* namespace utils */
-
-/**
- * @namespace GtkUtils
- * @brief Utility functions for working with Gtkmm widgets.
- */
-namespace GtkUtils {
-    /**
-     * @brief Sets individual margins on a widget (top, right, bottom, left).
-     * @param widget The widget to set margins on.
-     * @param margin Array of 4 margin values.
-     */
-    void set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin);
-
-    /**
-     * @brief Sets vertical and horizontal margins on a widget.
-     * @param widget The widget to set margins on.
-     * @param margin_y Top and bottom margin.
-     * @param margin_x Left and right margin.
-     */
-    void set_margin(Gtk::Widget &widget, int32_t margin_y, int32_t margin_x);
-
-    /**
-     * @brief Sets the same margin on all sides of a widget.
-     * @param widget The widget to set margins on.
-     * @param margin Margin value for all sides.
-     */
-    void set_margin(Gtk::Widget &widget, int32_t margin);
-} /* namespace GtkUtils */
 
 #endif /* utils.hh */

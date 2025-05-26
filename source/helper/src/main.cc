@@ -27,7 +27,16 @@
 #include <json/reader.h>
 #include <json/value.h>
 
+#include "arg_parser.hh"
 #include "alpm.hh"
+#include "log.hh"
+
+
+namespace {
+    auto
+    cleanup(const std::string &path, int32_t retval)
+    { std::filesystem::remove(path); return retval; }
+}
 
 
 auto
@@ -38,15 +47,18 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_FAILURE;
     }
 
-    std::vector<std::string> args{ argv, argv + argc };
+    ArgParser arg_parser { argc, argv };
 
-    if (args.at(1) == "help") {
-        std::println("Usage: {} <prefix-path>", args.at(0));
+    arg_parser
+        .add_option({ "-p", "--prefix" }, "Specify the prefix path", "path")
+        .parse();
+
+    if (arg_parser.get_option("prefix").empty()) {
+        std::println("Prefix path is empty!");
+        return EXIT_FAILURE;
     }
 
-
-
-    std::string prefix_path         { args.at(1) };
+    std::string prefix_path         { arg_parser.get_option("prefix") };
     std::string operation_file_path { prefix_path + "/operation.json" };
     Json::Value operation           { Json::objectValue };
     std::ifstream operation_file    { operation_file_path };
@@ -54,30 +66,37 @@ main(int32_t argc, char **argv) -> int32_t
     operation_file >> operation;
     operation_file.close();
 
-    std::string  type      { operation["operation"].asString() };
-    std::string  root_path { operation["root"].asString() };
-    std::string  db_path   { operation["db-path"].asString() };
-    alpm_errno_t err       { ALPM_ERR_OK };
-    Alpm         alpm      { root_path, db_path, err };
+    std::string          type      { operation["operation"].asString() };
+    std::string          root_path { operation["root"].asString() };
+    std::string          db_path   { operation["db-path"].asString() };
+    alpm_errno_t         err       { ALPM_ERR_OK };
+    std::shared_ptr<Log> log       { std::make_shared<Log>(prefix_path) };
+    Alpm                 alpm      {
+        root_path, db_path, prefix_path, log, err
+    };
 
-    std::vector<std::string> pkgs;
-    pkgs.reserve(operation["pkgs"].size());
 
-    for (const auto &p : operation["pkgs"]) {
-        pkgs.push_back(p.asString());
-    }
-
-    std::filesystem::remove(operation_file_path);
-
-    if (err != ALPM_ERR_OK) return static_cast<int32_t>(err);
+    if (err != ALPM_ERR_OK) {
+        log->write(true, "Failed to initialize alpm: {}", alpm_strerror(err));
+        return cleanup(operation_file_path, 1);
+    };
 
     if (type == "remove") {
+        std::vector<std::string> pkgs;
+        pkgs.reserve(operation["pkgs"].size());
+
+        for (const auto &p : operation["pkgs"]) {
+            pkgs.push_back(p.asString());
+        }
+
         bool _ = alpm.remove_packages(pkgs);
-        return static_cast<int32_t>(err);
+        return cleanup(operation_file_path, 1);
     }
 
     if (type == "install") {
-
-        return EXIT_SUCCESS;
+        bool _ = alpm.download_and_install_package(operation["pkg"].asString());
+        return cleanup(operation_file_path, 1);
     }
+
+    return cleanup(operation_file_path, 0);
 }

@@ -98,6 +98,13 @@ namespace AUR {
          * @brief Returns packages from the alpm local database.
          * @return A vector of alpm_pkg_t*.
          */
+        auto get_locally_installed_pkgs() -> std::vector<alpm_pkg_t*>;
+
+
+        /**
+         * @brief Returns packages from the native alpm database.
+         * @return A vector of alpm_pkg_t*.
+         */
         auto get_installed_pkgs() -> std::vector<alpm_pkg_t*>;
 
         /**

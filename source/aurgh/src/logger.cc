@@ -29,19 +29,19 @@
 Logger::Logger(const std::shared_ptr<ArgParser> &arg_parser) :
     m_use_color(PRETTY_LOGGING)
 {
-    std::string option;
-    if (arg_parser->option_arg(option, { "-l", "--log" })) {
-        if (option.contains(',')) {
+    std::string log_option = arg_parser->get_option("log");
+    if (!log_option.empty()) {
+        if (log_option.contains(',')) {
             /* Exits with error code 1 if it fails */
-            if (!handle_double_parameters(option)) {
+            if (!handle_double_parameters(log_option)) {
                 exit(EXIT_FAILURE);
             }
         } else {
-            if (str::is_digit(option)) {
-                if (!set_leveL_threshold(std::stoi(option))) {
+            if (str::is_digit(log_option)) {
+                if (!set_leveL_threshold(std::stoi(log_option))) {
                     exit(EXIT_FAILURE);
                 }
-            } else if (!open_log_file(option)) {
+            } else if (!open_log_file(log_option)) {
                 exit(EXIT_FAILURE);
             }
         }

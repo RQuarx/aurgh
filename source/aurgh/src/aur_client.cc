@@ -25,7 +25,6 @@
 
 #include "arg_parser.hh"
 #include "aur_client.hh"
-#include "process.hh"
 #include "config.hh"
 #include "logger.hh"
 
@@ -97,7 +96,8 @@ Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
 
 auto
 Client::search(
-    const std::string &args, const std::string &by) -> Json::Value
+    const std::string &args, const std::string &by
+) -> Json::Value
 {
     std::string full_url = std::format("{}/search/{}", m_url, args);
     if (!by.empty()) {
@@ -135,10 +135,11 @@ Client::install(const std::vector<std::string> &pkgs) -> bool
 {
     Json::Value root { Json::objectValue };
 
-    root["operation"] = "install";
-    root["root"]      = m_root_path;
-    root["db-path"]   = m_db_path;
-    root["pkgs"]      = Json::arrayValue;
+    root["operation"]      = "install";
+    root["install-prefix"] = m_prefix_path;
+    root["root"]           = m_root_path;
+    root["db-path"]        = m_db_path;
+    root["pkgs"]           = Json::arrayValue;
 
     for (const auto &pkg : pkgs) { root["pkgs"].append(pkg); }
 
@@ -151,7 +152,7 @@ Client::install(const std::vector<std::string> &pkgs) -> bool
     operation_file.close();
 
     auto res = utils::run_command(std::format(
-        "{} {} {}",
+        "{} {} --prefix {}",
         m_pkexec,
         m_helper_path,
         m_prefix_path
@@ -216,7 +217,7 @@ Client::get_sort_by_keywords(
 
 
 auto
-Client::get_installed_pkgs() -> std::vector<alpm_pkg_t*>
+Client::get_locally_installed_pkgs() -> std::vector<alpm_pkg_t*>
 {
     std::vector<alpm_pkg_t*> pkgs;
 
@@ -239,6 +240,36 @@ Client::get_installed_pkgs() -> std::vector<alpm_pkg_t*>
         const char *pkg_name = alpm_pkg_get_name(pkg);
 
         if (get_pkg_locality(pkg_name, sync_dbs) == 1) pkgs.push_back(pkg);
+    }
+
+    return pkgs;
+}
+
+
+auto
+Client::get_installed_pkgs() -> std::vector<alpm_pkg_t*>
+{
+    std::vector<alpm_pkg_t*> pkgs;
+
+    alpm_db_t   *local_db = alpm_get_localdb(m_alpm_handle);
+    alpm_list_t *pkg_list = alpm_db_get_pkgcache(local_db);
+
+    if (pkg_list == nullptr) {
+        m_logger->log(
+            Logger::Warn,
+            "Failed to retrieve package list"
+        );
+
+        return pkgs;
+    }
+
+    alpm_list_t *sync_dbs = alpm_get_syncdbs(m_alpm_handle);
+
+    for (auto *node = pkg_list; node != nullptr; node = node->next) {
+        auto       *pkg      = static_cast<alpm_pkg_t*>(node->data);
+        const char *pkg_name = alpm_pkg_get_name(pkg);
+
+        if (get_pkg_locality(pkg_name, sync_dbs) == 0) pkgs.push_back(pkg);
     }
 
     return pkgs;
@@ -281,7 +312,7 @@ Client::remove(const std::vector<std::string> &pkgs) -> bool
     operation_file.close();
 
     auto res = utils::run_command(std::format(
-        "{} {} {}",
+        "{} {} --prefix {}",
         m_pkexec,
         m_helper_path,
         m_prefix_path
@@ -354,21 +385,24 @@ Client::initialize_path(uint8_t t) -> std::string
     std::string path;
 
     if (t == 0) {
-        if (!m_arg_parser->option_arg(path, { "-r", "--root" })) {
+        path = m_arg_parser->get_option("root");
+        if (path.empty()) {
             return (*m_config)["default-root-path"].asString();
         }
 
         check("Root", path);
 
     } else if (t == 1) {
-        if (!m_arg_parser->option_arg(path, { "-b", "--db-path" })) {
+        path = m_arg_parser->get_option("db-path");
+        if (path.empty()) {
             return (*m_config)["default-db-path"].asString();
         }
 
         check("Database", path);
 
     } else if (t == 2) {
-        if (!m_arg_parser->option_arg(path, { "", "--helper-path" })) {
+        path = m_arg_parser->get_option("db-path");
+        if (path.empty()) {
             return (*m_config)["default-helper-path"].asString();
         }
 
@@ -385,7 +419,8 @@ Client::initialize_path(uint8_t t) -> std::string
         }
 
     } else if (t == 3) {
-        if (!m_arg_parser->option_arg(path, { "", "--prefix-path" })) {
+        path = m_arg_parser->get_option("prefix-path");
+        if (path.empty()) {
             return utils::expand_envs(
                 (*m_config)["default-prefix-path"].asString()
             );

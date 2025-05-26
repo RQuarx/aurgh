@@ -64,6 +64,8 @@ namespace pkg {
 
         auto get_action_button() -> Gtk::Button*&;
 
+        void refresh();
+
     private:
         static const inline int32_t DEFAULT_SPACING = 5;
 

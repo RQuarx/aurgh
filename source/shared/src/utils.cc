@@ -17,7 +17,6 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <filesystem>
 #include <algorithm>
 #include <cerrno>
 #include <print>
@@ -28,7 +27,6 @@
 #include <json/value.h>
 #include <curl/curl.h>
 
-#include "arg_parser.hh"
 #include "utils.hh"
 
 
@@ -252,48 +250,3 @@ namespace utils {
         return result;
     }
 } /* namespace utils */
-
-
-namespace GtkUtils {
-    void
-    set_margin(Gtk::Widget &widget, std::array<int32_t, 4> margin)
-    {
-        widget.set_margin_top(margin.at(0));
-        widget.set_margin_bottom(margin.at(2));
-#if GTKMM_MAJOR_VERSION == 4
-        widget.set_margin_end(margin.at(1));
-        widget.set_margin_start(margin.at(3));
-#else
-        widget.set_margin_right(margin.at(1));
-        widget.set_margin_left(margin.at(3));
-#endif
-    }
-
-    void
-    set_margin(Gtk::Widget &widget, int32_t margin_y, int32_t margin_x)
-    {
-        widget.set_margin_top(margin_y);
-        widget.set_margin_bottom(margin_y);
-#if GTKMM_MAJOR_VERSION == 4
-        widget.set_margin_end(margin_x);
-        widget.set_margin_start(margin_x);
-#else
-        widget.set_margin_right(margin_x);
-        widget.set_margin_left(margin_x);
-#endif
-    }
-
-    void
-    set_margin(Gtk::Widget &widget, int32_t margin)
-    {
-        widget.set_margin_top(margin);
-        widget.set_margin_bottom(margin);
-#if GTKMM_MAJOR_VERSION == 4
-        widget.set_margin_end(margin);
-        widget.set_margin_start(margin);
-#else
-        widget.set_margin_right(margin);
-        widget.set_margin_left(margin);
-#endif
-    }
-} /* namespace GtkUtils */

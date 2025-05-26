@@ -1,5 +1,6 @@
 helper_src = files(
     'src/alpm.cc',
+    'src/log.cc',
     'src/main.cc',
 )
 
@@ -7,5 +8,9 @@ helper_src = files(
 executable(
     'helper',
     helper_src,
-    include_directories: include_directories('include')
+    include_directories: include_directories(
+        'include',
+        '../shared/include'
+    ),
+    dependencies: [ dependency('shared') ]
 )

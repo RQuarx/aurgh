@@ -91,7 +91,7 @@ namespace pkg {
         /**
          * @brief Triggered when the action buttons is pressed.
          */
-        void on_action_button_pressed();
+        void on_action_button_pressed(const Json::Value &pkg);
 
 
         /**
@@ -112,6 +112,13 @@ namespace pkg {
          * @return Full file path to the UI resource.
          */
         auto get_ui_file(const std::string &file_name) -> std::string;
+
+
+        /**
+         * @brief Checks if a package @p pkg has unresolved dependency.
+         * @param pkg The package to check for.
+         */
+        auto has_unresolved_dependencies(const Json::Value &pkg) -> bool;
 
 #if GTKMM_MAJOR_VERSION == 4
         /**

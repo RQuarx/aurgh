@@ -23,7 +23,6 @@
 
 #include "arg_parser.hh"
 #include "aur_client.hh"
-#include "process.hh"
 #include "config.hh"
 #include "logger.hh"
 #include "tab.hh"
@@ -31,9 +30,9 @@
 using const_str = const std::string;
 
 static const_str APP_ID = "org.rquarx.aur-graphical-helper";
+static const int32_t CURL_INIT_FLAG = CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE;
 
 
-#if GTKMM_MAJOR_VERSION == 4
 namespace {
     using std::shared_ptr;
 
@@ -48,54 +47,73 @@ namespace {
             const shared_ptr<ArgParser>   &arg_parser
         )
         {
-            std::string title;
-            if (!arg_parser->option_arg(title, { "-t", "--title" })) {
+            std::string title = arg_parser->get_option("title");
+            if (title.empty()) {
                 title = (*config->get_config())["default-title"].asString();
             }
 
             set_title(title);
-            set_child(
-                *Gtk::make_managed<pkg::Tab>(
-                    aur_client, logger, config, arg_parser
-                )
+
+            auto *pkg_tab = Gtk::make_managed<pkg::Tab>(
+                aur_client, logger, config, arg_parser
             );
+
+#if GTK4
+            set_child(*pkg_tab);
+#else
+            add(*pkg_tab);
+#endif
         }
     };
 } /* anonymous namespace */
-#endif
 
 
 auto
 main(int32_t argc, char **argv) -> int32_t
 {
+    auto arg_parser = std::make_shared<ArgParser>(argc, argv);
+
+    arg_parser
+       ->add_flag({ "-V", "--version" },     "Prints the program version")
+        .add_option({ "-l", "--log" },       "Shows or outputs the log",           "str,int")
+        .add_option({ "-t", "--title" },     "Changes the window title",           "str")
+        .add_option({ "-c", "--config" },    "Specify a non-default config path",  "path")
+        .add_option({ "-u", "--ui" },        "Specify a non-default ui-file path", "path")
+        .add_option({ "-r", "--root" },      "Specify the filesystem root",        "path")
+        .add_option({ "-b", "--db-path" },   "Specify the pacman db path",         "path")
+        .add_option({ "", "--helper-path" }, "Specify the helper binary path",     "path")
+        .add_option({ "", "--prefix-path" }, "Specify the prefix/cache path",      "path")
+        .parse();
+
+    if (arg_parser->get_flag("version")) {
+        std::println(
+            "{:<7} {}\nlibalpm {}\ngtkmm   {}.{}.{}",
+            APP_NAME, APP_VERSION,
+            alpm_version(),
+            GTKMM_MAJOR_VERSION, GTKMM_MINOR_VERSION, GTKMM_MICRO_VERSION
+        );
+        return EXIT_SUCCESS;
+    }
+
     auto app        = Gtk::Application::create(APP_ID);
-    auto arg_parser = std::make_shared<ArgParser>  (argc, argv);
     auto logger     = std::make_shared<Logger>     (arg_parser);
     auto config     = std::make_shared<Config>     (logger, arg_parser);
     auto aur_client = std::make_shared<AUR::Client>(logger, arg_parser, config);
 
-    if (curl_global_init(CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE) != 0) {
+    logger->log(
+        Logger::Debug, "Initialising curl with flag: {}", CURL_INIT_FLAG
+    );
+    if (curl_global_init(CURL_INIT_FLAG) != 0) {
         logger->log(Logger::Error, "Failed to init curl");
         return EXIT_FAILURE;
     }
 
-#if GTKMM_MAJOR_VERSION == 4
+#if GTK4
     return app->make_window_and_run<AppWindow>(
         0, nullptr, aur_client, logger, config, arg_parser
     );
 #else
-    Gtk::Window window(Gtk::WINDOW_TOPLEVEL);
-
-    std::string title;
-    if (!arg_parser->option_arg(title, { "-t", "--title" })) {
-        title = (*config->get_config())["default-title"].asString();
-    }
-
-    window.set_title(title);
-    window.add(
-        *Gtk::make_managed<pkg::Tab>(aur_client, logger, config, arg_parser)
-    );
-
+    AppWindow window(aur_client, logger, config, arg_parser);
     return app->run(window, 0, nullptr);
 #endif
 }

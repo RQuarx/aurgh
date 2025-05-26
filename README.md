@@ -2,10 +2,9 @@
 
 # AURGH
 
-AURGH is an **Arch User Repository Graphical Helper**,
-<br/>
-made with C++23 to deal with daily AUR shenanigans.
-<br/>
+**AURGH** is an **Arch User Repository Graphical Helper**
+crafted in **C++23** to simplify your everyday AUR workflow.
+Independent, minimal, and modern.
 
 ![Badge gtk3]
 ![Badge gtk4]
@@ -18,15 +17,17 @@ made with C++23 to deal with daily AUR shenanigans.
 
 ## Features
 
->[!IMPORTANT]
->AURGH is not a pacman frontend, nor is it a frontend of any other helpers.
->AURGH tries to be independent from any other available frontend.
+> [!IMPORTANT]
+> **AURGH is _not_ a frontend for pacman or other AUR helpers.**
+> It is a standalone interface built to interact directly with the AUR and `libalpm`.
 
 - [x] Basic searching of AUR packages.
 - [x] Package information on each package list.
 - [x] Cross compatible with GTK3 and GTK4.
+- [x] AUR package removal.
 - [ ] Downloading and installing AUR packages.
-- [ ] Basic AUR package management
+- [ ] Core Arch repository management.
+- [ ] Basic AUR package management.
 
 ## Dependencies
 
@@ -56,27 +57,32 @@ root# pacman -S - < required-gtk4.txt
 
 ### Installing the package
 
-```bash
-user$ git clone https://github.com/RQuarx/aurgh/
-user$ cd aurgh
+```console
+- Clone the repository and move change directory to the repository
+$ git clone https://github.com/RQuarx/aurgh/ && cd aurgh
 
-# This will defaults to clang++, lld, and GTK4.
-user$ make CXX=... CXX_LD=... GTK_VERSION=...
+- Compiles the program
+- CXX         = compiler, defaults to clang++
+- CXX_LD      = linker, defaults to lld
+- GTK_VERSION = GTK version to use, defaults to 4
+- TARGET      = target directory, defaults to 'target'
+$ make CXX=... CXX_LD=... GTK_VERSION=... TARGET=...
 
-root# make install
+- Installs the program
+# make install
 ```
 
 ## Donating
 
-If you like this project, you could support it by making my parents think that this project is not useless.
+If you find this project useful, consider helping out to make my parents believe this wasn't a waste of time 😄
 <br>
 <br>
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I11ERX5G)
 
 ## License
-This project is licensed under the [GNU General Public License v3](LICENSE).
+This project is licensed under the [GNU General Public License v3](COPYING).
 
-[License]: LICENSE
+[License]: COPYING
 
 [Badge Workflow]: https://github.com/RQuarx/aurgh/actions/workflows/check_build.yml/badge.svg
 [Badge gtk3]: https://github.com/RQuarx/aurgh/actions/workflows/gtk3_build.yml/badge.svg

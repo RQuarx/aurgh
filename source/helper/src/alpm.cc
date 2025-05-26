@@ -1,13 +1,21 @@
+#include <functional>
+#include <cstring>
 #include <print>
 
+#include "utils.hh"
 #include "alpm.hh"
+#include "log.hh"
 
 
 Alpm::Alpm(
-    const std::string &root_path,
-    const std::string &db_path,
-    alpm_errno_t      &err_msg
+    const std::string          &root_path,
+    const std::string          &db_path,
+    std::string                 prefix,
+    const std::shared_ptr<Log> &log,
+    alpm_errno_t               &err_msg
 ) :
+    m_log(log),
+    m_prefix(std::move(prefix)),
     m_err(err_msg),
     m_handle(alpm_initialize(root_path.c_str(), db_path.c_str(), &m_err)),
     m_removal_flags(ALPM_TRANS_FLAG_CASCADE | ALPM_TRANS_FLAG_RECURSE)
@@ -17,13 +25,18 @@ Alpm::Alpm(
 Alpm::~Alpm()
 { alpm_release(m_handle); }
 
-
+ 
 auto
 Alpm::remove_packages(const std::vector<std::string> &pkgs) -> bool
 {
-    alpm_list_t *data{};
+    alpm_list_t *data {};
 
     if (alpm_trans_init(m_handle, m_removal_flags) < 0) {
+        m_log->write(
+            true,
+            "alpm_trans_init failed when removing packages: {}",
+            alpm_strerror(m_err)
+        );
         return false;
     }
 
@@ -32,26 +45,113 @@ Alpm::remove_packages(const std::vector<std::string> &pkgs) -> bool
     for (const auto &pkg_name : pkgs) {
         alpm_pkg_t *pkg = alpm_db_get_pkg(local_db, pkg_name.c_str());
 
-        if (pkg == nullptr) return false;
-        if (alpm_remove_pkg(m_handle, pkg) < 0) return false;
+        if (pkg == nullptr) {
+            m_log->write(
+                true,
+                "alpm_db_get_pkg failed when removing packages: {}",
+                alpm_strerror(m_err)
+            );
+            return false;
+        }
+        if (alpm_remove_pkg(m_handle, pkg) < 0) {
+            m_log->write(
+                true,
+                "alpm_remove_pkg failed: {}",
+                alpm_strerror(m_err)
+            );
+            return false;
+        }
     }
 
     if (alpm_trans_prepare(m_handle, &data) < 0) {
+        m_log->write(
+            true,
+            "alpm_trans_prepare failed when removing packages: {}",
+            alpm_strerror(m_err)
+        );
+
         if (data != nullptr) alpm_list_free(data);
         return false;
     }
 
     if (alpm_trans_commit(m_handle, &data) < 0) {
+        m_log->write(
+            true,
+            "alpm_trans_commit failed when removing packages: {}",
+            alpm_strerror(m_err)
+        );
         if (data != nullptr) alpm_list_free(data);
         return false;
     }
 
     if (data != nullptr) alpm_list_free(data);
-    if (alpm_trans_release(m_handle) < 0) return false;
+    if (alpm_trans_release(m_handle) == 0) {
+        return true;
+    }
+    m_log->write(
+        true,
+        "alpm_trans_release failed when removing packages: {}",
+        alpm_strerror(m_err)
+    );
 
-
-    return true;
+    return false;
 }
+
+
+auto
+Alpm::download_and_install_package(
+    const std::string &pkg
+) -> bool
+{
+    if (chdir(m_prefix.c_str()) != 0) {
+        m_log->write(
+            true,
+            "Failed to change directory: {}",
+            strerror(errno)
+        );
+        return false;
+    }
+
+    std::string clone_cmd {
+        std::format("git clone https://aur.archlinux.org/{}.git", pkg)
+    };
+    auto res = utils::run_command(clone_cmd, 1024);
+
+    if (res->second != 0) {
+        m_log->write(
+            true,
+            "Failed to run {}: {}",
+            clone_cmd, res->first
+        );
+        m_str_err = res->first;
+        return false;
+    }
+
+    if (chdir(std::format("{}/{}", m_prefix, pkg).c_str()) != 0) {
+        m_log->write(
+            true,
+            "Failed to change directory: {}",
+            strerror(errno)
+        );
+        return false;
+    }
+
+    res = utils::run_command("makepkg", 1024);
+
+    if (res->second == 0) { return true; }
+
+    m_log->write(
+        true,
+        "Failed to run makepkg: {}",
+        res->first
+    );
+    return false;
+}
+
+
+auto
+Alpm::get_str_err() const -> std::string
+{ return m_str_err; }
 
 
 void

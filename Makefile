@@ -1,7 +1,7 @@
 CXX    ?= clang++
 CXX_LD ?= lld
 
-TARGET_DIR  := ./target
+TARGET_DIR  ?= ./target
 GTK_VERSION ?= 4
 
 
@@ -10,11 +10,7 @@ all:
 		CXX=$(CXX) CXX_LD=$(CXX_LD) meson setup $(TARGET_DIR); \
 	fi
 
-ifeq ($(GTK_VERSION),4)
-	meson configure $(TARGET_DIR) -Duse-gtk4=true
-else ifeq ($(GTK_VERSION),3)
-	meson configure $(TARGET_DIR) -Duse-gtk4=false
-endif
+	meson configure $(TARGET_DIR) -Dgtk-version=$(GTK_VERSION)
 	meson compile -C $(TARGET_DIR)
 
 
