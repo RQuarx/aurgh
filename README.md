@@ -31,51 +31,60 @@ Independent, minimal, and modern.
 
 ## Dependencies
 
-| Package Name                                                  | Uses                                      |
-|:--------------------------------------------------------------|:------------------------------------------|
-| **[meson](https://mesonbuild.com/)**                          | Build system                              |
-| **[libalpm](https://man.archlinux.org/man/libalpm.3)**        | library for Arch Linux Package Management |
-| **[curl](https://curl.se/)**                                  | Fetching data from the AUR                |
-| **[jsoncpp](https://github.com/open-source-parsers/jsoncpp)** | JSON handling                             |
-| **[gtkmm-3/4](https://gtkmm.gnome.org/en/)**                  | C++ interface for GTK                     |
-
-## Installation
-
-<details>
-<summary>Installing dependencies</summary>
-
-Both gtk3, and gtk4 build of the application requires at least these packages present on the system
+**Core dependencies** (common to both GTK3 and GTK4 builds):
 ```console
 meson pkgconf curl jsoncpp pacman
 ```
 
-and for each gtk version, gtkmm-3.0 or gtkmm-4.0 would be required to be available on the system
+**Gtk3 Build**:
+```console
+gtkmm3 glibmm
+```
+**Gtk4 Build**:
+```console
+gtkmm-4.0 glibmm-2.68
+```
 
-- gtk3 ` gtkmm3 glibmm `
-- gtk4 ` gtkmm-4.0 glibmm-2.68 `
+## Installation
 
-</details>
-
-### Installing the package
+### 1. Clone the repository
 
 ```console
-- Clone the repository and move change directory to the repository
-$ git clone https://github.com/RQuarx/aurgh/ && cd aurgh
+$ git clone https://github.com/RQuarx/aurgh/
+$ cd aurgh
+```
+---
 
-- Compiles the program
-- CXX         = compiler, defaults to clang++
-- CXX_LD      = linker, defaults to lld
-- GTK_VERSION = GTK version to use, defaults to 4
-- TARGET      = target directory, defaults to 'target'
-$ make CXX=... CXX_LD=... GTK_VERSION=... TARGET=...
+### 2. Build the project
 
-- Installs the program
+Use the `make` command to compile the project. You can customize the build with these optional environment variables:
+
+| Variable      | Description                 | Default   |
+| ------------- | --------------------------- | --------- |
+| `CXX`         | C++ compiler                | `clang++` |
+| `CXX_LD`      | Linker                      | `lld`     |
+| `GTK_VERSION` | GTK version to compile with | `4`       |
+| `TARGET`      | Output directory            | `target`  |
+
+**Example:**
+
+```console
+$ make CXX=g++ CXX_LD=ld GTK_VERSION=3 TARGET=build
+```
+---
+### 3. Install the program
+
+The install script requires root permission to run, make sure to run it with `sudo`
+or a similar command
+
+```console
 # make install
 ```
 
 ## Donating
 
-If you find this project useful, consider helping out to make my parents believe this wasn't a waste of time 😄
+If you find this project useful, consider donating to support its development
+(and help convince my parents this wasn’t a waste of time 😄).
 <br>
 <br>
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I11ERX5G)
@@ -83,6 +92,7 @@ If you find this project useful, consider helping out to make my parents believe
 ## License
 This project is licensed under the [GNU General Public License v3](COPYING).
 
+<!-- Badge references -->
 [License]: COPYING
 
 [Badge Workflow]: https://github.com/RQuarx/aurgh/actions/workflows/check_build.yml/badge.svg
