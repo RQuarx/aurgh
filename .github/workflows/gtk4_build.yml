@@ -1,6 +1,15 @@
 name: GTK4 Build
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - '**/meson.build'
+      - '**/meson_options.txt'
+      - '**/*.meson'
+      - '.github/workflows/*.yml'
+      - '**/*.json'
+      - '**/*.cc'
+      - '**/*.hh'
 
 jobs:
   clang:
