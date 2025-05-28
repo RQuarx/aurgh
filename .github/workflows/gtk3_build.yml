@@ -18,7 +18,8 @@ jobs:
 
       - name: compile
         run: |
-          make GTK_VERSION=3 CXX=clang++
+          CXX=clang++ CXX_LD=lld meson setup -Dgtk-version=3 target
+          meson compile -C target
   gcc:
     name: "Build AURGH - gcc"
     runs-on: ubuntu-latest
@@ -33,4 +34,5 @@ jobs:
           pacman -Syyu --noconfirm --noprogressbar --needed - < assets/required-gtk3.txt
       - name: compile
         run: |
-          make GTK_VERSION=3 CXX=g++ CXX_LD=bfd
+          CXX=g++ CXX_LD=bfd meson setup -Dgtk-version=3 target
+          meson compile -C target
