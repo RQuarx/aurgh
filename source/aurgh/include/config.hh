@@ -28,8 +28,6 @@
 class ArgParser;
 class Logger;
 
-static const std::string GLOBAL_CONFIG_PATH = "/etc/aurgh/config.json";
-
 
 /**
  * @class Config
@@ -67,6 +65,8 @@ public:
     auto save() -> bool;
 
 private:
+    std::string_view GLOBAL_CONFIG_PATH = "/etc/aurgh/config.json";
+
     std::shared_ptr<ArgParser> m_arg_parser;
     std::shared_ptr<Logger>    m_logger;
 

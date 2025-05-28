@@ -44,14 +44,15 @@ Independent, minimal, and modern.
 <details>
 <summary>Installing dependencies</summary>
 
-For gtk3 builds
-```bash
-root# pacman -S - < required-gtk3.txt
+Both gtk3, and gtk4 build of the application requires at least these packages present on the system
+```console
+meson pkgconf curl jsoncpp pacman
 ```
-or for gtk4 builds
-```bash
-root# pacman -S - < required-gtk4.txt
-```
+
+and for each gtk version, gtkmm-3.0 or gtkmm-4.0 would be required to be available on the system
+
+- gtk3 ` gtkmm3 glibmm `
+- gtk4 ` gtkmm-4.0 glibmm-2.68 `
 
 </details>
 
