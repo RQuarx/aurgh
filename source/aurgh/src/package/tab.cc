@@ -289,7 +289,7 @@ Tab::on_dispatch_search_ready()
 
 
 void
-Tab::on_action_button_pressed(const Json::Value &pkg)
+Tab::on_action_button_pressed(const Json::Value & /*pkg*/)
 {
     // m_logger->log(Logger::Debug, "Start");
     // if (has_unresolved_dependencies(pkg)) {

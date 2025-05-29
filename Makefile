@@ -1,4 +1,4 @@
-CXX    ?= clang++
+CXX ?= clang++
 CXX_LD ?= lld
 
 TARGET_DIR  ?= ./target

@@ -69,7 +69,7 @@ Use the `make` command to compile the project. You can customize the build with 
 **Example:**
 
 ```console
-$ make CXX=g++ CXX_LD=ld GTK_VERSION=3 TARGET=build
+$ make CXX=g++ CXX_LD=bfd GTK_VERSION=3 TARGET=build
 ```
 ---
 ### 3. Install the program

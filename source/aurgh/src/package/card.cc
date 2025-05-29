@@ -35,14 +35,12 @@ using pkg::Card;
 
 Card::Card(
     Json::Value                    pkg,
-    const CardData                &card_data,
-    int32_t spacing
+    const CardData                &card_data
 ) :
     m_installed_pkgs(card_data.installed_pkgs),
     m_actions(card_data.actions),
     m_logger(card_data.logger),
     m_package(std::move(pkg)),
-    m_default_spacing(spacing),
     m_button_dimmed(false)
 {
     builder_t b = Gtk::Builder::create_from_file(card_data.card_builder_file);

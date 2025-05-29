@@ -53,8 +53,7 @@ namespace pkg {
     public:
         explicit Card(
             Json::Value      pkg,
-            const CardData  &card_data,
-            int32_t          spacing = DEFAULT_SPACING
+            const CardData  &card_data
         );
 
         auto get_action_button() -> Gtk::Button*&;
@@ -82,7 +81,6 @@ namespace pkg {
         Gtk::Label *m_popularity_label = nullptr;
         Gtk::Label *m_votes_label      = nullptr;
 
-        int32_t m_default_spacing;
         bool    m_button_dimmed;
 
     protected:
