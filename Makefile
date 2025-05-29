@@ -6,12 +6,15 @@ GTK_VERSION ?= 4
 
 
 all:
+	@rm compile_commands.json
 	@if [ ! -d "$(TARGET_DIR)" ]; then \
 		CXX=$(CXX) CXX_LD=$(CXX_LD) meson setup $(TARGET_DIR); \
 	fi
 
 	CXX=$(CXX) CXX_LD=$(CXX_LD) meson configure $(TARGET_DIR) -Dgtk-version=$(GTK_VERSION)
 	CXX=$(CXX) CXX_LD=$(CXX_LD) meson compile -C $(TARGET_DIR)
+
+	@cp $(TARGET_DIR)/compile_commands.json .
 
 
 install:
