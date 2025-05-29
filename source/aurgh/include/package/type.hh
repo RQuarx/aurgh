@@ -27,12 +27,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <glibmm/refptr.h>
 
 namespace Gtk { class Builder; }
-namespace Glib {
-    template <class T_CppObject>
-    using RefPtr = std::shared_ptr<T_CppObject>;
-}
 class Logger;
 
 using str_pair     = std::pair<std::string, std::string>;
