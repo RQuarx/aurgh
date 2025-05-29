@@ -26,7 +26,7 @@
 
 #include <utility>
 
-#include "logger.hh"
+// #include "logger.hh"
 #include "utils.hh"
 #include "card.hh"
 
@@ -34,21 +34,18 @@ using pkg::Card;
 
 
 Card::Card(
-    Json::Value                    package,
-    const std::string             &ui_file,
-    const std::vector<str_pair>   &installed_aur_packages,
-    const std::shared_ptr<Logger> &logger,
-    std::shared_ptr<Actions>      &actions,
+    Json::Value                    pkg,
+    const CardData                &card_data,
     int32_t spacing
 ) :
-    m_installed_package(installed_aur_packages),
-    m_actions(actions),
-    m_logger(logger),
-    m_package(std::move(package)),
+    m_installed_pkgs(card_data.installed_pkgs),
+    m_actions(card_data.actions),
+    m_logger(card_data.logger),
+    m_package(std::move(pkg)),
     m_default_spacing(spacing),
     m_button_dimmed(false)
 {
-    auto b = Gtk::Builder::create_from_file(ui_file);
+    builder_t b = Gtk::Builder::create_from_file(card_data.card_builder_file);
 
 #if GTK4
     m_card             = b->get_widget<Gtk::Box>("card_box");
@@ -167,8 +164,8 @@ Card::on_button_clicked(pkg::Type result, const std::string &pkg_name)
 auto
 Card::find_package(const str_pair &package) const -> int8_t
 {
-    if (utils::find(m_installed_package, package)) return 0;
-    for (const auto &[pkg_name, _] : m_installed_package) {
+    if (utils::find(*m_installed_pkgs, package)) return 0;
+    for (const auto &[pkg_name, _] : *m_installed_pkgs) {
         if (pkg_name == package.first) return 1;
     }
     return -1;
@@ -190,5 +187,4 @@ Card::refresh()
 
     m_button_dimmed = false;
     m_action_button->set_opacity(1);
-    return;
 }

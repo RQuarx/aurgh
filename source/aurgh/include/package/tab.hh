@@ -59,7 +59,6 @@ namespace pkg {
      */
     class Tab : public Gtk::Box
     {
-        using str_pair_vec = std::vector<std::pair<std::string, std::string>>;
     public:
         Tab(
             const shared_ptr<AUR::Client> &aur_client,
@@ -120,6 +119,12 @@ namespace pkg {
          */
         auto has_unresolved_dependencies(const Json::Value &pkg) -> bool;
 
+
+        /**
+         * @brief Fills the m_card_data.installed_pkgs with the installed pkgs.
+         */
+        void get_installed_pkgs();
+
 #if GTKMM_MAJOR_VERSION == 4
         /**
          * @brief Opens the appropriate action for a package (GTK4 version).
@@ -141,6 +146,9 @@ namespace pkg {
         shared_ptr<ArgParser>   m_arg_parser;
         shared_ptr<Config>      m_config;
         shared_ptr<Actions>     m_actions;
+
+        str_pair_vec m_installed_pkgs;
+        CardData     m_card_data;
 
         std::atomic<bool>        m_searching;
         std::atomic<bool>        m_running;

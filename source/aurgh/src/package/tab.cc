@@ -64,17 +64,19 @@ Tab::Tab(
     m_arg_parser(arg_parser),
     m_config(config),
     m_actions(std::make_shared<pkg::Actions>()),
+    m_card_data({
+        .card_builder_file = get_ui_file("card.xml"),
+        .installed_pkgs    = std::make_shared<str_pair_vec>(),
+        .actions           = m_actions,
+        .logger            = m_logger
+    }),
     m_searching(false),
     m_card_ui_file(get_ui_file("card.xml")),
     m_spinner(Gtk::make_managed<Gtk::Spinner>())
 {
     m_logger->log(Logger::Debug, "Creating packages tab");
 
-    m_search_dispatcher.connect([this]() {
-        on_dispatch_search_ready();
-    });
-
-    Glib::RefPtr<Gtk::Builder> b;
+    builder_t b;
 
     try {
         b = Gtk::Builder::create_from_file(get_ui_file("tab.xml"));
@@ -98,11 +100,17 @@ Tab::Tab(
     add(*m_tab_box);
     set_visible();
 #endif
+
+    get_installed_pkgs();
+
+    m_search_dispatcher.connect([this]() {
+        on_dispatch_search_ready();
+    });
 }
 
 
 void
-Tab::setup_widgets(const Glib::RefPtr<Gtk::Builder> &b)
+Tab::setup_widgets(const builder_t &b)
 {
 #if GTK4
     m_tab_box            = b->get_widget<Box>("tab_main");
@@ -244,15 +252,6 @@ Tab::on_dispatch_search_ready()
     bool         reverse        = m_reverse_sort_check->get_active();
     Json::Value  pkgs           = m_search_result["results"];
     Json::Value  sorted         = utils::sort_json(pkgs, sort_by, reverse);
-    auto         local_pkgs     = m_aur_client->get_locally_installed_pkgs();
-    str_pair_vec local_pkgs_str;
-    local_pkgs_str.reserve(local_pkgs.size());
-
-    for (auto *pkg : local_pkgs) {
-        local_pkgs_str.emplace_back(
-            alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)
-        );
-    }
 
     m_spinner->stop();
 
@@ -267,10 +266,7 @@ Tab::on_dispatch_search_ready()
     for (const auto &pkg : sorted) {
         auto *card = Gtk::make_managed<pkg::Card>(
             pkg,
-            m_card_ui_file,
-            local_pkgs_str,
-            m_logger,
-            m_actions
+            m_card_data
         );
 
         card->get_action_button()->signal_clicked().connect(sigc::bind(
@@ -287,6 +283,7 @@ Tab::on_dispatch_search_ready()
 #if GTK3
     m_result_box->show_all_children();
 #endif
+
     m_running = false;
 }
 
@@ -294,11 +291,11 @@ Tab::on_dispatch_search_ready()
 void
 Tab::on_action_button_pressed(const Json::Value &pkg)
 {
-    m_logger->log(Logger::Debug, "Start");
-    if (has_unresolved_dependencies(pkg)) {
-        m_logger->log(Logger::Debug, "End");
-    }
-    m_logger->log(Logger::Debug, "End");
+    // m_logger->log(Logger::Debug, "Start");
+    // if (has_unresolved_dependencies(pkg)) {
+    //     m_logger->log(Logger::Debug, "End");
+    // }
+    // m_logger->log(Logger::Debug, "End");
 
     bool all_empty = true;
 
@@ -389,6 +386,8 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
 #endif
         }
     }
+
+    get_installed_pkgs();
 }
 
 
@@ -511,4 +510,18 @@ Tab::has_unresolved_dependencies(const Json::Value &pkg) -> bool
     }
 
     return false;
+}
+
+
+void
+Tab::get_installed_pkgs()
+{
+    auto local_pkgs = m_aur_client->get_locally_installed_pkgs();
+    m_card_data.installed_pkgs->reserve(local_pkgs.size());
+
+    for (auto *pkg : local_pkgs) {
+        m_card_data.installed_pkgs->emplace_back(
+            alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)
+        );
+    }
 }

@@ -39,8 +39,6 @@ namespace Gtk {
 }
 class Logger;
 
-using str_pair = std::pair<std::string, std::string>;
-
 
 namespace pkg {
     /**
@@ -54,12 +52,9 @@ namespace pkg {
     {
     public:
         explicit Card(
-            Json::Value package,
-            const std::string &ui_file,
-            const std::vector<str_pair> &installed_aur_packages,
-            const std::shared_ptr<Logger> &logger,
-            std::shared_ptr<Actions> &actions,
-            int32_t spacing = DEFAULT_SPACING
+            Json::Value      pkg,
+            const CardData  &card_data,
+            int32_t          spacing = DEFAULT_SPACING
         );
 
         auto get_action_button() -> Gtk::Button*&;
@@ -69,10 +64,10 @@ namespace pkg {
     private:
         static const inline int32_t DEFAULT_SPACING = 5;
 
-        std::vector<str_pair>      m_installed_package;
-        std::shared_ptr<Actions>   m_actions;
-        std::shared_ptr<Logger>    m_logger;
-        Json::Value                m_package;
+        std::shared_ptr<str_pair_vec> m_installed_pkgs;
+        std::shared_ptr<Actions>      m_actions;
+        std::shared_ptr<Logger>       m_logger;
+        Json::Value                   m_package;
 
         Gtk::Box *m_card = nullptr;
 

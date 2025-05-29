@@ -28,8 +28,17 @@
 #include <string>
 #include <vector>
 
-using str_pair = std::pair<std::string, std::string>;
-using str_vec  = std::vector<std::string>;
+namespace Gtk { class Builder; }
+namespace Glib {
+    template <class T_CppObject>
+    using RefPtr = std::shared_ptr<T_CppObject>;
+}
+class Logger;
+
+using str_pair     = std::pair<std::string, std::string>;
+using str_vec      = std::vector<std::string>;
+using str_pair_vec = std::vector<str_pair>;
+using builder_t    = Glib::RefPtr<Gtk::Builder>;
 
 
 namespace pkg {
@@ -40,6 +49,7 @@ namespace pkg {
         Update  = 1,
         None    = 2,
     };
+
 
     struct Actions
     {
@@ -69,6 +79,15 @@ namespace pkg {
             }
             return install;
         }
+    };
+
+
+    struct CardData
+    {
+        std::string                   card_builder_file;
+        std::shared_ptr<str_pair_vec> installed_pkgs;
+        std::shared_ptr<Actions>      actions;
+        std::shared_ptr<Logger>       logger;
     };
 } /* namespace pkg */
 
