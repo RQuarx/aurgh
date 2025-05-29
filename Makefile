@@ -6,7 +6,7 @@ GTK_VERSION ?= 4
 
 
 all:
-	@rm compile_commands.json
+	@rm -f compile_commands.json
 	@if [ ! -d "$(TARGET_DIR)" ]; then \
 		CXX=$(CXX) CXX_LD=$(CXX_LD) meson setup $(TARGET_DIR); \
 	fi
