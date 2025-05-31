@@ -21,6 +21,7 @@
 #ifndef PACKAGE_TYPE_HH__
 #define PACKAGE_TYPE_HH__
 
+#include <unordered_set>
 #include <cstdint>
 #include <utility>
 #include <format>
@@ -28,14 +29,17 @@
 #include <string>
 #include <vector>
 #include <glibmm/refptr.h>
+#include <alpm.h>
 
+namespace AUR { class Client; }
 namespace Gtk { class Builder; }
 class Logger;
 
-using str_pair     = std::pair<std::string, std::string>;
-using str_vec      = std::vector<std::string>;
-using str_pair_vec = std::vector<str_pair>;
-using builder_t    = Glib::RefPtr<Gtk::Builder>;
+using str_pair      = std::pair<std::string, std::string>;
+using str_vec       = std::vector<std::string>;
+using str_pair_vec  = std::vector<str_pair>;
+using builder_t     = Glib::RefPtr<Gtk::Builder>;
+using pkg_uset      = std::unordered_set<alpm_pkg_t*>;
 
 
 namespace pkg {
@@ -81,10 +85,11 @@ namespace pkg {
 
     struct CardData
     {
-        std::string                   card_builder_file;
-        std::shared_ptr<str_pair_vec> installed_pkgs;
-        std::shared_ptr<Actions>      actions;
-        std::shared_ptr<Logger>       logger;
+        std::string                  card_builder_file;
+        std::shared_ptr<pkg_uset>    installed_pkgs;
+        std::shared_ptr<Actions>     actions;
+        std::shared_ptr<Logger>      logger;
+        std::shared_ptr<AUR::Client> aur_client;
     };
 } /* namespace pkg */
 
@@ -152,6 +157,5 @@ struct std::formatter<pkg::Actions, CharT>
         return out;
     }
 };
-
 
 #endif /* package/type.hh */

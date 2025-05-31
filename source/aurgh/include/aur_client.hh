@@ -95,6 +95,14 @@ namespace AUR {
 
 
         /**
+         * @brief Fetches an alpm_pkg_t* from its name.
+         * @param name The name of the package.
+         * @returns An valid alpm_pkg_t* on success, or nullptr on failure.
+         */
+        auto find_pkg(const std::string &name) -> alpm_pkg_t*;
+
+
+        /**
          * @brief Returns packages from the alpm local database.
          * @return A vector of alpm_pkg_t*.
          */

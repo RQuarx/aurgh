@@ -50,9 +50,9 @@ Client::Client(
     ))
 {
     if (!url.empty()) { m_url = url; }
-    else { m_url = (*m_config)["default-aur-url"].asString(); }
+    else { m_url = (*m_config)["links"]["aur-url"].asString(); }
 
-    m_pkexec = (*m_config)["pkexec-binary"].asString();
+    m_pkexec = (*m_config)["app"]["pkexec-binary"].asString();
 
     if (m_alpm_handle == nullptr) {
         m_logger->log(
@@ -387,7 +387,7 @@ Client::initialize_path(uint8_t t) -> std::string
     if (t == 0) {
         path = m_arg_parser->get_option("root");
         if (path.empty()) {
-            return (*m_config)["default-root-path"].asString();
+            return (*m_config)["paths"]["root-path"].asString();
         }
 
         check("Root", path);
@@ -395,7 +395,7 @@ Client::initialize_path(uint8_t t) -> std::string
     } else if (t == 1) {
         path = m_arg_parser->get_option("db-path");
         if (path.empty()) {
-            return (*m_config)["default-db-path"].asString();
+            return (*m_config)["paths"]["db-path"].asString();
         }
 
         check("Database", path);
@@ -403,7 +403,7 @@ Client::initialize_path(uint8_t t) -> std::string
     } else if (t == 2) {
         path = m_arg_parser->get_option("db-path");
         if (path.empty()) {
-            return (*m_config)["default-helper-path"].asString();
+            return (*m_config)["paths"]["helper-path"].asString();
         }
 
         if (!std::filesystem::exists(path)) {
@@ -422,7 +422,7 @@ Client::initialize_path(uint8_t t) -> std::string
         path = m_arg_parser->get_option("prefix-path");
         if (path.empty()) {
             return utils::expand_envs(
-                (*m_config)["default-prefix-path"].asString()
+                (*m_config)["paths"]["prefix-path"].asString()
             );
         }
 
@@ -430,4 +430,12 @@ Client::initialize_path(uint8_t t) -> std::string
     }
 
     return path;
+}
+
+
+auto
+Client::find_pkg(const std::string &name) -> alpm_pkg_t*
+{
+    alpm_db_t *local_db = alpm_get_localdb(m_alpm_handle);
+    return alpm_db_get_pkg(local_db, name.c_str());
 }

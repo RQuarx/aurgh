@@ -27,6 +27,7 @@
 #include <utility>
 
 // #include "logger.hh"
+#include "aur_client.hh"
 #include "utils.hh"
 #include "card.hh"
 
@@ -34,12 +35,10 @@ using pkg::Card;
 
 
 Card::Card(
-    Json::Value                    pkg,
-    const CardData                &card_data
+    Json::Value     pkg,
+    const CardData &card_data
 ) :
-    m_installed_pkgs(card_data.installed_pkgs),
-    m_actions(card_data.actions),
-    m_logger(card_data.logger),
+    m_card_data(card_data),
     m_package(std::move(pkg)),
     m_button_dimmed(false)
 {
@@ -141,7 +140,7 @@ Card::setup() -> bool
 void
 Card::on_button_clicked(pkg::Type result, const std::string &pkg_name)
 {
-    auto vec = m_actions->at(result);
+    auto vec = m_card_data.actions->at(result);
 
     if (m_button_dimmed) {
         auto it = std::ranges::find(*vec, pkg_name);
@@ -162,11 +161,15 @@ Card::on_button_clicked(pkg::Type result, const std::string &pkg_name)
 auto
 Card::find_package(const str_pair &package) const -> int8_t
 {
-    if (utils::find(*m_installed_pkgs, package)) return 0;
-    for (const auto &[pkg_name, _] : *m_installed_pkgs) {
-        if (pkg_name == package.first) return 1;
+    if (m_card_data.aur_client->find_pkg(package.first) != nullptr) {
+        return 0;
     }
     return -1;
+    // if (utils::find(*m_installed_pkgs, package)) return 0;
+    // for (const auto &[pkg_name, _] : *m_installed_pkgs) {
+        // if (pkg_name == package.first) return 1;
+    // }
+    // return -1;
 }
 
 
@@ -174,7 +177,7 @@ void
 Card::refresh()
 {
     for (auto t : { pkg::Update, pkg::Install, pkg::Remove }) {
-        auto action = m_actions->at(t);
+        auto action = m_card_data.actions->at(t);
         auto pkg    = m_package["Name"].asString();
         if (!m_button_dimmed && utils::find(*action, pkg)) {
             m_button_dimmed = true;

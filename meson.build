@@ -31,7 +31,7 @@ elif gtk_version == 3
         'glibmm-2.4',
     ]
 else
-    error('GTK version must be 3 or 4')
+    error('GTK must be version 3 or 4')
 endif
 
 foreach dep : deps

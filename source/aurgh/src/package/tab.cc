@@ -18,8 +18,9 @@
  */
 
 #include <filesystem>
-#include <regex>
+#include <chrono>
 #include <thread>
+#include <regex>
 
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/comboboxtext.h>
@@ -66,9 +67,10 @@ Tab::Tab(
     m_actions(std::make_shared<pkg::Actions>()),
     m_card_data({
         .card_builder_file = get_ui_file("card.xml"),
-        .installed_pkgs    = std::make_shared<str_pair_vec>(),
+        .installed_pkgs    = std::make_shared<pkg_uset>(),
         .actions           = m_actions,
-        .logger            = m_logger
+        .logger            = m_logger,
+        .aur_client        = m_aur_client
     }),
     m_searching(false),
     m_card_ui_file(get_ui_file("card.xml")),
@@ -163,6 +165,13 @@ Tab::setup()
     m_sort_by_combo->set_active_text((*cache)["sort-by-default"].asString());
     m_reverse_sort_check->set_active((*cache)["reverse-sort-default"].asBool());
 
+    if (m_search_by_combo->get_active_text() == nullptr) {
+        m_search_by_combo->set_active_text("name");
+    }
+    if (m_sort_by_combo->get_active_text() == nullptr) {
+        m_sort_by_combo->set_active_text("NumVotes");
+    }
+
     auto criteria_changed = sigc::bind(
     [this](const std::shared_ptr<Json::Value> &cache)
     {
@@ -192,6 +201,9 @@ Tab::setup()
 void
 Tab::on_search()
 {
+    std::string pkg_name  = m_search_entry->get_text();
+    if (pkg_name.empty()) return;
+
     auto children = m_result_box->get_children();
 
     for (auto *child : children) {
@@ -215,7 +227,6 @@ Tab::on_search()
 
     m_spinner->start();
 
-    std::string pkg_name  = m_search_entry->get_text();
     std::string search_by = m_search_by_combo->get_active_text();
 
     m_logger->log(
@@ -289,13 +300,16 @@ Tab::on_dispatch_search_ready()
 
 
 void
-Tab::on_action_button_pressed(const Json::Value & /*pkg*/)
+Tab::on_action_button_pressed(const Json::Value &pkg)
 {
-    // m_logger->log(Logger::Debug, "Start");
-    // if (has_unresolved_dependencies(pkg)) {
-    //     m_logger->log(Logger::Debug, "End");
-    // }
-    // m_logger->log(Logger::Debug, "End");
+    auto tick = std::chrono::system_clock::now();
+
+    if (has_unresolved_dependencies(pkg)) {
+        m_logger->log(Logger::Debug, "Has unresolved deps");
+    }
+    auto tock = std::chrono::system_clock::now();
+
+    m_logger->log(Logger::Debug, "Time: {}", std::chrono::duration_cast<std::chrono::milliseconds>(tock - tick));
 
     bool all_empty = true;
 
@@ -451,7 +465,7 @@ Tab::get_ui_file(const std::string &file_name) -> std::string
 
     if (valid_file(file_name)) return file_name;
     if (valid_file(path)) return path;
-    return (*m_config->get_config())["default-ui-path"].asString() + path;
+    return (*m_config->get_config())["paths"]["ui-path"].asString() + path;
 }
 
 
@@ -459,14 +473,6 @@ auto
 Tab::has_unresolved_dependencies(const Json::Value &pkg) -> bool
 {
     auto info = m_aur_client->info(pkg["Name"].asString());
-
-    auto installed_pkgs       = m_aur_client->get_installed_pkgs();
-    auto local_installed_pkgs = m_aur_client->get_locally_installed_pkgs();
-
-    installed_pkgs.insert(
-        installed_pkgs.end(),
-        local_installed_pkgs.begin(), local_installed_pkgs.end()
-    );
 
     auto &depends = info["Depends"];
     depends.append(info["MakeDepends"]);
@@ -481,47 +487,42 @@ Tab::has_unresolved_dependencies(const Json::Value &pkg) -> bool
         return dep;
     };
 
-    for (const auto &dep : depends) {
-        const std::string full_dep = dep.asString();
-        const std::string dep_name = extract_dep_name(full_dep);
-
-        bool found = false;
-
-        for (auto *pkg : installed_pkgs) {
-            if (dep_name == alpm_pkg_get_name(pkg)) {
-                found = true;
-                break;
-            }
-
-            alpm_list_t *provides = alpm_pkg_get_provides(pkg);
-            for (auto *p = provides; p != nullptr; p = p->next) {
-                auto *prov = static_cast<alpm_depend_t *>(p->data);
-
-                if (dep_name == prov->name) {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (found) break;
-        }
-
-        if (!found) { return true; }
-    }
-
-    return false;
+    return std::ranges::any_of(depends,
+    [this, extract_dep_name](const auto &dep)
+    {
+        std::string dep_name = extract_dep_name(dep.asString());
+        return m_aur_client->find_pkg(dep_name) == nullptr;
+    });
 }
 
 
 void
 Tab::get_installed_pkgs()
 {
-    auto local_pkgs = m_aur_client->get_locally_installed_pkgs();
-    m_card_data.installed_pkgs->reserve(local_pkgs.size());
+    m_installed_pkgs.clear();
 
-    for (auto *pkg : local_pkgs) {
-        m_card_data.installed_pkgs->emplace_back(
-            alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)
-        );
-    }
+    auto local_pkgs     = m_aur_client->get_locally_installed_pkgs();
+    auto installed_pkgs = m_aur_client->get_installed_pkgs();
+
+    m_installed_pkgs.reserve(local_pkgs.size() + installed_pkgs.size());
+
+    auto insert_to_set =
+    [this](const std::vector<alpm_pkg_t*> &pkgs)
+    {
+        for (auto *pkg : pkgs) {
+            m_installed_pkgs.emplace(
+                pkg
+            );
+        }
+    };
+
+    insert_to_set(local_pkgs);
+    insert_to_set(installed_pkgs);
+    // m_card_data.installed_pkgs->reserve(local_pkgs.size());
+
+    // for (auto *pkg : local_pkgs) {
+        // m_card_data.installed_pkgs->emplace_back(
+            // alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)
+        // );
+    // }
 }

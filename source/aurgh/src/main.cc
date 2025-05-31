@@ -49,7 +49,7 @@ namespace {
         {
             std::string title = arg_parser->get_option("title");
             if (title.empty()) {
-                title = (*config->get_config())["default-title"].asString();
+                title = (*config->get_config())["app"]["default-title"].asString();
             }
 
             set_title(title);
@@ -101,7 +101,8 @@ main(int32_t argc, char **argv) -> int32_t
     auto aur_client = std::make_shared<AUR::Client>(logger, arg_parser, config);
 
     logger->log(
-        Logger::Debug, "Initialising curl with flag: {}", CURL_INIT_FLAG
+        Logger::Debug,
+        "Initialising curl with flag: CURL_GLOBAL_ALL, CURL_VERSION_THREADSAFE"
     );
     if (curl_global_init(CURL_INIT_FLAG) != 0) {
         logger->log(Logger::Error, "Failed to init curl");

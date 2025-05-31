@@ -47,13 +47,13 @@ Config::Config(
 
     if (m_config_path.empty()) {
         m_config_path = std::format(
-            "{}/.config/aurgh/config.json",
+            "{}/.config/aurgh/config.jsonc",
             utils::get_env("HOME")
         );
     }
 
     m_cache_path = std::format(
-        "{}/.cache/aurgh/cache.json",
+        "{}/.cache/aurgh/cache.jsonc",
         utils::get_env("HOME")
     );
 

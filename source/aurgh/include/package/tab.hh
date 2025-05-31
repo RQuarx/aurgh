@@ -147,8 +147,8 @@ namespace pkg {
         shared_ptr<Config>      m_config;
         shared_ptr<Actions>     m_actions;
 
-        str_pair_vec m_installed_pkgs;
-        CardData     m_card_data;
+        pkg_uset m_installed_pkgs;
+        CardData m_card_data;
 
         std::atomic<bool>        m_searching;
         std::atomic<bool>        m_running;

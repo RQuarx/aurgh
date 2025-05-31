@@ -52,8 +52,8 @@ namespace pkg {
     {
     public:
         explicit Card(
-            Json::Value      pkg,
-            const CardData  &card_data
+            Json::Value     pkg,
+            const CardData &card_data
         );
 
         auto get_action_button() -> Gtk::Button*&;
@@ -61,7 +61,7 @@ namespace pkg {
         void refresh();
 
     private:
-        static const inline int32_t DEFAULT_SPACING = 5;
+        CardData m_card_data;
 
         std::shared_ptr<str_pair_vec> m_installed_pkgs;
         std::shared_ptr<Actions>      m_actions;
