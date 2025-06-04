@@ -74,20 +74,15 @@ main(int32_t argc, char **argv) -> int32_t
     auto arg_parser = std::make_shared<ArgParser>(argc, argv);
 
     arg_parser
-       ->add_flag({ "-V", "--version" },     "Prints the program version")
-        .add_option({ "-l", "--log" },       "Shows or outputs the log",           "str,int")
-        .add_option({ "-t", "--title" },     "Changes the window title",           "str")
-        .add_option({ "-c", "--config" },    "Specify a non-default config path",  "path")
-        .add_option({ "-u", "--ui" },        "Specify a non-default ui-file path", "path")
-        .add_option({ "-r", "--root" },      "Specify the filesystem root",        "path")
-        .add_option({ "-b", "--db-path" },   "Specify the pacman db path",         "path")
-        .add_option({ "", "--helper-path" }, "Specify the helper binary path",     "path")
-        .add_option({ "", "--prefix-path" }, "Specify the prefix/cache path",      "path")
+        ->add_flag( { "-V", "--version" }, "Prints the program version")
+        .add_option({ "-l", "--log" },     "Shows or outputs the log", "path,int")
+        .add_option({ "-t", "--title" },   "Changes the window title", "str")
+        .add_option({ "-c", "--config" },  "Specify a config path", "path")
         .parse();
 
     if (arg_parser->get_flag("version")) {
         std::println(
-            "{:<7} {}\nlibalpm {}\ngtkmm   {}.{}.{}",
+            "{} {}\n├─libalpm - {}\n╰─gtkmm   - {}.{}.{}",
             APP_NAME, APP_VERSION,
             alpm_version(),
             GTKMM_MAJOR_VERSION, GTKMM_MINOR_VERSION, GTKMM_MICRO_VERSION

@@ -349,87 +349,15 @@ Client::remove(const std::vector<std::string> &pkgs) -> bool
 auto
 Client::initialize_path(uint8_t t) -> std::string
 {
-    auto log_exit = [this](
-        const std::string &msg, const std::string &path
-    ){
-        m_logger->log(
-            Logger::Error,
-            std::format("{}", msg),
-            path
-        );
-        exit(EXIT_FAILURE);
-    };
+    using utils::expand_envs;
 
-    auto check = [this](
-        const std::string &path_name,
-        const std::string &path
-    )
-    {
-        if (!std::filesystem::exists(path)) {
-            m_logger->log(
-                Logger::Error,
-                "{} path {} not a valid path.", path_name, path
-            );
-            exit(EXIT_FAILURE);
-        }
-
-        if (!std::filesystem::is_directory(path)) {
-            m_logger->log(
-                Logger::Error,
-                "{} path {} not a directory.", path_name, path
-            );
-            exit(EXIT_FAILURE);
-        }
-    };
-
-    std::string path;
-
-    if (t == 0) {
-        path = m_arg_parser->get_option("root");
-        if (path.empty()) {
-            return (*m_config)["paths"]["root-path"].asString();
-        }
-
-        check("Root", path);
-
-    } else if (t == 1) {
-        path = m_arg_parser->get_option("db-path");
-        if (path.empty()) {
-            return (*m_config)["paths"]["db-path"].asString();
-        }
-
-        check("Database", path);
-
-    } else if (t == 2) {
-        path = m_arg_parser->get_option("db-path");
-        if (path.empty()) {
-            return (*m_config)["paths"]["helper-path"].asString();
-        }
-
-        if (!std::filesystem::exists(path)) {
-            log_exit("Helper path {} not a valid path.", path);
-        }
-
-        if (!std::filesystem::is_regular_file(path)) {
-            log_exit("Helper path {} is not a file.", path);
-        }
-
-        if (access(path.c_str(), X_OK) != 0) {
-            log_exit("Helper path {} is not an executable.", path);
-        }
-
-    } else if (t == 3) {
-        path = m_arg_parser->get_option("prefix-path");
-        if (path.empty()) {
-            return utils::expand_envs(
-                (*m_config)["paths"]["prefix-path"].asString()
-            );
-        }
-
-        check("Prefix", path);
+    switch (t) {
+    case 0:  return expand_envs((*m_config)["paths"]["root-path"].asString());
+    case 1:  return expand_envs((*m_config)["paths"]["db-path"].asString());
+    case 2:  return expand_envs((*m_config)["paths"]["helper-path"].asString());
+    case 3:  return expand_envs((*m_config)["paths"]["prefix-path"].asString());
+    default: return "";
     }
-
-    return path;
 }
 
 

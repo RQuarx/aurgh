@@ -32,13 +32,6 @@
 #include "log.hh"
 
 
-namespace {
-    auto
-    cleanup(const std::string &path, int32_t retval)
-    { std::filesystem::remove(path); return retval; }
-}
-
-
 auto
 main(int32_t argc, char **argv) -> int32_t
 {
@@ -75,10 +68,12 @@ main(int32_t argc, char **argv) -> int32_t
         root_path, db_path, prefix_path, log, err
     };
 
+    using std::filesystem::remove;
+
 
     if (err != ALPM_ERR_OK) {
         log->write(true, "Failed to initialize alpm: {}", alpm_strerror(err));
-        return cleanup(operation_file_path, 1);
+        return remove(operation_file_path), 1;
     };
 
     if (type == "remove") {
@@ -90,13 +85,13 @@ main(int32_t argc, char **argv) -> int32_t
         }
 
         bool _ = alpm.remove_packages(pkgs);
-        return cleanup(operation_file_path, 1);
+        return remove(operation_file_path), 1;
     }
 
     if (type == "install") {
         bool _ = alpm.download_and_install_package(operation["pkg"].asString());
-        return cleanup(operation_file_path, 1);
+        return remove(operation_file_path), 1;
     }
 
-    return cleanup(operation_file_path, 0);
+    return remove(operation_file_path), 0;
 }

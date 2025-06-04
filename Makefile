@@ -35,3 +35,6 @@ uninstall:
 	rm -rf /usr/share/aurgh
 	rm /usr/share/applications/aurgh.desktop
 	rm /usr/bin/aurgh
+
+clean:
+	meson compile -C $(TARGET_DIR) --clean
