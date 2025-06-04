@@ -44,6 +44,8 @@ using pkg_uset      = std::unordered_set<alpm_pkg_t*>;
 namespace pkg {
     class Client;
 
+    static const size_t DEFAULT_RESERVE_SIZE = 10ZU;
+
     enum Type : int8_t
     {
         Install = -1,
@@ -64,9 +66,9 @@ namespace pkg {
             remove(std::make_shared<str_vec>()),
             update(std::make_shared<str_vec>())
         {
-            install->reserve(10);
-            remove->reserve(10);
-            update->reserve(10);
+            install->reserve(DEFAULT_RESERVE_SIZE);
+            remove->reserve(DEFAULT_RESERVE_SIZE);
+            update->reserve(DEFAULT_RESERVE_SIZE);
         }
 
         [[nodiscard]]

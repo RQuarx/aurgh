@@ -148,13 +148,12 @@ Logger::get_current_time() -> std::string
     using s = std::chrono::seconds;
 
     duration now = std::chrono::system_clock::now().time_since_epoch();
-
-    ms milliseconds  = std::chrono::duration_cast<ms>(now) % 1000;
-    m minutes        = std::chrono::duration_cast<m>(now) % 60;
-    s seconds        = std::chrono::duration_cast<s>(now) % 60;
+    ms millis    = std::chrono::duration_cast<ms>(now) % 1000;
+    m minutes    = std::chrono::duration_cast<m>(now) % 60;
+    s seconds    = std::chrono::duration_cast<s>(now) % 60;
 
     return std::format(
         "{:02}:{:02}.{:03}",
-        minutes.count(), seconds.count(), milliseconds.count()
+        minutes.count(), seconds.count(), millis.count()
     );
 }

@@ -152,7 +152,7 @@ Card::on_button_clicked(pkg::Type result, const std::string &pkg_name)
         }
     } else {
         vec->push_back(pkg_name);
-        m_action_button->set_opacity(0.5);
+        m_action_button->set_opacity(0.5F);
         m_button_dimmed = true;
     }
 }
@@ -181,7 +181,7 @@ Card::refresh()
         auto pkg    = m_package["Name"].asString();
         if (!m_button_dimmed && utils::find(*action, pkg)) {
             m_button_dimmed = true;
-            m_action_button->set_opacity(0.5);
+            m_action_button->set_opacity(0.5F);
             return;
         }
     }
