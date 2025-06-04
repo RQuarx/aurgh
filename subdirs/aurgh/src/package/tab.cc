@@ -35,12 +35,12 @@
 #include <glibmm/fileutils.h>
 #include <glibmm/refptr.h>
 
+#include "package/client.hh"
+#include "package/card.hh"
+#include "package/tab.hh"
 #include "arg_parser.hh"
-#include "aur_client.hh"
 #include "config.hh"
 #include "logger.hh"
-#include "card.hh"
-#include "tab.hh"
 
 using pkg::Tab;
 
@@ -55,7 +55,7 @@ using Gtk::Box;
 
 
 Tab::Tab(
-    const shared_ptr<AUR::Client> &aur_client,
+    const shared_ptr<pkg::Client> &aur_client,
     const shared_ptr<Logger>      &logger,
     const shared_ptr<Config>      &config,
     const shared_ptr<ArgParser>   &arg_parser
@@ -153,8 +153,8 @@ Tab::setup_widgets(const builder_t &b)
 void
 Tab::setup()
 {
-    auto search_by_keywords = AUR::Client::get_search_by_keywords();
-    auto sort_by_keywords   = AUR::Client::get_sort_by_keywords();
+    auto search_by_keywords = pkg::Client::get_search_by_keywords();
+    auto sort_by_keywords   = pkg::Client::get_sort_by_keywords();
 
     for (const auto &w : search_by_keywords) m_search_by_combo->append(w);
     for (const auto &w : sort_by_keywords)   m_sort_by_combo->append(w);

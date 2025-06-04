@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef CONFIG_HH__
-#define CONFIG_HH__
+#ifndef __CONFIG_HH__
+#define __CONFIG_HH__
 
 #include <memory>
 
@@ -91,4 +91,4 @@ private:
     auto load_cache() -> bool;
 };
 
-#endif /* config.hh */
+#endif /* __CONFIG_HH__ */

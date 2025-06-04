@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef LOGGER_HH__
-#define LOGGER_HH__
+#ifndef __LOGGER_HH__
+#define __LOGGER_HH__
 
 #include <unordered_map>
 #include <fstream>
@@ -169,4 +169,4 @@ private:
     static auto get_current_time() -> std::string;
 };
 
-#endif /* logger.hh */
+#endif /* __LOGGER_HH__ */

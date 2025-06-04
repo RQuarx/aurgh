@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef AUR_CLIENT_HH__
-#define AUR_CLIENT_HH__
+#ifndef __PACKAGE__CLIENT_HH__
+#define __PACKAGE__CLIENT_HH__
 
 #include <string_view>
 #include <memory>
@@ -35,7 +35,8 @@ class Config;
 class Logger;
 
 
-namespace AUR {
+namespace pkg
+{
     /**
      * @class Client
      * @brief A class made to fetch json fata from the Arch User Repository.
@@ -170,6 +171,6 @@ namespace AUR {
             alpm_list_t       *sync_dbs
         ) -> uint8_t;
     };
-} /* namespace AUR */
+} /* namespace pkg */
 
-#endif /* aur_client.hh */
+#endif /* __PACKAGE__CLIENT_HH__ */

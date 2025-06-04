@@ -22,7 +22,12 @@
 		/* The path pointing to the directory used
 		   to store the ui files (.xml)
 		*/
-		"ui-path": "/usr/share/aurgh"
+
+		/* Use for system-wide installation */
+		/* "ui-path": "/usr/share/aurgh" */
+
+		/* Use for local installation */
+		"ui-path": "."
 	},
 
 	/* An object filled with values used by the program */

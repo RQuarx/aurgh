@@ -17,18 +17,16 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <filesystem>
-
 #include <json/reader.h>
 #include <json/json.h>
 #include <alpm.h>
 
+#include "package/client.hh"
 #include "arg_parser.hh"
-#include "aur_client.hh"
 #include "config.hh"
 #include "logger.hh"
 
-using AUR::Client;
+using pkg::Client;
 
 
 Client::Client(

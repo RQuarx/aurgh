@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef PACKAGE_TAB_HH__
-#define PACKAGE_TAB_HH__
+#ifndef __PACKAGE__TAB_HH__
+#define __PACKAGE__TAB_HH__
 
 #include <atomic>
 #include <memory>
@@ -30,7 +30,6 @@
 
 #include "package/type.hh"
 
-namespace AUR { class Client; }
 namespace Gtk {
     class ScrolledWindow;
     class ComboBoxText;
@@ -48,6 +47,8 @@ class Logger;
 
 
 namespace pkg {
+    class Client;
+
     using std::shared_ptr;
 
     /**
@@ -61,7 +62,7 @@ namespace pkg {
     {
     public:
         Tab(
-            const shared_ptr<AUR::Client> &aur_client,
+            const shared_ptr<pkg::Client> &aur_client,
             const shared_ptr<Logger>      &logger,
             const shared_ptr<Config>      &config,
             const shared_ptr<ArgParser>   &arg_parser
@@ -141,11 +142,11 @@ namespace pkg {
 #endif
 
     private:
-        shared_ptr<AUR::Client> m_aur_client;
-        shared_ptr<Logger>      m_logger;
-        shared_ptr<ArgParser>   m_arg_parser;
-        shared_ptr<Config>      m_config;
-        shared_ptr<Actions>     m_actions;
+        shared_ptr<Client>    m_aur_client;
+        shared_ptr<Logger>    m_logger;
+        shared_ptr<ArgParser> m_arg_parser;
+        shared_ptr<Config>    m_config;
+        shared_ptr<Actions>   m_actions;
 
         pkg_uset m_installed_pkgs;
         CardData m_card_data;
@@ -175,4 +176,4 @@ namespace pkg {
     };
 } /* namespace pkg */
 
-#endif /* package/tab.hh */
+#endif /* __PACKAGE__TAB_HH__ */

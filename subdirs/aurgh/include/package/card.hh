@@ -18,12 +18,10 @@
  */
 
 #pragma once
-#ifndef PACKAGE_CARD_HH__
-#define PACKAGE_CARD_HH__
+#ifndef __PACKAGE__CARD_HH__
+#define __PACKAGE__CARD_HH__
 
-#include <utility>
 #include <string>
-#include <vector>
 
 #include <gtkmm/frame.h>
 #include <json/value.h>
@@ -81,7 +79,7 @@ namespace pkg {
         Gtk::Label *m_popularity_label = nullptr;
         Gtk::Label *m_votes_label      = nullptr;
 
-        bool    m_button_dimmed;
+        bool m_button_dimmed;
 
     protected:
         auto setup() -> bool;
@@ -96,4 +94,4 @@ namespace pkg {
     };
 } /* namespace pkg */
 
-#endif /* package/card.hh */
+#endif /* __PACKAGE__CARD_HH__ */

@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef PACKAGE_TYPE_HH__
-#define PACKAGE_TYPE_HH__
+#ifndef __PACKAGE__TYPE_HH__
+#define __PACKAGE__TYPE_HH__
 
 #include <unordered_set>
 #include <cstdint>
@@ -31,7 +31,6 @@
 #include <glibmm/refptr.h>
 #include <alpm.h>
 
-namespace AUR { class Client; }
 namespace Gtk { class Builder; }
 class Logger;
 
@@ -43,6 +42,8 @@ using pkg_uset      = std::unordered_set<alpm_pkg_t*>;
 
 
 namespace pkg {
+    class Client;
+
     enum Type : int8_t
     {
         Install = -1,
@@ -89,7 +90,7 @@ namespace pkg {
         std::shared_ptr<pkg_uset>    installed_pkgs;
         std::shared_ptr<Actions>     actions;
         std::shared_ptr<Logger>      logger;
-        std::shared_ptr<AUR::Client> aur_client;
+        std::shared_ptr<pkg::Client> aur_client;
     };
 } /* namespace pkg */
 
@@ -158,4 +159,4 @@ struct std::formatter<pkg::Actions, CharT>
     }
 };
 
-#endif /* package/type.hh */
+#endif /* __PACKAGE__TYPE_HH__*/

@@ -21,11 +21,11 @@
 #include <gtkmm/window.h>
 #include <curl/curl.h>
 
+#include "package/client.hh"
+#include "package/tab.hh"
 #include "arg_parser.hh"
-#include "aur_client.hh"
 #include "config.hh"
 #include "logger.hh"
-#include "tab.hh"
 
 using const_str = const std::string;
 
@@ -41,7 +41,7 @@ namespace {
     {
     public:
         AppWindow(
-            const shared_ptr<AUR::Client> &aur_client,
+            const shared_ptr<pkg::Client> &aur_client,
             const shared_ptr<Logger>      &logger,
             const shared_ptr<Config>      &config,
             const shared_ptr<ArgParser>   &arg_parser
@@ -49,7 +49,8 @@ namespace {
         {
             std::string title = arg_parser->get_option("title");
             if (title.empty()) {
-                title = (*config->get_config())["app"]["default-title"].asString();
+                title =
+                    (*config->get_config())["app"]["default-title"].asString();
             }
 
             set_title(title);
@@ -71,6 +72,8 @@ namespace {
 auto
 main(int32_t argc, char **argv) -> int32_t
 {
+    using pkg::Client;
+
     auto arg_parser = std::make_shared<ArgParser>(argc, argv);
 
     arg_parser
@@ -91,9 +94,9 @@ main(int32_t argc, char **argv) -> int32_t
     }
 
     auto app        = Gtk::Application::create(APP_ID);
-    auto logger     = std::make_shared<Logger>     (arg_parser);
-    auto config     = std::make_shared<Config>     (logger, arg_parser);
-    auto aur_client = std::make_shared<AUR::Client>(logger, arg_parser, config);
+    auto logger     = std::make_shared<Logger>(arg_parser);
+    auto config     = std::make_shared<Config>(logger, arg_parser);
+    auto aur_client = std::make_shared<Client>(logger, arg_parser, config);
 
     logger->log(
         Logger::Debug,

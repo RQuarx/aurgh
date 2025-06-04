@@ -27,9 +27,9 @@
 #include <utility>
 
 // #include "logger.hh"
-#include "aur_client.hh"
+#include "package/client.hh"
+#include "package/card.hh"
 #include "utils.hh"
-#include "card.hh"
 
 using pkg::Card;
 
