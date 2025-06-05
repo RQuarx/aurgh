@@ -41,9 +41,6 @@ namespace Gtk {
     class Button;
     class Label;
 } /* namespace Gtk */
-class ArgParser;
-class Config;
-class Logger;
 
 
 namespace pkg {
@@ -61,12 +58,7 @@ namespace pkg {
     class Tab : public Gtk::Box
     {
     public:
-        Tab(
-            const shared_ptr<pkg::Client> &aur_client,
-            const shared_ptr<Logger>      &logger,
-            const shared_ptr<Config>      &config,
-            const shared_ptr<ArgParser>   &arg_parser
-        );
+        Tab();
 
     protected:
         /**
@@ -107,24 +99,24 @@ namespace pkg {
 
 
         /**
-         * @brief Resolves the full UI file path from a filename.
-         * @param file_name Name of the UI file.
-         * @return Full file path to the UI resource.
+         * @brief Fills the m_card_data.installed_pkgs with the installed pkgs.
          */
-        auto get_ui_file(const std::string &file_name) -> std::string;
+        void get_installed_pkgs();
 
 
         /**
          * @brief Checks if a package @p pkg has unresolved dependency.
          * @param pkg The package to check for.
          */
-        auto has_unresolved_dependencies(const Json::Value &pkg) -> bool;
+        static auto has_unresolved_dependencies(const Json::Value &pkg) -> bool;
 
 
         /**
-         * @brief Fills the m_card_data.installed_pkgs with the installed pkgs.
+         * @brief Resolves the full UI file path from a filename.
+         * @param file_name Name of the UI file.
+         * @return Full file path to the UI resource.
          */
-        void get_installed_pkgs();
+        static auto get_ui_file(const std::string &file_name) -> std::string;
 
 #if GTKMM_MAJOR_VERSION == 4
         /**
@@ -142,10 +134,6 @@ namespace pkg {
 #endif
 
     private:
-        shared_ptr<Client>    m_aur_client;
-        shared_ptr<Logger>    m_logger;
-        shared_ptr<ArgParser> m_arg_parser;
-        shared_ptr<Config>    m_config;
         shared_ptr<Actions>   m_actions;
 
         pkg_uset m_installed_pkgs;

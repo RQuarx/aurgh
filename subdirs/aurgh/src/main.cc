@@ -26,6 +26,7 @@
 #include "arg_parser.hh"
 #include "config.hh"
 #include "logger.hh"
+#include "data.hh"
 
 using const_str = const std::string;
 
@@ -34,30 +35,19 @@ static const int32_t CURL_INIT_FLAG = CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE;
 
 
 namespace {
-    using std::shared_ptr;
-
-
     class AppWindow : public Gtk::Window
     {
     public:
-        AppWindow(
-            const shared_ptr<pkg::Client> &aur_client,
-            const shared_ptr<Logger>      &logger,
-            const shared_ptr<Config>      &config,
-            const shared_ptr<ArgParser>   &arg_parser
-        )
+        AppWindow()
         {
-            std::string title = arg_parser->get_option("title");
+            std::string title = data::arg_parser->get_option("title");
             if (title.empty()) {
-                title =
-                    (*config->get_config())["app"]["default-title"].asString();
+                title = (*data::config->get_config())
+                    ["app"]["default-title"].asString();
             }
 
             set_title(title);
-
-            auto *pkg_tab = Gtk::make_managed<pkg::Tab>(
-                aur_client, logger, config, arg_parser
-            );
+            auto *pkg_tab = Gtk::make_managed<pkg::Tab>();
 
 #if GTK4
             set_child(*pkg_tab);
@@ -72,18 +62,16 @@ namespace {
 auto
 main(int32_t argc, char **argv) -> int32_t
 {
-    using pkg::Client;
+    data::arg_parser = std::make_shared<ArgParser>(argc, argv);
 
-    auto arg_parser = std::make_shared<ArgParser>(argc, argv);
-
-    arg_parser
+    data::arg_parser
         ->add_flag( { "-V", "--version" }, "Prints the program version")
         .add_option({ "-l", "--log" },     "Shows or outputs the log", "path,int")
         .add_option({ "-t", "--title" },   "Changes the window title", "str")
         .add_option({ "-c", "--config" },  "Specify a config path", "path")
         .parse();
 
-    if (arg_parser->get_flag("version")) {
+    if (data::arg_parser->get_flag("version")) {
         std::println(
             "{} {}\n├─libalpm - {}\n╰─gtkmm   - {}.{}.{}",
             APP_NAME, APP_VERSION,
@@ -93,26 +81,24 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_SUCCESS;
     }
 
-    auto app        = Gtk::Application::create(APP_ID);
-    auto logger     = std::make_shared<Logger>(arg_parser);
-    auto config     = std::make_shared<Config>(logger, arg_parser);
-    auto aur_client = std::make_shared<Client>(logger, arg_parser, config);
+    auto app         = Gtk::Application::create(APP_ID);\
+    data::logger     = std::make_shared<Logger>();
+    data::config     = std::make_shared<Config>();
+    data::pkg_client = std::make_shared<pkg::Client>();
 
-    logger->log(
+    data::logger->log(
         Logger::Debug,
-        "Initialising curl with flag: CURL_GLOBAL_ALL, CURL_VERSION_THREADSAFE"
+        "Initialising curl with flag: "
+        "CURL_GLOBAL_ALL, CURL_VERSION_THREADSAFE"
     );
     if (curl_global_init(CURL_INIT_FLAG) != 0) {
-        logger->log(Logger::Error, "Failed to init curl");
-        return EXIT_FAILURE;
+        data::logger->log(Logger::Error, "Failed to init curl");
     }
 
 #if GTK4
-    return app->make_window_and_run<AppWindow>(
-        0, nullptr, aur_client, logger, config, arg_parser
-    );
+    return app->make_window_and_run<AppWindow>(0, nullptr);
 #else
-    AppWindow window(aur_client, logger, config, arg_parser);
+    AppWindow window;
     return app->run(window, 0, nullptr);
 #endif
 }

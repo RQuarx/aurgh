@@ -23,10 +23,8 @@
 
 #include <unordered_map>
 #include <fstream>
-#include <memory>
 #include <print>
 
-#include "utils.hh"
 
 class ArgParser;
 
@@ -60,10 +58,8 @@ public:
 
     /**
      * @brief Construct the Logger class
-     * @param arg_parser A shared pointer to an ArgParser instance for command-line
-     * argument parsing.
      */
-    explicit Logger(const std::shared_ptr<ArgParser> &arg_parser);
+    Logger();
 
     /**
      * @brief Destructor for Logger class

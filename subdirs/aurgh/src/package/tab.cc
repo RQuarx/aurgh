@@ -38,9 +38,10 @@
 #include "package/client.hh"
 #include "package/card.hh"
 #include "package/tab.hh"
-#include "arg_parser.hh"
 #include "config.hh"
 #include "logger.hh"
+#include "utils.hh"
+#include "data.hh"
 
 using pkg::Tab;
 
@@ -54,36 +55,25 @@ using Gtk::Label;
 using Gtk::Box;
 
 
-Tab::Tab(
-    const shared_ptr<pkg::Client> &aur_client,
-    const shared_ptr<Logger>      &logger,
-    const shared_ptr<Config>      &config,
-    const shared_ptr<ArgParser>   &arg_parser
-) :
-    m_aur_client(aur_client),
-    m_logger(logger),
-    m_arg_parser(arg_parser),
-    m_config(config),
+Tab::Tab() :
     m_actions(std::make_shared<pkg::Actions>()),
     m_card_data({
         .card_builder_file = get_ui_file("card.xml"),
         .installed_pkgs    = std::make_shared<pkg_uset>(),
         .actions           = m_actions,
-        .logger            = m_logger,
-        .aur_client        = m_aur_client
     }),
     m_searching(false),
     m_card_ui_file(get_ui_file("card.xml")),
     m_spinner(Gtk::make_managed<Gtk::Spinner>())
 {
-    m_logger->log(Logger::Debug, "Creating packages tab");
+    data::logger->log(Logger::Debug, "Creating packages tab");
 
     builder_t b;
 
     try {
         b = Gtk::Builder::create_from_file(get_ui_file("tab.xml"));
     } catch (const Glib::FileError &e) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to parse .xml file: {}",
             e.what()
@@ -159,7 +149,7 @@ Tab::setup()
     for (const auto &w : search_by_keywords) m_search_by_combo->append(w);
     for (const auto &w : sort_by_keywords)   m_sort_by_combo->append(w);
 
-    auto cache = m_config->get_cache();
+    auto cache = data::config->get_cache();
 
     m_search_by_combo->set_active_text((*cache)["search-by-default"].asString());
     m_sort_by_combo->set_active_text((*cache)["sort-by-default"].asString());
@@ -182,7 +172,7 @@ Tab::setup()
         (*cache)["reverse-sort-default"] =
             m_reverse_sort_check->get_active();
 
-        m_config->save();
+        data::config->save();
         on_search();
     }, cache);
 
@@ -229,7 +219,7 @@ Tab::on_search()
 
     std::string search_by = m_search_by_combo->get_active_text();
 
-    m_logger->log(
+    data::logger->log(
         Logger::Info, "Searching for: {}, by {}", pkg_name, search_by
     );
 
@@ -238,9 +228,9 @@ Tab::on_search()
         m_running = true;
 
         try {
-            m_search_result = m_aur_client->search(pkg_name, search_by);
+            m_search_result = data::pkg_client->search(pkg_name, search_by);
         } catch (const std::exception &e) {
-            m_logger->log(Logger::Error, "Failed to search: {}", e.what());
+            data::logger->log(Logger::Error, "Failed to search: {}", e.what());
             m_search_result = Json::Value(Json::arrayValue);
         }
 
@@ -253,7 +243,7 @@ Tab::on_search()
 void
 Tab::on_dispatch_search_ready()
 {
-    m_logger->log(
+    data::logger->log(
         Logger::Debug,
         "Found {} packages.",
         m_search_result["resultcount"].asInt()
@@ -305,11 +295,16 @@ Tab::on_action_button_pressed(const Json::Value &pkg)
     auto tick = std::chrono::system_clock::now();
 
     if (has_unresolved_dependencies(pkg)) {
-        m_logger->log(Logger::Debug, "Has unresolved deps");
+        data::logger->log(Logger::Debug, "Has unresolved deps");
     }
+
     auto tock = std::chrono::system_clock::now();
 
-    m_logger->log(Logger::Debug, "Time: {}", std::chrono::duration_cast<std::chrono::milliseconds>(tock - tick));
+    data::logger->log(
+        Logger::Debug,
+        "'Has unresolved dependencies check' time: {}",
+        std::chrono::duration_cast<std::chrono::milliseconds>(tock - tick)
+    );
 
     bool all_empty = true;
 
@@ -409,12 +404,12 @@ auto
 Tab::on_execute_button_pressed() -> bool
 {
     if (!m_actions->remove->empty()) {
-        m_aur_client->remove(*m_actions->remove);
+        data::pkg_client->remove(*m_actions->remove);
         m_actions->remove->clear();
     }
 
     if (!m_actions->install->empty()) {
-        m_aur_client->install(*m_actions->install);
+        data::pkg_client->install(*m_actions->install);
         m_actions->install->clear();
     }
 
@@ -451,7 +446,7 @@ Tab::get_ui_file(const std::string &file_name) -> std::string
     };
 
     std::string gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
-    std::string ui_path     = m_arg_parser->get_option("ui");
+    std::string ui_path     = data::arg_parser->get_option("ui");
 
     if (!ui_path.empty()) {
         ui_path.append(std::format("/gtk{}/{}", gtk_version, file_name));
@@ -465,14 +460,14 @@ Tab::get_ui_file(const std::string &file_name) -> std::string
 
     if (valid_file(file_name)) return file_name;
     if (valid_file(path)) return path;
-    return (*m_config->get_config())["paths"]["ui-path"].asString() + path;
+    return (*data::config->get_config())["paths"]["ui-path"].asString() + path;
 }
 
 
 auto
 Tab::has_unresolved_dependencies(const Json::Value &pkg) -> bool
 {
-    auto info = m_aur_client->info(pkg["Name"].asString());
+    auto info = data::pkg_client->info(pkg["Name"].asString());
 
     auto &depends = info["Depends"];
     depends.append(info["MakeDepends"]);
@@ -488,10 +483,10 @@ Tab::has_unresolved_dependencies(const Json::Value &pkg) -> bool
     };
 
     return std::ranges::any_of(depends,
-    [this, extract_dep_name](const auto &dep)
+    [extract_dep_name](const auto &dep)
     {
         std::string dep_name = extract_dep_name(dep.asString());
-        return m_aur_client->find_pkg(dep_name) == nullptr;
+        return data::pkg_client->find_pkg(dep_name) == nullptr;
     });
 }
 
@@ -501,8 +496,8 @@ Tab::get_installed_pkgs()
 {
     m_installed_pkgs.clear();
 
-    auto local_pkgs     = m_aur_client->get_locally_installed_pkgs();
-    auto installed_pkgs = m_aur_client->get_installed_pkgs();
+    auto local_pkgs     = data::pkg_client->get_locally_installed_pkgs();
+    auto installed_pkgs = data::pkg_client->get_installed_pkgs();
 
     m_installed_pkgs.reserve(local_pkgs.size() + installed_pkgs.size());
 

@@ -22,21 +22,16 @@
 #include <json/reader.h>
 #include <json/writer.h>
 
-#include "arg_parser.hh"
 #include "config.hh"
 #include "logger.hh"
 #include "utils.hh"
+#include "data.hh"
 
 
-Config::Config(
-    const std::shared_ptr<Logger>    &logger,
-    const std::shared_ptr<ArgParser> &arg_parser
-) :
-    m_arg_parser(arg_parser),
-    m_logger(logger),
+Config::Config() :
     m_config(std::make_shared<Json::Value>(Json::objectValue)),
     m_cache(std::make_shared<Json::Value>(Json::objectValue)),
-    m_config_path(m_arg_parser->get_option("config"))
+    m_config_path(data::arg_parser->get_option("config"))
 {
     using std::filesystem::is_regular_file;
     using std::filesystem::exists;
@@ -58,7 +53,7 @@ Config::Config(
     );
 
     if (!valid_file(m_config_path)) {
-        m_logger->log(
+        data::logger->log(
             Logger::Warn,
             "Config file {} doesn't exist! Using systemwide config path: {}",
             m_config_path, GLOBAL_CONFIG_PATH
@@ -89,7 +84,7 @@ Config::save() -> bool
         try {
             std::filesystem::create_directory(cache_path.parent_path());
         } catch (const std::exception &e) {
-            m_logger->log(
+            data::logger->log(
                 Logger::Error,
                 "Failed to create directory {}: {}",
                 cache_path.parent_path().string(), e.what()
@@ -103,7 +98,7 @@ Config::save() -> bool
     try {
         file.open(m_cache_path);
     } catch (const std::exception &e) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to open file {}: {}",
             m_cache_path, e.what()
@@ -114,7 +109,7 @@ Config::save() -> bool
     try {
         file << *m_cache;
     } catch (const std::exception &e) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to write to file {}: {}",
             m_cache_path, e.what()
@@ -122,7 +117,7 @@ Config::save() -> bool
         return false;
     }
 
-    m_logger->log(
+    data::logger->log(
         Logger::Debug,
         "Writting to cache file: {}",
         m_cache_path
@@ -150,7 +145,7 @@ Config::load_config() -> bool
     try {
         config_file.open(m_config_path);
     } catch (const std::exception &e) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to read config file {}: {}",
             m_config_path, e.what()
@@ -162,7 +157,7 @@ Config::load_config() -> bool
     try {
         config_file >> *m_config;
     } catch (const std::exception &e) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to parse json from config file {}: {}",
             m_config_path, e.what()
@@ -192,7 +187,7 @@ Config::load_cache() -> bool
     try {
         cache_file >> *m_cache;
     } catch (const std::exception &e) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to parse json from cache file {}: {}",
             m_cache_path, e.what()

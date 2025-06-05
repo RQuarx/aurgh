@@ -21,8 +21,6 @@
 #ifndef __CONFIG_HH__
 #define __CONFIG_HH__
 
-#include <memory>
-
 #include <json/value.h>
 
 class ArgParser;
@@ -36,10 +34,7 @@ class Logger;
 class Config
 {
 public:
-    Config(
-        const std::shared_ptr<Logger>    &logger,
-        const std::shared_ptr<ArgParser> &arg_parser
-    );
+    Config();
 
 
     /**
@@ -66,9 +61,6 @@ public:
 
 private:
     std::string_view GLOBAL_CONFIG_PATH = "/etc/aurgh/config.jsonc";
-
-    std::shared_ptr<ArgParser> m_arg_parser;
-    std::shared_ptr<Logger>    m_logger;
 
     std::shared_ptr<Json::Value> m_config;
     std::shared_ptr<Json::Value> m_cache;

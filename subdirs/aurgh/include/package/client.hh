@@ -30,9 +30,6 @@
 #include <alpm.h>
 
 namespace Json { class Value; }
-class ArgParser;
-class Config;
-class Logger;
 
 
 namespace pkg
@@ -48,12 +45,7 @@ namespace pkg
          * @brief Constructs an AUR_Client class.
          * @param url A custom AUR url, defaults to https://aur.archlinux.org/rpc/v5
          */
-        explicit Client(
-            const std::shared_ptr<Logger>    &logger,
-            const std::shared_ptr<ArgParser> &arg_parser,
-            const std::shared_ptr<Config>    &config,
-            std::string_view                  url = ""
-        );
+        explicit Client(std::string_view url = "");
 
 
         ~Client();
@@ -131,8 +123,6 @@ namespace pkg
     private:
         std::shared_ptr<Json::Value> m_config;
         std::string                  m_url;
-        std::shared_ptr<Logger>      m_logger;
-        std::shared_ptr<ArgParser>   m_arg_parser;
 
         std::string m_helper_path;
         std::string m_prefix_path;
@@ -155,7 +145,7 @@ namespace pkg
          * @brief Parses Json::Value from @p iss .
          * @return A valid Json::Value or an empty Json::Value on failure.
          */
-        auto get_json_from_stream(
+        static auto get_json_from_stream(
             std::istringstream &iss
         ) -> Json::Value;
 

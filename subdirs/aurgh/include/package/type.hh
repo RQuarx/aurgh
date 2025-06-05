@@ -91,8 +91,6 @@ namespace pkg {
         std::string                  card_builder_file;
         std::shared_ptr<pkg_uset>    installed_pkgs;
         std::shared_ptr<Actions>     actions;
-        std::shared_ptr<Logger>      logger;
-        std::shared_ptr<pkg::Client> aur_client;
     };
 } /* namespace pkg */
 

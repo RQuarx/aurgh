@@ -26,10 +26,10 @@
 
 #include <utility>
 
-// #include "logger.hh"
 #include "package/client.hh"
 #include "package/card.hh"
 #include "utils.hh"
+#include "data.hh"
 
 using pkg::Card;
 
@@ -159,9 +159,9 @@ Card::on_button_clicked(pkg::Type result, const std::string &pkg_name)
 
 
 auto
-Card::find_package(const str_pair &package) const -> int8_t
+Card::find_package(const str_pair &package) -> int8_t
 {
-    if (m_card_data.aur_client->find_pkg(package.first) != nullptr) {
+    if (data::pkg_client->find_pkg(package.first) != nullptr) {
         return 0;
     }
     return -1;

@@ -35,7 +35,6 @@ namespace Gtk {
     class Label;
     class Box;
 }
-class Logger;
 
 
 namespace pkg {
@@ -63,7 +62,6 @@ namespace pkg {
 
         std::shared_ptr<str_pair_vec> m_installed_pkgs;
         std::shared_ptr<Actions>      m_actions;
-        std::shared_ptr<Logger>       m_logger;
         Json::Value                   m_package;
 
         Gtk::Box *m_card = nullptr;
@@ -90,7 +88,7 @@ namespace pkg {
          * @brief Searches for a package inside installed_aur_package
          * @returns -1 on none, 0 on all, 1 on name.
          */
-        auto find_package(const str_pair &package) const -> int8_t;
+        static auto find_package(const str_pair &package) -> int8_t;
     };
 } /* namespace pkg */
 

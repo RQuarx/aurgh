@@ -27,7 +27,8 @@ Diagnostics:
             'bugprone-forward-declaration-namespace',
             'cppcoreguidelines-pro-bounds-pointer-arithmetic',
             'cppcoreguidelines-special-member-functions',
-            'cppcoreguidelines-missing-std-forward'
+            'cppcoreguidelines-missing-std-forward',
+            'cppcoreguidelines-avoid-non-const-global-variables'
         ]
 
 InlayHints:

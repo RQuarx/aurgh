@@ -22,14 +22,15 @@
 #include <utility>
 #include <thread>
 
-#include "arg_parser.hh"
 #include "logger.hh"
+#include "utils.hh"
+#include "data.hh"
 
 
-Logger::Logger(const std::shared_ptr<ArgParser> &arg_parser) :
+Logger::Logger() :
     m_use_color(PRETTY_LOGGING)
 {
-    std::string log_option = arg_parser->get_option("log");
+    std::string log_option = data::arg_parser->get_option("log");
     if (!log_option.empty()) {
         if (log_option.contains(',')) {
             /* Exits with error code 1 if it fails */

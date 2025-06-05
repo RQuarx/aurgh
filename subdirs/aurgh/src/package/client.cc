@@ -22,22 +22,16 @@
 #include <alpm.h>
 
 #include "package/client.hh"
-#include "arg_parser.hh"
 #include "config.hh"
 #include "logger.hh"
+#include "utils.hh"
+#include "data.hh"
 
 using pkg::Client;
 
 
-Client::Client(
-    const std::shared_ptr<Logger>    &logger,
-    const std::shared_ptr<ArgParser> &arg_parser,
-    const std::shared_ptr<Config>    &config,
-    std::string_view                  url
-) :
-    m_config(config->get_config()),
-    m_logger(logger),
-    m_arg_parser(arg_parser),
+Client::Client(std::string_view url) :
+    m_config(data::config->get_config()),
     m_helper_path(initialize_path(2)),
     m_prefix_path(initialize_path(3)),
     m_root_path(initialize_path(0)),
@@ -53,7 +47,7 @@ Client::Client(
     m_pkexec = (*m_config)["app"]["pkexec-binary"].asString();
 
     if (m_alpm_handle == nullptr) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to initialize alpm: {}",
             alpm_strerror(m_alpm_errno)
@@ -61,7 +55,7 @@ Client::Client(
         exit(m_alpm_errno);
     }
 
-    m_logger->log(
+    data::logger->log(
         Logger::Debug, "AUR Client instance successfully created"
     );
 }
@@ -81,7 +75,7 @@ Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
     try {
         iss >> data;
     } catch (const std::exception &e) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to parse json from istringstream: {}",
             e.what()
@@ -106,7 +100,7 @@ Client::search(
 
     if (
         utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
-    ) m_logger->log(Logger::Error, "Failed to initialise CURL.");
+    ) data::logger->log(Logger::Error, "Failed to initialise CURL.");
 
     std::istringstream iss(read_buffer);
     return get_json_from_stream(iss);
@@ -121,7 +115,7 @@ Client::info(const std::string &args) -> Json::Value
     std::string read_buffer;
     if (
         utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
-    ) m_logger->log(Logger::Error, "Failed to initialise CURL.");
+    ) data::logger->log(Logger::Error, "Failed to initialise CURL.");
 
     std::istringstream iss(read_buffer);
     return get_json_from_stream(iss);
@@ -141,7 +135,7 @@ Client::install(const std::vector<std::string> &pkgs) -> bool
 
     for (const auto &pkg : pkgs) { root["pkgs"].append(pkg); }
 
-    m_logger->log(
+    data::logger->log(
         Logger::Info, "Installing: {}", root["pkgs"].toStyledString()
     );
 
@@ -157,7 +151,7 @@ Client::install(const std::vector<std::string> &pkgs) -> bool
     ));
 
     if (res->second != ALPM_ERR_OK) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to install package{} {}",
             pkgs.size() == 1 ? "" : "s",
@@ -172,7 +166,7 @@ Client::install(const std::vector<std::string> &pkgs) -> bool
     );
 
     if (m_alpm_handle == nullptr) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to initialize alpm: {}",
             alpm_strerror(m_alpm_errno)
@@ -223,7 +217,7 @@ Client::get_locally_installed_pkgs() -> std::vector<alpm_pkg_t*>
     alpm_list_t *pkg_list = alpm_db_get_pkgcache(local_db);
 
     if (pkg_list == nullptr) {
-        m_logger->log(
+        data::logger->log(
             Logger::Warn,
             "Failed to retrieve package list"
         );
@@ -253,7 +247,7 @@ Client::get_installed_pkgs() -> std::vector<alpm_pkg_t*>
     alpm_list_t *pkg_list = alpm_db_get_pkgcache(local_db);
 
     if (pkg_list == nullptr) {
-        m_logger->log(
+        data::logger->log(
             Logger::Warn,
             "Failed to retrieve package list"
         );
@@ -303,7 +297,7 @@ Client::remove(const std::vector<std::string> &pkgs) -> bool
 
     for (const auto &pkg : pkgs) { root["pkgs"].append(pkg); }
 
-    m_logger->log(Logger::Info, "Removing: {}", root["pkgs"].toStyledString());
+    data::logger->log(Logger::Info, "Removing: {}", root["pkgs"].toStyledString());
 
     std::ofstream operation_file(m_prefix_path + "/operation.json");
     operation_file << root;
@@ -317,7 +311,7 @@ Client::remove(const std::vector<std::string> &pkgs) -> bool
     ));
 
     if (res->second != ALPM_ERR_OK) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to remove package{} {}",
             pkgs.size() == 1 ? "" : "s",
@@ -332,7 +326,7 @@ Client::remove(const std::vector<std::string> &pkgs) -> bool
     );
 
     if (m_alpm_handle == nullptr) {
-        m_logger->log(
+        data::logger->log(
             Logger::Error,
             "Failed to initialize alpm: {}",
             alpm_strerror(m_alpm_errno)
