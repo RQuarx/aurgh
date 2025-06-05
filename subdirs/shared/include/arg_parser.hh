@@ -23,10 +23,48 @@
 
 #include <unordered_map>
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <cstdint>
+#include <format>
 #include <string>
 #include <vector>
+#include <print>
+
+using sv       = std::string_view;
+using arg_pair = std::pair<std::string, std::string>;
+
+
+struct ArgInput {
+    arg_pair    arg;
+    std::string description;
+    std::string param_description;
+
+    ArgInput(arg_pair p_arg, std::string desc, std::string param_desc = "") :
+        arg(p_arg),
+        description(std::move(desc)),
+        param_description(std::move(param_desc))
+    {}
+};
+
+
+template <>
+struct std::formatter<ArgInput> : std::formatter<std::string> {
+    auto
+    format(const ArgInput& input, std::format_context& ctx) const
+    {
+        std::string flag_str = std::format("{},{}", input.arg.first, input.arg.second);
+
+        std::string result = std::format(
+            "\t\033[1m{:<20}\033[0m{:<15}{:<15}",
+            flag_str,
+            input.param_description,
+            input.description
+        );
+
+        return std::formatter<std::string>::format(result, ctx);
+    }
+};
 
 
 /**
@@ -40,45 +78,13 @@
  */
 class ArgParser
 {
-    using sv       = std::string_view;
-    using str      = std::string;
-    using arg_pair = std::pair<str, str>;
 public:
     ArgParser(int32_t argc, char **argv);
 
     /**
-     * @brief Registers a boolean flag argument.
-     *
-     * @param arg Pair of short and long option names (e.g., "-v", "--verbose").
-     * @param description Help message for the argument.
-     * @return Reference to the parser instance (for method chaining).
-     */
-    [[nodiscard("add* chain not ended in a parse() member!")]]
-    auto add_flag(
-        arg_pair           arg,
-        const std::string &description
-    ) -> ArgParser&;
-
-    /**
-     * @brief Registers an option that expects a value.
-     *
-     * @param arg Pair of short and long option names (e.g., "-f", "--file").
-     * @param description Help message for the option.
-     * @param param_name Name of the parameter shown in help output.
-     * @return Reference to the parser instance (for method chaining).
-     */
-    [[nodiscard("add* chain not ended in a parse() member!")]]
-    auto add_option(
-        arg_pair           arg,
-        const std::string &description,
-        const std::string &param_name = ""
-    ) -> ArgParser&;
-
-
-    /**
      * @brief Parses the command-line arguments.
      *
-     * This must be called after defining all expected arguments using add_arg().
+     * This must be called after defining all expected arguments using add_*().
      * It processes the actual argv values and stores matched flags and options.
      */
     void parse();
@@ -107,6 +113,103 @@ public:
     [[nodiscard("Ignoring return value of an argument parser!")]]
     auto get_option(const std::string &name) -> std::string;
 
+
+    /**
+     * @brief Adds one or more argument definitions to the parser.
+     *
+     * Appends each provided option to the internal argument list. Validates
+     * that each option has a long-form flag and registers its name with a
+     * default parameter.
+     *
+     * @tparam T_Args Argument types (typically ArgInput).
+     * @param options One or more argument definitions to add.
+     * @return Reference to this ArgParser (for chaining).
+     *
+     * @throws std::invalid_argument If any long-form flag is missing.
+     *
+     * @details
+     * For each new argument:
+     * - Ensures the long flag (e.g. --log) is not empty.
+     * - Extracts the argument name using `clean_arg`.
+     * - Initializes a placeholder parameter using `option_arg`.
+     * - Registers the name in the internal argument map.
+     *
+     * The [[nodiscard]] attribute warns if the returned reference is
+     * ignored, encouraging chaining ending with `parse()`.
+     */
+    template<typename... T_Args>
+    [[nodiscard("add_* chain not ended in a parse() member!")]]
+    auto add_options(T_Args &&...options) -> ArgParser&
+    {
+        size_t first = m_defined_args.size();
+        (m_defined_args.emplace_back(std::forward<T_Args>(options)), ...);
+
+        for (size_t i = first; i < m_defined_args.size(); i++) {
+            auto input = m_defined_args.at(i);
+            auto clean = clean_arg(input.arg);
+
+            if (input.arg.second.empty()) {
+                throw std::invalid_argument("Long arg cannot be empty!");
+            }
+
+            std::string param;
+
+            bool _         = option_arg(param, input.arg);
+            m_user_arg.insert_or_assign(clean.second, param);
+        }
+
+        return *this;
+    }
+
+
+    /**
+     * @brief Adds one or more flags to the argument parser.
+     *
+     * Appends each flag to the internal argument list and processes
+     * special flags such as "help" and "version". Validates that all
+     * flags have non-empty long forms and registers them.
+     *
+     * @tparam T_Args Variadic template for argument definitions.
+     * @param options One or more flags to add.
+     * @return Reference to this ArgParser for method chaining.
+     *
+     * @throws std::invalid_argument If any flag has an empty long name.
+     *
+     * @details
+     * For each added flag:
+     * - Cleans the argument name using `clean_arg`.
+     * - Sets override flags for "help" or "version".
+     * - Throws if the long form is empty.
+     * - Inserts or updates the flag in the user argument map using
+     *   `find_arg`.
+     *
+     * The [[nodiscard]] attribute warns if the returned reference is
+     * ignored, encouraging chaining ending with `parse()`.
+     */
+    template<typename... T_Args>
+    [[nodiscard("add_* chain not ended in a parse() member!")]]
+    auto add_flags(T_Args &&...options) -> ArgParser&
+    {
+        size_t first = m_defined_args.size();
+        (m_defined_args.emplace_back(std::forward<T_Args>(options)), ...);
+
+        for (size_t i = first; i < m_defined_args.size(); i++) {
+            auto input = m_defined_args.at(i);
+            auto clean = clean_arg(input.arg);
+
+            if (clean.second == "version") m_override_version = true;
+            if (clean.second == "help")    m_override_help    = true;
+
+            if (input.arg.second.empty()) {
+                throw std::invalid_argument("Long arg cannot be empty!");
+            }
+
+            m_user_arg.insert_or_assign(clean.second, find_arg(clean));
+        }
+
+        return *this;
+    }
+
 private:
     enum Type : uint8_t
     {
@@ -116,14 +219,14 @@ private:
 
     template<typename Key, typename Tp>
     using umap          = std::unordered_map<Key, Tp>;
-    using arg_cont      = umap<Type, std::vector<std::pair<bool, str>>>;
-    using user_arg_cont = umap<str, std::variant<bool, str>>;
-    using help_msg_cont = umap<str, std::array<str, 3>>;
+    using arg_cont      = umap<Type, std::vector<std::pair<bool, std::string>>>;
+    using user_arg_cont = umap<std::string, std::variant<bool, std::string>>;
 
     arg_cont      m_arg_list;
     std::string   m_bin_path;
     user_arg_cont m_user_arg;
-    help_msg_cont m_help_msg;
+
+    std::vector<ArgInput> m_defined_args;
 
     /* Flags */
     bool m_override_help;

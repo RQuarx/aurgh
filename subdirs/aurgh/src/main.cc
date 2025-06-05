@@ -64,12 +64,13 @@ main(int32_t argc, char **argv) -> int32_t
 {
     data::arg_parser = std::make_shared<ArgParser>(argc, argv);
 
-    data::arg_parser
-        ->add_flag( { "-V", "--version" }, "Prints the program version")
-        .add_option({ "-l", "--log" },     "Shows or outputs the log", "path,int")
-        .add_option({ "-t", "--title" },   "Changes the window title", "str")
-        .add_option({ "-c", "--config" },  "Specify a config path", "path")
-        .parse();
+    data::arg_parser->add_options(
+        ArgInput({ "-l", "--log" },    "Shows or outputs the log", "path,int"),
+        ArgInput({ "-t", "--title" },  "Changes the window title", "str"),
+        ArgInput({ "-c", "--config" }, "Specify a config path", "path")
+    ).add_flags(
+        ArgInput({ "-V", "--version" }, "Prints the program version")
+    ).parse();
 
     if (data::arg_parser->get_flag("version")) {
         std::println(

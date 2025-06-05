@@ -43,7 +43,8 @@ main(int32_t argc, char **argv) -> int32_t
     ArgParser arg_parser { argc, argv };
 
     arg_parser
-        .add_option({ "-p", "--prefix" }, "Specify the prefix path", "path")
+        .add_options(
+            ArgInput({ "-p", "--prefix" }, "Specify the prefix path", "path"))
         .parse();
 
     if (arg_parser.get_option("prefix").empty()) {

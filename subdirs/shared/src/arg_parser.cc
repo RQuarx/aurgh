@@ -34,83 +34,16 @@ ArgParser::ArgParser(int32_t argc, char **argv) :
 }
 
 
-auto
-ArgParser::add_flag(
-    arg_pair           arg,
-    const std::string &description
-) -> ArgParser&
-{
-    auto cleaned_arg = clean_arg(arg);
-    assert(!cleaned_arg.second.empty() && "Long arg cannot be empty!");
-
-    if (cleaned_arg.first == "V") {
-        m_override_version = true;
-    }
-
-    if (cleaned_arg.first == "h") {
-        m_override_help = true;
-    }
-
-    std::string name = cleaned_arg.second;
-    m_user_arg.insert_or_assign(name, find_arg(cleaned_arg));
-
-    std::string arg_str;
-    if (arg.first.empty()) {
-        arg_str = std::format("   {}", arg.second);
-    } else {
-        arg_str = std::format("{},{}", arg.first, arg.second);
-    }
-    m_help_msg.insert_or_assign(
-        name,
-        std::array<str, 3>{{ arg_str, "", description }}
-    );
-
-    return *this;
-}
-
-
-auto
-ArgParser::add_option(
-    arg_pair           arg,
-    const std::string &description,
-    const std::string &param_name
-) -> ArgParser&
-{
-    auto cleaned_arg = clean_arg(arg);
-    assert(!cleaned_arg.second.empty() && "Long arg cannot be empty!");
-
-    std::string param;
-    std::string name  = cleaned_arg.second;
-    auto _ = option_arg(param, cleaned_arg);
-    m_user_arg.insert_or_assign(name, param);
-
-    std::string arg_str;
-    if (arg.first.empty()) {
-        arg_str = std::format("   {}", arg.second);
-    } else {
-        arg_str = std::format("{},{}", arg.first, arg.second);
-    }
-    m_help_msg.insert_or_assign(
-        name,
-        std::array<str, 3>{{ arg_str, param_name, description }}
-    );
-
-    return *this;
-}
-
-
 void
 ArgParser::parse()
 {
     if (!m_override_help && find_arg({ "-h", "--help" })) {
-        std::println("\033[1m\033[4mUsage:\033[0m {} <options {{param}}>\n", m_bin_path);
+        std::println(
+            "\033[1m\033[4mUsage:\033[0m {} <options {{param}}>\n", m_bin_path);
         std::println("\033[1m\033[4mOptions:\033[0m");
 
-        for (const auto &[key, val] : m_help_msg) {
-            std::println(
-                "\t\033[1m{:<20}\033[0m{:<15}{:<15}",
-                val.at(0), val.at(1), val.at(2)
-            );
+        for (const auto &arg : m_defined_args) {
+            std::println("{}", arg);
         }
 
         exit(EXIT_SUCCESS);
@@ -121,9 +54,8 @@ ArgParser::parse()
         exit(EXIT_SUCCESS);
     }
 
-    str                               str_args;
-    str                               msg;
-    std::vector<std::pair<bool, str>> args;
+    std::string                               str_args;
+    std::vector<std::pair<bool, std::string>> args;
 
     for (auto t : { Short, Long }) {
         if (m_arg_list.at(t).empty()) continue;
@@ -150,12 +82,10 @@ ArgParser::parse()
         }
     }
 
-    msg = std::format(
+    throw std::invalid_argument(std::format(
         "Non recognised argument{} detected: [ {} ]",
         m_arg_list.at(Short).size() == 1 ? "" : "s", str_args
-    );
-
-    throw std::invalid_argument(msg);
+    ));
 }
 
 
@@ -173,7 +103,7 @@ auto
 ArgParser::get_option(const std::string &name) -> std::string
 {
     if (!m_user_arg.contains(name)) return "";
-    auto *val = std::get_if<str>(&m_user_arg.at(name));
+    auto *val = std::get_if<std::string>(&m_user_arg.at(name));
 
     if (val == nullptr) return "";
     return *val;
