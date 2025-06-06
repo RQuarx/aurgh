@@ -163,7 +163,7 @@ Tab::setup()
     }
 
     auto criteria_changed = sigc::bind(
-    [this](const std::shared_ptr<Json::Value> &cache)
+    [this](const shared_ptr<json> &cache)
     {
         (*cache)["sort-by-default"]      =
             m_sort_by_combo->get_active_text().raw();
@@ -191,7 +191,7 @@ Tab::setup()
 void
 Tab::on_search()
 {
-    std::string pkg_name  = m_search_entry->get_text();
+    str pkg_name = m_search_entry->get_text();
     if (pkg_name.empty()) return;
 
     auto children = m_result_box->get_children();
@@ -217,7 +217,7 @@ Tab::on_search()
 
     m_spinner->start();
 
-    std::string search_by = m_search_by_combo->get_active_text();
+    str search_by = m_search_by_combo->get_active_text();
 
     data::logger->log(
         Logger::Info, "Searching for: {}, by {}", pkg_name, search_by
@@ -231,7 +231,7 @@ Tab::on_search()
             m_search_result = data::pkg_client->search(pkg_name, search_by);
         } catch (const std::exception &e) {
             data::logger->log(Logger::Error, "Failed to search: {}", e.what());
-            m_search_result = Json::Value(Json::arrayValue);
+            m_search_result = json(Json::arrayValue);
         }
 
         m_searching = false;
@@ -249,10 +249,10 @@ Tab::on_dispatch_search_ready()
         m_search_result["resultcount"].asInt()
     );
 
-    std::string sort_by = m_sort_by_combo->get_active_text();
-    bool        reverse = m_reverse_sort_check->get_active();
-    Json::Value pkgs    = m_search_result["results"];
-    auto        sorted  = utils::sort_json(pkgs, sort_by, reverse);
+    str sort_by = m_sort_by_combo->get_active_text();
+    bool reverse = m_reverse_sort_check->get_active();
+    json pkgs    = m_search_result["results"];
+    auto sorted  = utils::sort_json(pkgs, sort_by, reverse);
 
     m_spinner->stop();
 
@@ -290,7 +290,7 @@ Tab::on_dispatch_search_ready()
 
 
 void
-Tab::on_action_button_pressed(const Json::Value &pkg)
+Tab::on_action_button_pressed(const json &pkg)
 {
     auto tick = std::chrono::system_clock::now();
 
@@ -333,7 +333,7 @@ Tab::on_action_button_pressed(const Json::Value &pkg)
 
         for (const auto &pkg : *pkgs) {
             auto *link = Gtk::make_managed<Gtk::LinkButton>();
-            std::string url = std::format(
+            str url = std::format(
                 "https://aur.archlinux.org/packages/{}", pkg
             );
 
@@ -378,7 +378,7 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
 
         for (const auto &pkg : *pkgs) {
             auto *link      = Gtk::make_managed<Gtk::LinkButton>();
-            std::string url = std::format(
+            str url = std::format(
                 "https://aur.archlinux.org/packages/{}", pkg
             );
 
@@ -435,18 +435,18 @@ Tab::on_execute_button_pressed() -> bool
 
 
 auto
-Tab::get_ui_file(const std::string &file_name) -> std::string
+Tab::get_ui_file(const str &file_name) -> str
 {
     namespace fs = std::filesystem;
 
-    auto valid_file = [](const std::string &file){
+    auto valid_file = [](const str &file){
         return fs::exists(file)
             && fs::is_regular_file(file)
             && fs::path(file).extension() == ".xml";
     };
 
-    std::string gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
-    std::string ui_path     = data::arg_parser->get_option("ui");
+    str gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
+    str ui_path     = data::arg_parser->get_option("ui");
 
     if (!ui_path.empty()) {
         ui_path.append(std::format("/gtk{}/{}", gtk_version, file_name));
@@ -456,7 +456,7 @@ Tab::get_ui_file(const std::string &file_name) -> std::string
         if (valid_file(ui_path)) return ui_path;
     }
 
-    std::string path = std::format("/ui/gtk{}/{}", gtk_version, file_name);
+    str path = std::format("/ui/gtk{}/{}", gtk_version, file_name);
 
     if (valid_file(file_name)) return file_name;
     if (valid_file(path)) return path;
@@ -465,26 +465,26 @@ Tab::get_ui_file(const std::string &file_name) -> std::string
 
 
 auto
-Tab::has_unresolved_dependencies(const Json::Value &pkg) -> bool
+Tab::has_unresolved_dependencies(const json &pkg) -> bool
 {
     auto info = data::pkg_client->info(pkg["Name"].asString());
 
-    std::vector<Json::Value> all_deps;
+    std::vector<json> all_deps;
     for (const auto& d : info["Depends"]) all_deps.push_back(d);
     for (const auto& d : info["MakeDepends"]) all_deps.push_back(d);
 
     if (all_deps.empty()) return false;
 
-    auto extract_dep_name = [](const std::string& dep) -> std::string {
+    auto extract_dep_name = [](const str& dep) -> str {
         size_t pos = dep.find_first_of("<>=");
-        return (pos != std::string::npos) ? dep.substr(0, pos) : dep;
+        return (pos != str::npos) ? dep.substr(0, pos) : dep;
     };
 
-    static std::unordered_map<std::string, bool> pkg_exists_cache;
+    static umap<str, bool> pkg_exists_cache;
 
     return std::ranges::any_of(all_deps, [&](const auto& dep_val) {
-        std::string dep_str = dep_val.asString();
-        std::string dep_name = extract_dep_name(dep_str);
+        str dep_str = dep_val.asString();
+        str dep_name = extract_dep_name(dep_str);
 
         auto it = pkg_exists_cache.find(dep_name);
         if (it != pkg_exists_cache.end()) return !it->second;
@@ -508,7 +508,7 @@ Tab::get_installed_pkgs()
     m_installed_pkgs.reserve(local_pkgs.size() + installed_pkgs.size());
 
     auto insert_to_set =
-    [this](const std::vector<alpm_pkg_t*> &pkgs)
+    [this](const vec<alpm_pkg_t*> &pkgs)
     {
         for (auto *pkg : pkgs) {
             m_installed_pkgs.emplace(

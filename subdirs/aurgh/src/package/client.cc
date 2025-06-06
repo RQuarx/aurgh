@@ -30,7 +30,7 @@
 using pkg::Client;
 
 
-Client::Client(std::string_view url) :
+Client::Client(str_view url) :
     m_config(data::config->get_config()),
     m_helper_path(initialize_path(2)),
     m_prefix_path(initialize_path(3)),
@@ -62,15 +62,13 @@ Client::Client(std::string_view url) :
 
 
 Client::~Client()
-{
-    alpm_release(m_alpm_handle);
-}
+{ alpm_release(m_alpm_handle); }
 
 
 auto
-Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
+Client::get_json_from_stream(std::istringstream &iss) -> json
 {
-    Json::Value data;
+    json data;
 
     try {
         iss >> data;
@@ -87,16 +85,14 @@ Client::get_json_from_stream(std::istringstream &iss) -> Json::Value
 
 
 auto
-Client::search(
-    const std::string &args, const std::string &by
-) -> Json::Value
+Client::search(const str &args, const str &by) -> json
 {
-    std::string full_url = std::format("{}/search/{}", m_url, args);
+    str full_url = std::format("{}/search/{}", m_url, args);
     if (!by.empty()) {
         full_url.append("?by=" + by);
     }
 
-    std::string read_buffer;
+    str read_buffer;
 
     if (
         utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
@@ -108,11 +104,11 @@ Client::search(
 
 
 auto
-Client::info(const std::string &args) -> Json::Value
+Client::info(const str &args) -> json
 {
-    std::string full_url = std::format("{}/info?arg[]={}", m_url, args);
+    str full_url = std::format("{}/info?arg[]={}", m_url, args);
 
-    std::string read_buffer;
+    str read_buffer;
     if (
         utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
     ) data::logger->log(Logger::Error, "Failed to initialise CURL.");
@@ -123,9 +119,9 @@ Client::info(const std::string &args) -> Json::Value
 
 
 auto
-Client::install(const std::vector<std::string> &pkgs) -> bool
+Client::install(const vec<str> &pkgs) -> bool
 {
-    Json::Value root { Json::objectValue };
+    json root { Json::objectValue };
 
     root["operation"]      = "install";
     root["install-prefix"] = m_prefix_path;
@@ -179,8 +175,7 @@ Client::install(const std::vector<std::string> &pkgs) -> bool
 
 
 auto
-Client::get_search_by_keywords(
-    ) -> std::vector<std::string>
+Client::get_search_by_keywords() -> vec<str>
 {
     return {
         "name",       "name-desc",
@@ -195,8 +190,7 @@ Client::get_search_by_keywords(
 
 
 auto
-Client::get_sort_by_keywords(
-    ) -> std::vector<std::string>
+Client::get_sort_by_keywords() -> vec<str>
 {
     return {
         "Name",
@@ -209,9 +203,9 @@ Client::get_sort_by_keywords(
 
 
 auto
-Client::get_locally_installed_pkgs() -> std::vector<alpm_pkg_t*>
+Client::get_locally_installed_pkgs() -> vec<alpm_pkg_t*>
 {
-    std::vector<alpm_pkg_t*> pkgs;
+    vec<alpm_pkg_t*> pkgs;
 
     alpm_db_t   *local_db = alpm_get_localdb(m_alpm_handle);
     alpm_list_t *pkg_list = alpm_db_get_pkgcache(local_db);
@@ -239,9 +233,9 @@ Client::get_locally_installed_pkgs() -> std::vector<alpm_pkg_t*>
 
 
 auto
-Client::get_installed_pkgs() -> std::vector<alpm_pkg_t*>
+Client::get_installed_pkgs() -> vec<alpm_pkg_t*>
 {
-    std::vector<alpm_pkg_t*> pkgs;
+    vec<alpm_pkg_t*> pkgs;
 
     alpm_db_t   *local_db = alpm_get_localdb(m_alpm_handle);
     alpm_list_t *pkg_list = alpm_db_get_pkgcache(local_db);
@@ -270,8 +264,8 @@ Client::get_installed_pkgs() -> std::vector<alpm_pkg_t*>
 
 auto
 Client::get_pkg_locality(
-    const std::string &pkg_name,
-    alpm_list_t       *sync_dbs
+    const str   &pkg_name,
+    alpm_list_t *sync_dbs
 ) -> uint8_t
 {
 	for (auto *j = sync_dbs; j != nullptr; j = alpm_list_next(j)) {
@@ -286,9 +280,9 @@ Client::get_pkg_locality(
 
 
 auto
-Client::remove(const std::vector<std::string> &pkgs) -> bool
+Client::remove(const vec<str> &pkgs) -> bool
 {
-    Json::Value root { Json::objectValue };
+    json root { Json::objectValue };
 
     root["operation"] = "remove";
     root["root"]      = m_root_path;
@@ -339,7 +333,7 @@ Client::remove(const std::vector<std::string> &pkgs) -> bool
 
 
 auto
-Client::initialize_path(uint8_t t) -> std::string
+Client::initialize_path(uint8_t t) -> str
 {
     using utils::expand_envs;
 
@@ -354,7 +348,7 @@ Client::initialize_path(uint8_t t) -> std::string
 
 
 auto
-Client::find_pkg(const std::string &name) -> alpm_pkg_t*
+Client::find_pkg(const str &name) -> alpm_pkg_t*
 {
     alpm_db_t *local_db = alpm_get_localdb(m_alpm_handle);
     return alpm_db_get_pkg(local_db, name.c_str());

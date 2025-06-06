@@ -30,7 +30,7 @@
 Logger::Logger() :
     m_use_color(PRETTY_LOGGING)
 {
-    std::string log_option = data::arg_parser->get_option("log");
+    str log_option = data::arg_parser->get_option("log");
     if (!log_option.empty()) {
         if (log_option.contains(',')) {
             /* Exits with error code 1 if it fails */
@@ -38,7 +38,7 @@ Logger::Logger() :
                 exit(EXIT_FAILURE);
             }
         } else {
-            if (str::is_digit(log_option)) {
+            if (utils::str::is_digit(log_option)) {
                 if (!set_leveL_threshold(std::stoi(log_option))) {
                     exit(EXIT_FAILURE);
                 }
@@ -87,7 +87,7 @@ Logger::set_leveL_threshold(int32_t level) -> bool
 
 
 auto
-Logger::open_log_file(const std::string &file) -> bool
+Logger::open_log_file(const str &file) -> bool
 {
     if (m_log_file.is_open()) {
         log(Level::Error, "Duplicate options to {}!", m_log_arg);
@@ -109,11 +109,11 @@ Logger::open_log_file(const std::string &file) -> bool
 
 
 auto
-Logger::handle_double_parameters(const std::string &option) -> bool
+Logger::handle_double_parameters(const str &option) -> bool
 {
-    return std::ranges::all_of(str::split(option, option.find(',')),
-        [this](const std::string &param){
-            if (str::is_digit(param)) {
+    return std::ranges::all_of(utils::str::split(option, option.find(',')),
+        [this](const str &param){
+            if (utils::str::is_digit(param)) {
                 return set_leveL_threshold(std::stoi(param));
             }
 
@@ -124,10 +124,10 @@ Logger::handle_double_parameters(const std::string &option) -> bool
 
 
 void
-Logger::log_to_file(Level log_level, std::string_view message)
+Logger::log_to_file(Level log_level, str_view message)
 {
     std::jthread([this, log_level, message]() {
-        std::string_view label = m_labels.at(log_level).second;
+        str_view label = m_labels.at(log_level).second;
         std::println(
             m_log_file, "{} {} {}", get_current_time(), label, message
         );
@@ -141,12 +141,12 @@ Logger::get_previous_log_level() -> Level
 
 
 auto
-Logger::get_current_time() -> std::string
+Logger::get_current_time() -> str
 {
     using std::chrono::duration;
     using ms = std::chrono::milliseconds;
-    using m = std::chrono::minutes;
-    using s = std::chrono::seconds;
+    using m  = std::chrono::minutes;
+    using s  = std::chrono::seconds;
 
     duration now = std::chrono::system_clock::now().time_since_epoch();
     ms millis    = std::chrono::duration_cast<ms>(now) % 1000;

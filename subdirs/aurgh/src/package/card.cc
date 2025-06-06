@@ -35,7 +35,7 @@ using pkg::Card;
 
 
 Card::Card(
-    Json::Value     pkg,
+    json            pkg,
     const CardData &card_data
 ) :
     m_card_data(card_data),
@@ -90,10 +90,10 @@ Card::setup() -> bool
     m_version_label->set_label(m_package["Version"].asString());
     m_desc_label->set_label(m_package["Description"].asString());
 
-    std::string url    = m_package["URL"].asString();
-    std::string markup = "<b>{}</b>";
+    str url    = m_package["URL"].asString();
+    str markup = "<b>{}</b>";
 
-    if (m_package["OutOfDate"] != Json::Value::null) {
+    if (m_package["OutOfDate"] != json::null) {
         markup = utils::format(markup, "<span foreground=\"red\">{}</span>");
     }
 
@@ -115,10 +115,10 @@ Card::setup() -> bool
     m_popularity_label->set_markup(utils::format(markup, popularity));
     m_votes_label->set_markup(utils::format(markup, votes));
 
-    std::string pkg_name    = m_package["Name"].asString();
-    std::string pkg_version = m_package["Version"].asString();
+    str pkg_name    = m_package["Name"].asString();
+    str pkg_version = m_package["Version"].asString();
 
-    std::string icon_name;
+    str icon_name;
     str_pair    pkg(pkg_name, pkg_version);
     int8_t      result = find_package(pkg);
 
@@ -138,7 +138,7 @@ Card::setup() -> bool
 
 
 void
-Card::on_button_clicked(pkg::Type result, const std::string &pkg_name)
+Card::on_button_clicked(pkg::Type result, const str &pkg_name)
 {
     auto vec = m_card_data.actions->at(result);
 

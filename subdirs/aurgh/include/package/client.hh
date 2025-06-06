@@ -21,13 +21,10 @@
 #ifndef __PACKAGE__CLIENT_HH__
 #define __PACKAGE__CLIENT_HH__
 
-#include <string_view>
-#include <memory>
-#include <string>
-#include <vector>
-
 #include <curl/curl.h>
 #include <alpm.h>
+
+#include "types.hh"
 
 namespace Json { class Value; }
 
@@ -45,7 +42,7 @@ namespace pkg
          * @brief Constructs an AUR_Client class.
          * @param url A custom AUR url, defaults to https://aur.archlinux.org/rpc/v5
          */
-        explicit Client(std::string_view url = "");
+        explicit Client(str_view url = "");
 
 
         ~Client();
@@ -58,9 +55,9 @@ namespace pkg
          * @returns A Json::Value object.
          */
         auto search(
-            const std::string &args,
-            const std::string &by = ""
-        ) -> Json::Value;
+            const str &args,
+            const str &by = ""
+        ) -> json;
 
 
         /**
@@ -68,7 +65,7 @@ namespace pkg
          * @param args the args that is given to url/info?arg[]=...
          * @returns A Json::Value object.
          */
-        auto info(const std::string &args) -> Json::Value;
+        auto info(const str &args) -> json;
 
 
         /**
@@ -76,7 +73,7 @@ namespace pkg
          * @param pkgs The name of the packages to be removed.
          * @returns true on success, or false on failure
          */
-        auto install(const std::vector<std::string> &pkgs) -> bool;
+        auto install(const vec<str> &pkgs) -> bool;
 
 
         /**
@@ -84,7 +81,7 @@ namespace pkg
          * @param pkgs The name of the packages to be removed.
          * @returns true on success, or false on failure
          */
-        auto remove(const std::vector<std::string> &pkgs) -> bool;
+        auto remove(const vec<str> &pkgs) -> bool;
 
 
         /**
@@ -92,43 +89,43 @@ namespace pkg
          * @param name The name of the package.
          * @returns An valid alpm_pkg_t* on success, or nullptr on failure.
          */
-        auto find_pkg(const std::string &name) -> alpm_pkg_t*;
+        auto find_pkg(const str &name) -> alpm_pkg_t*;
 
 
         /**
          * @brief Returns packages from the alpm local database.
          * @return A vector of alpm_pkg_t*.
          */
-        auto get_locally_installed_pkgs() -> std::vector<alpm_pkg_t*>;
+        auto get_locally_installed_pkgs() -> vec<alpm_pkg_t*>;
 
 
         /**
          * @brief Returns packages from the native alpm database.
          * @return A vector of alpm_pkg_t*.
          */
-        auto get_installed_pkgs() -> std::vector<alpm_pkg_t*>;
+        auto get_installed_pkgs() -> vec<alpm_pkg_t*>;
 
         /**
          * @brief Get the available "search by" keywords used for the search function.
-         * @returns an array of const std::string with the size of 14.
+         * @returns an array of const str with the size of 14.
          */
-        static auto get_search_by_keywords() -> std::vector<std::string>;
+        static auto get_search_by_keywords() -> vec<str>;
 
         /**
          * @brief Get the available "sort by" keywords used for the search function.
-         * @returns an array of const std::string with the size of 7.
+         * @returns an array of const str with the size of 7.
          */
-        static auto get_sort_by_keywords() -> std::vector<std::string>;
+        static auto get_sort_by_keywords() -> vec<str>;
 
     private:
-        std::shared_ptr<Json::Value> m_config;
-        std::string                  m_url;
+        shared_ptr<json> m_config;
+        str              m_url;
 
-        std::string m_helper_path;
-        std::string m_prefix_path;
-        std::string m_root_path;
-        std::string m_db_path;
-        std::string m_pkexec;
+        str m_helper_path;
+        str m_prefix_path;
+        str m_root_path;
+        str m_db_path;
+        str m_pkexec;
 
         alpm_errno_t   m_alpm_errno;
         alpm_handle_t *m_alpm_handle{};
@@ -138,16 +135,14 @@ namespace pkg
          * @param t Which path to initialize. (0 - root, 1 - db, 2 - helper)
          * @return A valid string of path, or an empty string on failure.
          */
-        auto initialize_path(uint8_t t) -> std::string;
+        auto initialize_path(uint8_t t) -> str;
 
 
         /**
          * @brief Parses Json::Value from @p iss .
          * @return A valid Json::Value or an empty Json::Value on failure.
          */
-        static auto get_json_from_stream(
-            std::istringstream &iss
-        ) -> Json::Value;
+        static auto get_json_from_stream(std::istringstream &iss) -> json;
 
 
         /**
@@ -157,8 +152,8 @@ namespace pkg
          * @return 0 on native locality, 1 on foreign locality
          */
         static auto get_pkg_locality(
-            const std::string &pkg_name,
-            alpm_list_t       *sync_dbs
+            const str   &pkg_name,
+            alpm_list_t *sync_dbs
         ) -> uint8_t;
     };
 } /* namespace pkg */

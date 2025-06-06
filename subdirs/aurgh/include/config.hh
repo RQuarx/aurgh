@@ -22,6 +22,7 @@
 #define __CONFIG_HH__
 
 #include <json/value.h>
+#include "types.hh"
 
 class ArgParser;
 class Logger;
@@ -42,7 +43,7 @@ public:
      * @return A shared pointer to a Json::Value representing the configuration.
      */
     [[nodiscard]]
-    auto get_config() -> std::shared_ptr<Json::Value>;
+    auto get_config() -> shared_ptr<json>;
 
 
     /**
@@ -50,7 +51,7 @@ public:
      * @return A shared pointer to a Json::Value representing the cache.
      */
     [[nodiscard]]
-    auto get_cache() -> std::shared_ptr<Json::Value>;
+    auto get_cache() -> shared_ptr<json>;
 
 
     /**
@@ -60,13 +61,13 @@ public:
     auto save() -> bool;
 
 private:
-    std::string_view GLOBAL_CONFIG_PATH = "/etc/aurgh/config.jsonc";
+    str_view GLOBAL_CONFIG_PATH = "/etc/aurgh/config.jsonc";
 
-    std::shared_ptr<Json::Value> m_config;
-    std::shared_ptr<Json::Value> m_cache;
+    shared_ptr<json> m_config;
+    shared_ptr<json> m_cache;
 
-    std::string m_config_path;
-    std::string m_cache_path;
+    str m_config_path;
+    str m_cache_path;
 
 
     /**

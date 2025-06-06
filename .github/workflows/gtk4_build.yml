@@ -7,9 +7,12 @@ on:
       - '**/meson_options.txt'
       - '**/*.meson'
       - '.github/workflows/*.yml'
-      - '**/*.json'
+      - '**/*.jsonc'
       - '**/*.cc'
       - '**/*.hh'
+
+permissions:
+  contents: read
 
 jobs:
   clang:

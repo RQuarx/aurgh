@@ -29,6 +29,8 @@
 #include <gtkmm/box.h>
 
 #include "package/type.hh"
+#include "types.hh"
+
 
 namespace Gtk {
     class ScrolledWindow;
@@ -83,7 +85,7 @@ namespace pkg {
         /**
          * @brief Triggered when the action buttons is pressed.
          */
-        void on_action_button_pressed(const Json::Value &pkg);
+        void on_action_button_pressed(const json &pkg);
 
 
         /**
@@ -108,7 +110,7 @@ namespace pkg {
          * @brief Checks if a package @p pkg has unresolved dependency.
          * @param pkg The package to check for.
          */
-        static auto has_unresolved_dependencies(const Json::Value &pkg) -> bool;
+        static auto has_unresolved_dependencies(const json &pkg) -> bool;
 
 
         /**
@@ -116,7 +118,7 @@ namespace pkg {
          * @param file_name Name of the UI file.
          * @return Full file path to the UI resource.
          */
-        static auto get_ui_file(const std::string &file_name) -> std::string;
+        static auto get_ui_file(const str &file_name) -> str;
 
 #if GTKMM_MAJOR_VERSION == 4
         /**
@@ -130,7 +132,8 @@ namespace pkg {
          * @param button_event Pointer to the button press event.
          * @param type         The type of package action selected.
          */
-        void on_action_type_opened(GdkEventButton *button_event, pkg::Type type);
+        void on_action_type_opened(
+            GdkEventButton *button_event, pkg::Type type);
 #endif
 
     private:
@@ -139,12 +142,12 @@ namespace pkg {
         pkg_uset m_installed_pkgs;
         CardData m_card_data;
 
-        std::atomic<bool>        m_searching;
-        std::atomic<bool>        m_running;
-        Glib::Dispatcher         m_search_dispatcher;
-        std::vector<Json::Value> m_package_queue;
-        Json::Value              m_search_result;
-        std::string              m_card_ui_file;
+        std::atomic<bool> m_searching;
+        std::atomic<bool> m_running;
+        Glib::Dispatcher  m_search_dispatcher;
+        vec<json>         m_package_queue;
+        json              m_search_result;
+        str               m_card_ui_file;
 
         Gtk::Box *m_tab_box{};
         Gtk::Box *m_result_box{};

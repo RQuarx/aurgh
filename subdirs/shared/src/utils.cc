@@ -30,7 +30,7 @@
 #include "utils.hh"
 
 
-namespace str {
+namespace utils::str {
     auto
     split(std::string_view str, size_t pos) -> std::array<std::string, 2>
     {
@@ -72,7 +72,7 @@ namespace str {
             return std::isdigit(c);
         });
     }
-} /* namespace str */
+} /* namespace utils::str */
 
 
 namespace utils {

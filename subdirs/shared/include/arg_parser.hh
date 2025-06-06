@@ -218,13 +218,13 @@ private:
     };
 
     template<typename Key, typename Tp>
-    using umap          = std::unordered_map<Key, Tp>;
-    using arg_cont      = umap<Type, std::vector<std::pair<bool, std::string>>>;
-    using user_arg_cont = umap<std::string, std::variant<bool, std::string>>;
+    using umap       = std::unordered_map<Key, Tp>;
+    using arg_t      = umap<Type, std::vector<std::pair<bool, std::string>>>;
+    using user_arg_t = umap<std::string, std::variant<bool, std::string>>;
 
-    arg_cont      m_arg_list;
-    std::string   m_bin_path;
-    user_arg_cont m_user_arg;
+    arg_t       m_arg_list;
+    std::string m_bin_path;
+    user_arg_t  m_user_arg;
 
     std::vector<ArgInput> m_defined_args;
 

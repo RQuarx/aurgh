@@ -24,9 +24,7 @@
 #include <unordered_map>
 #include <fstream>
 #include <print>
-
-
-class ArgParser;
+#include "types.hh"
 
 
 /**
@@ -39,7 +37,7 @@ class ArgParser;
 */
 class Logger
 {
-    using label_pair = std::pair<std::string_view, std::string_view>;
+    using label_pair = std::pair<str_view, str_view>;
 public:
     /**
      * @enum Level
@@ -79,13 +77,13 @@ public:
      * If a log file is open, the message is also written to the log file.
     */
     template<typename... T_Args>
-    void log(Level log_level, std::string_view fmt, T_Args&&... args)
+    void log(Level log_level, str_view fmt, T_Args&&... args)
     {
-        std::string message = std::vformat(fmt, std::make_format_args(args...));
+        str message = std::vformat(fmt, std::make_format_args(args...));
 
         m_previous_log_level = log_level;
 
-        std::string_view label = (m_use_color
+        str_view label = (m_use_color
             ? m_labels.at(log_level).first
             : m_labels.at(log_level).second
         );
@@ -104,13 +102,13 @@ public:
     auto get_previous_log_level() -> Level;
 
 private:
-    static const inline std::unordered_map<Level, label_pair> m_labels{
-        { Debug, { "\033[1;37m[\033[1;36mDEBUG\033[1;37m]:\033[0;0;0m", "[DEBUG]:" } },
-        { Error, { "\033[1;37m[\033[1;31mERROR\033[1;37m]:\033[0;0;0m", "[ERROR]:" } },
-        { Info,  { "\033[1;37m[\033[1;32mINFO\033[1;37m]:\033[0;0;0m ", "[INFO]: " } },
-        { Warn,  { "\033[1;37m[\033[1;33mWARN\033[1;37m]:\033[0;0;0m ", "[WARN]: " } },
+    static const inline umap<Level, label_pair> m_labels{
+        { Debug, { "\033[1;37m[\033[1;36mdebug\033[1;37m]:\033[0;0;0m", "[debug]:" } },
+        { Error, { "\033[1;37m[\033[1;31merror\033[1;37m]:\033[0;0;0m", "[error]:" } },
+        { Info,  { "\033[1;37m[\033[1;32minfo\033[1;37m]:\033[0;0;0m ", "[info]: " } },
+        { Warn,  { "\033[1;37m[\033[1;33mwarn\033[1;37m]:\033[0;0;0m ", "[warn]: " } },
     };
-    const std::string m_log_arg = "-l, --log";
+    const str m_log_arg         = "-l, --log";
     Level m_previous_log_level  = None;
     Level m_log_treshold        = None;
 
@@ -125,7 +123,7 @@ private:
      * This method writes the log message to the specified log file, prefixed with the appropriate label
      * based on the log level.
     */
-    void log_to_file(Level log_level, std::string_view message);
+    void log_to_file(Level log_level, str_view message);
 
     /**
      * @brief Checks if a level has a valid value
@@ -149,20 +147,20 @@ private:
      * @param file The file path to the log file
      * @returns true on success, or false on failure
     */
-    auto open_log_file(const std::string &file) -> bool;
+    auto open_log_file(const str &file) -> bool;
 
     /**
      * @brief Handles the parameter that is passed to -l,--log for the constructor
      * @param option The option that is passed to -l,--log
      * @returns true on success, or false on failure
     */
-    auto handle_double_parameters(const std::string &option) -> bool;
+    auto handle_double_parameters(const str &option) -> bool;
 
     /**
      * @brief Returns the current time as "MM:SS.MS".
      * @returns A valid string on success, or an empty string on failure.
      */
-    static auto get_current_time() -> std::string;
+    static auto get_current_time() -> str;
 };
 
 #endif /* __LOGGER_HH__ */

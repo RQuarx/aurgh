@@ -40,45 +40,6 @@ class ArgParser;
 
 
 /**
- * @namespace str
- * @brief String utility functions.
- */
-namespace str {
-    /**
-     * @brief Splits a string into an array of 2.
-     * @param str The base string.
-     * @param pos The index where the string will be split.
-     * @returns An array object with size 2.
-     */
-    auto split(std::string_view str, size_t pos) -> std::array<std::string, 2>;
-
-
-    /**
-     * @brief Trims whitespace from both ends of the string.
-     * @param str The input string.
-     * @return A new trimmed string.
-     */
-    auto trim(std::string_view str) -> std::string;
-
-
-    /**
-    * @brief Counts the occurrences of a character in a string.
-    * @param str The input string to search within.
-    * @param delim The character to count.
-    * @return The number of times @p delim appears in @p str.
-    */
-    auto count(std::string_view str, char delim) -> size_t;
-
-
-    /**
-     * @brief Checks wheter @p str is only composed of digits.
-     * @param str The input string.
-     * @return Wheter @p str is only composed of digits.
-     */
-    auto is_digit(const std::string &str) -> bool;
-} /* namespace str */
-
-/**
  * @namespace utils
  * @brief A namespace containing usefull utilities
  */
@@ -209,6 +170,46 @@ namespace utils {
     template<typename T>
     auto find(const std::vector<T> &vec, const T &obj) -> bool
     { return std::ranges::find(vec, obj) != vec.end(); }
+
+
+    /**
+     * @namespace str
+     * @brief String utility functions.
+     */
+    namespace str {
+        /**
+         * @brief Splits a string into an array of 2.
+         * @param str The base string.
+         * @param pos The index where the string will be split.
+         * @returns An array object with size 2.
+         */
+        auto split(std::string_view str, size_t pos) -> std::array<std::string, 2>;
+
+
+        /**
+         * @brief Trims whitespace from both ends of the string.
+         * @param str The input string.
+         * @return A new trimmed string.
+         */
+        auto trim(std::string_view str) -> std::string;
+
+
+        /**
+        * @brief Counts the occurrences of a character in a string.
+        * @param str The input string to search within.
+        * @param delim The character to count.
+        * @return The number of times @p delim appears in @p str.
+        */
+        auto count(std::string_view str, char delim) -> size_t;
+
+
+        /**
+         * @brief Checks wheter @p str is only composed of digits.
+         * @param str The input string.
+         * @return Wheter @p str is only composed of digits.
+         */
+        auto is_digit(const std::string &str) -> bool;
+    } /* namespace str */
 } /* namespace utils */
 
 #endif /* utils.hh */

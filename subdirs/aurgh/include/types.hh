@@ -18,23 +18,24 @@
  */
 
 #pragma once
-#ifndef __DATA_HH__
-#define __DATA_HH__
+#ifndef __TYPES_HH__
+#define __TYPES_HH__
 
-#include "package/client.hh"
-#include "arg_parser.hh"
-#include "config.hh"
-#include "logger.hh"
+#include <unordered_map>
+#include <json/value.h>
 
 
-namespace data {
-    using pkg::Client;
+using json     = Json::Value;
+using str      = std::string;
+using str_view = std::string_view;
 
-    inline shared_ptr<ArgParser> arg_parser;
-    inline shared_ptr<Logger>    logger;
-    inline shared_ptr<Config>    config;
-    inline shared_ptr<Client>    pkg_client;
-} /* namespace data */
+template<typename Key, typename Tp>
+using umap = std::unordered_map<Key, Tp>;
 
+template<typename Tp>
+using vec = std::vector<Tp>;
 
-#endif /* __DATA_HH__ */
+template<typename Tp>
+using shared_ptr = std::shared_ptr<Tp>;
+
+#endif /* __TYPES_HH__ */

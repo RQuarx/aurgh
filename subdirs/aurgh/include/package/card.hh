@@ -26,6 +26,7 @@
 #include <gtkmm/frame.h>
 #include <json/value.h>
 
+#include "types.hh"
 #include "type.hh"
 
 
@@ -53,7 +54,7 @@ namespace pkg {
     {
     public:
         explicit Card(
-            Json::Value     pkg,
+            json            pkg,
             const CardData &card_data
         );
 
@@ -64,9 +65,9 @@ namespace pkg {
     private:
         CardData m_card_data;
 
-        std::shared_ptr<str_pair_vec> m_installed_pkgs;
-        std::shared_ptr<Actions>      m_actions;
-        Json::Value                   m_package;
+        shared_ptr<str_pair_vec> m_installed_pkgs;
+        shared_ptr<Actions>      m_actions;
+        json                     m_package;
 
         Gtk::Box *m_card = nullptr;
 
@@ -86,7 +87,7 @@ namespace pkg {
     protected:
         auto setup() -> bool;
 
-        void on_button_clicked(pkg::Type result, const std::string &pkg_name);
+        void on_button_clicked(pkg::Type result, const str &pkg_name);
 
         /**
          * @brief Searches for a package inside installed_aur_package

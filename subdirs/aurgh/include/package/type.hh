@@ -26,16 +26,16 @@
 #include <utility>
 #include <format>
 #include <memory>
-#include <string>
 #include <vector>
 #include <glibmm/refptr.h>
 #include <alpm.h>
+#include "types.hh"
 
 namespace Gtk { class Builder; }
 class Logger;
 
-using str_pair      = std::pair<std::string, std::string>;
-using str_vec       = std::vector<std::string>;
+using str_pair      = std::pair<str, str>;
+using str_vec       = std::vector<str>;
 using str_pair_vec  = std::vector<str_pair>;
 using builder_t     = Glib::RefPtr<Gtk::Builder>;
 using pkg_uset      = std::unordered_set<alpm_pkg_t*>;
@@ -57,9 +57,9 @@ namespace pkg {
 
     struct Actions
     {
-        std::shared_ptr<str_vec> install;
-        std::shared_ptr<str_vec> remove;
-        std::shared_ptr<str_vec> update;
+        shared_ptr<str_vec> install;
+        shared_ptr<str_vec> remove;
+        shared_ptr<str_vec> update;
 
         Actions() :
             install(std::make_shared<str_vec>()),
@@ -72,7 +72,7 @@ namespace pkg {
         }
 
         [[nodiscard]]
-        auto at(pkg::Type t) const -> std::shared_ptr<str_vec>
+        auto at(pkg::Type t) const -> shared_ptr<str_vec>
         {
             switch (t)
             {
@@ -88,14 +88,14 @@ namespace pkg {
 
     struct CardData
     {
-        std::string                  card_builder_file;
-        std::shared_ptr<pkg_uset>    installed_pkgs;
-        std::shared_ptr<Actions>     actions;
+        str                  card_builder_file;
+        shared_ptr<pkg_uset> installed_pkgs;
+        shared_ptr<Actions>  actions;
     };
 } /* namespace pkg */
 
 template<>
-struct std::formatter<pkg::Type> : std::formatter<std::string>
+struct std::formatter<pkg::Type> : std::formatter<str>
 {
     static auto
     format(pkg::Type type, format_context &ctx)

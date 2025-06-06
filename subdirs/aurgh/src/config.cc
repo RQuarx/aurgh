@@ -29,14 +29,14 @@
 
 
 Config::Config() :
-    m_config(std::make_shared<Json::Value>(Json::objectValue)),
-    m_cache(std::make_shared<Json::Value>(Json::objectValue)),
+    m_config(std::make_shared<json>(Json::objectValue)),
+    m_cache(std::make_shared<json>(Json::objectValue)),
     m_config_path(data::arg_parser->get_option("config"))
 {
     using std::filesystem::is_regular_file;
     using std::filesystem::exists;
 
-    auto valid_file = [](const std::string &path){
+    auto valid_file = [](const str &path){
         return exists(path) && is_regular_file(path);
     };
 
@@ -128,12 +128,12 @@ Config::save() -> bool
 
 
 auto
-Config::get_config() -> std::shared_ptr<Json::Value>
+Config::get_config() -> shared_ptr<json>
 { return m_config; }
 
 
 auto
-Config::get_cache() -> std::shared_ptr<Json::Value>
+Config::get_cache() -> shared_ptr<json>
 { return m_cache; }
 
 
