@@ -82,7 +82,7 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_SUCCESS;
     }
 
-    auto app         = Gtk::Application::create(APP_ID);\
+    auto app         = Gtk::Application::create(APP_ID);
     data::logger     = std::make_shared<Logger>();
     data::config     = std::make_shared<Config>();
     data::pkg_client = std::make_shared<pkg::Client>();

@@ -1,7 +1,7 @@
 project(
     'aurgh',
     'cpp',
-    version: '0.2.12',
+    version: '0.2.14',
     default_options: [
         'cpp_std=c++23',
         'optimization=2',
