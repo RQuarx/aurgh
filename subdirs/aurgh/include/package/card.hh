@@ -38,6 +38,10 @@ namespace Gtk {
 
 
 namespace pkg {
+    static const float INACTIVE_OPACITY = 0.5F;
+    static const float ACTIVE_OPACITY   = 1.0F;
+
+
     /**
      * @class Card
      * @brief A widget that displays information for an AUR package

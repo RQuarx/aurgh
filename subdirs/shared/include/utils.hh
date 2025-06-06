@@ -163,7 +163,7 @@ namespace utils {
         const Json::Value &root,
         const std::string &sort_by,
         bool               reverse = false
-    ) -> Json::Value;
+    ) -> std::vector<std::reference_wrapper<const Json::Value>>;
 
 
     /**

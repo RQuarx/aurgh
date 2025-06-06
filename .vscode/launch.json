@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/aurgh",
-            "args": ["-l0", "-cconfig.json"],
+            "args": ["-l0", "-cconfig.jsonc"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

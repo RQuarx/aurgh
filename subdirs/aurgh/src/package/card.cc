@@ -147,12 +147,12 @@ Card::on_button_clicked(pkg::Type result, const std::string &pkg_name)
 
         if (it != vec->end()) {
             vec->erase(it);
-            m_action_button->set_opacity(1);
+            m_action_button->set_opacity(ACTIVE_OPACITY);
             m_button_dimmed = false;
         }
     } else {
         vec->push_back(pkg_name);
-        m_action_button->set_opacity(0.5F);
+        m_action_button->set_opacity(INACTIVE_OPACITY);
         m_button_dimmed = true;
     }
 }
@@ -181,11 +181,11 @@ Card::refresh()
         auto pkg    = m_package["Name"].asString();
         if (!m_button_dimmed && utils::find(*action, pkg)) {
             m_button_dimmed = true;
-            m_action_button->set_opacity(0.5F);
+            m_action_button->set_opacity(INACTIVE_OPACITY);
             return;
         }
     }
 
     m_button_dimmed = false;
-    m_action_button->set_opacity(1);
+    m_action_button->set_opacity(ACTIVE_OPACITY);
 }

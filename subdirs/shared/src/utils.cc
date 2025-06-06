@@ -195,31 +195,38 @@ namespace utils {
         const Json::Value &root,
         const std::string &sort_by,
         bool               reverse
-    ) -> Json::Value
+    ) -> std::vector<std::reference_wrapper<const Json::Value>>
     {
-        Json::Value              result{ root.type() };
-        std::vector<Json::Value> buffer;
-        buffer.reserve(root.size());
+        std::vector<std::reference_wrapper<const Json::Value>> result;
+        result.reserve(root.size());
 
-        for (const auto &j : root) { buffer.emplace_back(j); }
+        for (const auto &j : root) {
+            if (j.isMember(sort_by)) {
+                result.emplace_back(j);
+            }
+        }
 
-        std::ranges::sort(buffer,
-        [&sort_by, reverse]
-        (const Json::Value &a, const Json::Value &b){
-            if (a[sort_by].isInt()) {
-                if (reverse) {
-                    return a[sort_by].asInt64() < b[sort_by].asInt64();
-                }
-                return a[sort_by].asInt64() > b[sort_by].asInt64();
+        std::ranges::sort(result, [&](const auto &a_ref, const auto &b_ref) {
+            const auto &a = a_ref.get();
+            const auto &b = b_ref.get();
+
+            const auto &a_val = a[sort_by];
+            const auto &b_val = b[sort_by];
+
+            if (a_val.isInt() && b_val.isInt()) {
+                /* I dont know why but the goddamn sort will reverse
+                 * if the reverse is false...
+                 */
+                return reverse
+                    ? a_val.asInt64() < b_val.asInt64()
+                    : a_val.asInt64() > b_val.asInt64();
             }
 
-            if (reverse) {
-                return a[sort_by].asString() < b[sort_by].asString();
-            }
-            return a[sort_by].asString() > b[sort_by].asString();
+            return reverse
+                ? a_val.asString() < b_val.asString()
+                : a_val.asString() > b_val.asString();
         });
 
-        for (const auto &j : buffer) { result.append(j); }
         return result;
     }
 

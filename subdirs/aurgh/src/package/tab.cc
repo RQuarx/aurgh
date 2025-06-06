@@ -223,7 +223,7 @@ Tab::on_search()
         Logger::Info, "Searching for: {}, by {}", pkg_name, search_by
     );
 
-    std::thread([this, pkg_name, search_by](){
+    std::jthread([this, pkg_name, search_by](){
         m_searching = true;
         m_running = true;
 
@@ -249,10 +249,10 @@ Tab::on_dispatch_search_ready()
         m_search_result["resultcount"].asInt()
     );
 
-    std::string  sort_by        = m_sort_by_combo->get_active_text();
-    bool         reverse        = m_reverse_sort_check->get_active();
-    Json::Value  pkgs           = m_search_result["results"];
-    Json::Value  sorted         = utils::sort_json(pkgs, sort_by, reverse);
+    std::string sort_by = m_sort_by_combo->get_active_text();
+    bool        reverse = m_reverse_sort_check->get_active();
+    Json::Value pkgs    = m_search_result["results"];
+    auto        sorted  = utils::sort_json(pkgs, sort_by, reverse);
 
     m_spinner->stop();
 
@@ -469,25 +469,31 @@ Tab::has_unresolved_dependencies(const Json::Value &pkg) -> bool
 {
     auto info = data::pkg_client->info(pkg["Name"].asString());
 
-    auto &depends = info["Depends"];
-    depends.append(info["MakeDepends"]);
-    if (!depends.isArray()) { return false; }
+    std::vector<Json::Value> all_deps;
+    for (const auto& d : info["Depends"]) all_deps.push_back(d);
+    for (const auto& d : info["MakeDepends"]) all_deps.push_back(d);
 
-    auto extract_dep_name = [](const std::string &dep) -> std::string {
-        static const std::regex versioned_dep_regex(R"(([^<>=]+))");
-        std::smatch match;
-        if (std::regex_search(dep, match, versioned_dep_regex)) {
-            return match.str(1);
-        }
-        return dep;
+    if (all_deps.empty()) return false;
+
+    auto extract_dep_name = [](const std::string& dep) -> std::string {
+        size_t pos = dep.find_first_of("<>=");
+        return (pos != std::string::npos) ? dep.substr(0, pos) : dep;
     };
 
-    return std::ranges::any_of(depends,
-    [extract_dep_name](const auto &dep)
-    {
-        std::string dep_name = extract_dep_name(dep.asString());
-        return data::pkg_client->find_pkg(dep_name) == nullptr;
+    static std::unordered_map<std::string, bool> pkg_exists_cache;
+
+    return std::ranges::any_of(all_deps, [&](const auto& dep_val) {
+        std::string dep_str = dep_val.asString();
+        std::string dep_name = extract_dep_name(dep_str);
+
+        auto it = pkg_exists_cache.find(dep_name);
+        if (it != pkg_exists_cache.end()) return !it->second;
+
+        bool found = data::pkg_client->find_pkg(dep_name) != nullptr;
+        pkg_exists_cache[dep_name] = found;
+        return !found;
     });
+
 }
 
 
