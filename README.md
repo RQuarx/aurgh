@@ -36,11 +36,11 @@ Independent, minimal, and modern.
 meson pkgconf curl jsoncpp pacman
 ```
 
-**Gtk3 Build**:
+**GTK3 Build**:
 ```console
 gtkmm3 glibmm
 ```
-**Gtk4 Build**:
+**GTK4 Build**:
 ```console
 gtkmm-4.0 glibmm-2.68
 ```
