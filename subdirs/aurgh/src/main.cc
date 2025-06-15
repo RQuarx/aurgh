@@ -74,9 +74,17 @@ main(int32_t argc, char **argv) -> int32_t
 
     if (data::arg_parser->get_flag("version")) {
         std::println(
-            "{} {}\n├─libalpm - {}\n╰─gtkmm   - {}.{}.{}",
+            "{} {}\n"
+            "├─jsoncpp - {}\n"
+            "├─libcurl - {}\n"
+            "├─libalpm - {}\n"
+            "├─glibmm  - {}.{}.{}\n"
+            "╰─gtkmm   - {}.{}.{}",
             APP_NAME, APP_VERSION,
+            JSONCPP_VERSION_STRING,
+            curl_version_info(CURLVERSION_NOW)->version,
             alpm_version(),
+            GLIBMM_MAJOR_VERSION, GLIBMM_MINOR_VERSION, GLIBMM_MICRO_VERSION,
             GTKMM_MAJOR_VERSION, GTKMM_MINOR_VERSION, GTKMM_MICRO_VERSION
         );
         return EXIT_SUCCESS;

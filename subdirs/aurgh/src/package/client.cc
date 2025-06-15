@@ -109,8 +109,9 @@ Client::info(const str &args) -> json
     str full_url = std::format("{}/info?arg[]={}", m_url, args);
 
     str read_buffer;
-    if (
-        utils::perform_curl(nullptr, full_url, read_buffer) == CURLE_FAILED_INIT
+    if (utils::perform_curl(nullptr,
+                            full_url,
+                            read_buffer) == CURLE_FAILED_INIT
     ) data::logger->log(Logger::Error, "Failed to initialise CURL.");
 
     std::istringstream iss(read_buffer);

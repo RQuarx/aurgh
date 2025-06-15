@@ -37,6 +37,7 @@ namespace Gtk {
     class ComboBoxText;
     class CheckButton;
     class SearchEntry;
+    class Container;
     class Expander;
     class Builder;
     class Spinner;
@@ -63,47 +64,38 @@ namespace pkg {
         Tab();
 
     protected:
+
+        void
+            setup_widgets           (const Glib::RefPtr<Gtk::Builder> &b),
+            on_action_button_pressed(pkg::Type   type,
+                                     bool        action_type,
+                                     const json &pkg),
+            on_dispatch_search_ready(),
+            get_installed_pkgs(),
+            on_search(),
+            setup();
+
+#if GTK4
         /**
-         * @brief Initializes and connects all widgets from the Gtk::Builder UI.
-         * @param b Reference to the Gtk::Builder used to build the UI.
+         * @brief Opens the appropriate action for a package.
+         * @param type The type of package action selected.
          */
-        void setup_widgets(const Glib::RefPtr<Gtk::Builder> &b);
-
-
+        void on_action_type_opened(pkg::Type type);
+#else
         /**
-         * @brief Populates combo boxes, sets initial states, and connects signal handlers.
+         * @brief Opens the appropriate action for a package.
+         * @param button_event Pointer to the button press event.
+         * @param type         The type of package action selected.
          */
-        void setup();
-
-
-        /**
-         * @brief Triggered when a search is requested by the user.
-         */
-        void on_search();
-
-
-        /**
-         * @brief Triggered when the action buttons is pressed.
-         */
-        void on_action_button_pressed(const json &pkg);
-
-
-        /**
-         * @brief Handles the event when search results are ready (via dispatcher).
-         */
-        void on_dispatch_search_ready();
+        void on_action_type_opened(GdkEventButton *button_event,
+                                   pkg::Type       type);
+#endif
 
 
         /**
          * @brief Triggered when the execute action button is pressed.
          */
         auto on_execute_button_pressed() -> bool;
-
-
-        /**
-         * @brief Fills the m_card_data.installed_pkgs with the installed pkgs.
-         */
-        void get_installed_pkgs();
 
 
         /**
@@ -120,21 +112,11 @@ namespace pkg {
          */
         static auto get_ui_file(const str &file_name) -> str;
 
-#if GTKMM_MAJOR_VERSION == 4
+
         /**
-         * @brief Opens the appropriate action for a package (GTK4 version).
-         * @param type The type of package action selected.
+         * @brief Removes all children inside of a Gtk::Box @p container .
          */
-        void on_action_type_opened(pkg::Type type);
-#else
-        /**
-         * @brief Opens the appropriate action for a package (GTK3 version).
-         * @param button_event Pointer to the button press event.
-         * @param type         The type of package action selected.
-         */
-        void on_action_type_opened(
-            GdkEventButton *button_event, pkg::Type type);
-#endif
+        static void remove_all_child(Gtk::Box &container);
 
     private:
         shared_ptr<Actions>   m_actions;

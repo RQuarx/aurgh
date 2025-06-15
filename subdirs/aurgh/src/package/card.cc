@@ -20,6 +20,7 @@
 #include <gtkmm/linkbutton.h>
 #include <gtkmm/builder.h>
 #include <gtkmm/button.h>
+#include <gtkmm/image.h>
 #include <gtkmm/label.h>
 #include <gtkmm/box.h>
 #include <json/value.h>
@@ -53,6 +54,9 @@ Card::Card(
     m_name_label       = b->get_widget<Gtk::Label>("name_label");
     m_popularity_label = b->get_widget<Gtk::Label>("popularity_label");
     m_votes_label      = b->get_widget<Gtk::Label>("votes_label");
+    
+    auto *img     = b->get_widget<Gtk::Image>("package_image");
+    img->set_from_icon_name("package-x-generic-symbolic");
 
     set_child(*m_card);
     set_valign(Gtk::Align::START);
@@ -80,54 +84,50 @@ Card::Card(
 
 
 auto
-Card::get_action_button() -> Gtk::Button*&
-{ return m_action_button; }
+Card::signal_action_pressed(
+    ) -> sigc::signal<void (pkg::Type, bool, const json &)>
+{ return m_signal; }
 
 
 auto
 Card::setup() -> bool
 {
-    m_version_label->set_label(m_package["Version"].asString());
-    m_desc_label->set_label(m_package["Description"].asString());
+    str
+        pkg_desc    = m_package["Description"].asString(),
+        pkg_version = m_package["Version"    ].asString(),
+        pkg_name    = m_package["Name"       ].asString(),
+        url         = m_package["URL"        ].asString(),
+        markup      = "<b>{}</b>",
+        icon_name;
 
-    str url    = m_package["URL"].asString();
-    str markup = "<b>{}</b>";
+    m_version_label->set_label(pkg_version);
+    m_desc_label   ->set_label(pkg_desc   );
 
     if (m_package["OutOfDate"] != json::null) {
         markup = utils::format(markup, "<span foreground=\"red\">{}</span>");
     }
 
-    m_name_label->set_markup(utils::format(markup, m_package["Name"].asString()));
-
-    m_name_link->set_tooltip_text(url);
-    m_name_link->set_uri(url);
-
-    m_name_link->signal_clicked().connect([this](){
-        m_name_link->set_visited();
-    });
+    m_name_label->set_markup(utils::format(markup, pkg_name));
+    m_name_link ->set_tooltip_text(url);
+    m_name_link ->set_uri(url);
 
     markup = "<sub>{}</sub>";
 
-    uint32_t votes   = m_package["NumVotes"].asUInt();
-    float popularity =
+    uint32_t votes      = m_package["NumVotes"].asUInt();
+    float    popularity =
         std::roundf(m_package["Popularity"].asFloat() * 100) / 100;
 
     m_popularity_label->set_markup(utils::format(markup, popularity));
-    m_votes_label->set_markup(utils::format(markup, votes));
+    m_votes_label     ->set_markup(utils::format(markup, votes     ));
 
-    str pkg_name    = m_package["Name"].asString();
-    str pkg_version = m_package["Version"].asString();
-
-    str icon_name;
-    str_pair    pkg(pkg_name, pkg_version);
+    str_pair    pkg    = { pkg_name, pkg_version };
     int8_t      result = find_package(pkg);
 
     if      (result == -1) { icon_name = "document-save-symbolic"; }
-    else if (result == 0)  { icon_name = "edit-delete-symbolic"; }
-    else                   { icon_name = "view-refresh-symbolic"; }
+    else if (result == 0 ) { icon_name = "edit-delete-symbolic";   }
+    else                   { icon_name = "view-refresh-symbolic";  }
 
     m_action_button->set_image_from_icon_name(icon_name);
-
     m_action_button->signal_clicked().connect(sigc::bind(
         sigc::mem_fun(*this, &Card::on_button_clicked),
         pkg::Type(result), pkg_name
@@ -150,10 +150,14 @@ Card::on_button_clicked(pkg::Type result, const str &pkg_name)
             m_action_button->set_opacity(ACTIVE_OPACITY);
             m_button_dimmed = false;
         }
+
+        m_signal.emit(result, false, m_package);
     } else {
         vec->push_back(pkg_name);
         m_action_button->set_opacity(INACTIVE_OPACITY);
         m_button_dimmed = true;
+
+        m_signal.emit(result, true, m_package);
     }
 }
 

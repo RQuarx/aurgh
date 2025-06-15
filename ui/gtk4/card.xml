@@ -28,8 +28,8 @@
                 <property name="spacing">5</property>
 
                 <child>
-                  <object class="GtkImage">
-                    <property name="icon-name">package-x-generic-symbolic</property>
+                  <object class="GtkImage" id="package_image">
+                    <property name="icon-name">flatpak-symbolic</property>
                   </object>
                 </child>
 

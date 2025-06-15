@@ -1,14 +1,15 @@
 project(
     'aurgh',
     'cpp',
-    version: '0.2.14',
+    version: '0.2.16',
     default_options: [
         'cpp_std=c++23',
         'optimization=2',
         'warning_level=3'
     ],
     license: 'GPL-3.0-or-later',
-    license_files: 'COPYING'
+    license_files: 'COPYING',
+    meson_version: '>=1.8.1',
 )
 
 gtk_version     = get_option('gtk-version')
@@ -31,7 +32,7 @@ elif gtk_version == 3
         'glibmm-2.4',
     ]
 else
-    error('GTK must be version 3 or 4')
+    error('GTK must be of version 3 or 4')
 endif
 
 foreach dep : deps

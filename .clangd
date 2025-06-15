@@ -28,7 +28,8 @@ Diagnostics:
             'cppcoreguidelines-pro-bounds-pointer-arithmetic',
             'cppcoreguidelines-special-member-functions',
             'cppcoreguidelines-missing-std-forward',
-            'cppcoreguidelines-avoid-non-const-global-variables'
+            'cppcoreguidelines-avoid-non-const-global-variables',
+            'readability-isolate-declaration'
         ]
 
 InlayHints:

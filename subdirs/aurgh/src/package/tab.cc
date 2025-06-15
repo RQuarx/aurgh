@@ -20,7 +20,6 @@
 #include <filesystem>
 #include <chrono>
 #include <thread>
-#include <regex>
 
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/comboboxtext.h>
@@ -84,14 +83,14 @@ Tab::Tab() :
     m_spinner->hide();
     setup();
 
-#if GTK4
-    m_result_box->append(*m_spinner);
-    append(*m_tab_box);
-#else
-    m_result_box->pack_start(*m_spinner);
-    add(*m_tab_box);
-    set_visible();
-#endif
+    #if GTK4
+        m_result_box->append(*m_spinner);
+        append(*m_tab_box);
+    #else
+        m_result_box->pack_start(*m_spinner);
+        add(*m_tab_box);
+        set_visible();
+    #endif
 
     get_installed_pkgs();
 
@@ -197,13 +196,13 @@ Tab::on_search()
     auto children = m_result_box->get_children();
 
     for (auto *child : children) {
-#if GTK4
-        if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
-#endif
+        #if GTK4
+            if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
+                m_result_box->remove(*child);
+            }
+        #else
             m_result_box->remove(*child);
-#if GTK4
-        }
-#endif
+        #endif
     }
 
 #if GTK4
@@ -243,42 +242,46 @@ Tab::on_search()
 void
 Tab::on_dispatch_search_ready()
 {
-    data::logger->log(
-        Logger::Debug,
-        "Found {} packages.",
-        m_search_result["resultcount"].asInt()
-    );
+    if (m_search_result["resultcount"].asInt() < 1) {
+        data::logger->log(Logger::Debug, "Found no packages.");
+    }
 
-    str sort_by = m_sort_by_combo->get_active_text();
-    bool reverse = m_reverse_sort_check->get_active();
-    json pkgs    = m_search_result["results"];
-    auto sorted  = utils::sort_json(pkgs, sort_by, reverse);
-
-    m_spinner->stop();
-
-#if GTK4
-    m_result_box->set_valign(Gtk::Align::START);
-#else
-    m_result_box->set_valign(Gtk::ALIGN_START);
-    m_result_box->remove(*m_spinner);
-#endif
-    m_spinner->set_visible(false);
-
-    for (const auto &pkg : sorted) {
-        auto *card = Gtk::make_managed<pkg::Card>(
-            pkg,
-            m_card_data
+    if (m_search_result["resultcount"].asInt() > 0) {
+        data::logger->log(
+            Logger::Debug,
+            "Found {} packages.",
+            m_search_result["resultcount"].asInt()
         );
 
-        card->get_action_button()->signal_clicked().connect(sigc::bind(
-            sigc::mem_fun(*this, &Tab::on_action_button_pressed), pkg
-        ));
+        str  sort_by = m_sort_by_combo->get_active_text();
+        bool reverse = m_reverse_sort_check->get_active();
+        json pkgs    = m_search_result["results"];
+        auto sorted  = utils::sort_json(pkgs, sort_by, reverse);
+
+        m_spinner->stop();
 
 #if GTK4
-        m_result_box->append(*card);
+        m_result_box->set_valign(Gtk::Align::START);
 #else
-        m_result_box->pack_start(*card);
+        m_result_box->set_valign(Gtk::ALIGN_START);
+        m_result_box->remove(*m_spinner);
 #endif
+        m_spinner->set_visible(false);
+
+        for (const auto &pkg : sorted) {
+            auto *card = Gtk::make_managed<pkg::Card>(pkg,
+                                                              m_card_data);
+
+            card->signal_action_pressed().connect(sigc::mem_fun(
+                *this, &Tab::on_action_button_pressed
+            ));
+
+#if GTK4
+            m_result_box->append(*card);
+#else
+            m_result_box->pack_start(*card);
+#endif
+        }
     }
 
 #if GTK3
@@ -290,26 +293,28 @@ Tab::on_dispatch_search_ready()
 
 
 void
-Tab::on_action_button_pressed(const json &pkg)
+Tab::on_action_button_pressed(pkg::Type type, bool action_type, const json &pkg)
 {
-    auto tick = std::chrono::system_clock::now();
+    if (action_type && type != Type::Remove) {
+        auto tick = std::chrono::system_clock::now();
 
-    if (has_unresolved_dependencies(pkg)) {
-        data::logger->log(Logger::Debug, "Has unresolved deps");
+        if (has_unresolved_dependencies(pkg)) {
+            data::logger->log(Logger::Debug, "Has unresolved deps");
+        }
+
+        auto tock = std::chrono::system_clock::now();
+
+        data::logger->log(
+            Logger::Debug,
+            "'Has unresolved dependencies check' time: {}",
+            std::chrono::duration_cast<std::chrono::milliseconds>(tock - tick)
+        );
     }
-
-    auto tock = std::chrono::system_clock::now();
-
-    data::logger->log(
-        Logger::Debug,
-        "'Has unresolved dependencies check' time: {}",
-        std::chrono::duration_cast<std::chrono::milliseconds>(tock - tick)
-    );
 
     bool all_empty = true;
 
     for (auto t : { Install, Remove, Update }) {
-        auto pkgs = m_actions->at(t);
+        auto  pkgs   = m_actions->at(t);
         auto *action = m_action_widgets.at(t);
 
         if (pkgs->empty()) {
@@ -325,29 +330,27 @@ Tab::on_action_button_pressed(const json &pkg)
             m_no_actions_label->set_visible(false);
         }
 
-        auto *box     = dynamic_cast<Gtk::Box*>(action->get_child());
-        auto children = box->get_children();
-        for (auto *child : children) {
-            box->remove(*child);
-        }
+        remove_all_child(*dynamic_cast<Gtk::Box*>(action->get_child()));
 
-        for (const auto &pkg : *pkgs) {
+        for (const auto &action_pkg : *pkgs) {
             auto *link = Gtk::make_managed<Gtk::LinkButton>();
             str url = std::format(
-                "https://aur.archlinux.org/packages/{}", pkg
+                "https://aur.archlinux.org/packages/{}", action_pkg
             );
 
-            link->set_label(pkg);
+            link->set_label(action_pkg);
             link->set_uri(url);
             link->set_tooltip_text(url);
 
 #if GTK4
             link->set_halign(Gtk::Align::START);
             link->set_visible();
-            box->append(*link);
+            dynamic_cast<Gtk::Box*>
+            (action->get_child())->append(*link);
 #else
             link->set_halign(Gtk::ALIGN_START);
-            box->pack_start(*link);
+            dynamic_cast<Gtk::Box*>
+            (action->get_child())->pack_start(*link);
 #endif
 
         }
@@ -370,11 +373,8 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
 
     if (!m_action_widgets[type]->get_expanded()) {
         auto pkgs     = m_actions->at(type);
-        auto *box     = dynamic_cast<Gtk::Box*>(action_widget->get_child());
-        auto children = box->get_children();
-        for (auto *child : children) {
-            box->remove(*child);
-        }
+        remove_all_child(*dynamic_cast<Gtk::Box*>(action_widget->get_child()));
+
 
         for (const auto &pkg : *pkgs) {
             auto *link      = Gtk::make_managed<Gtk::LinkButton>();
@@ -388,10 +388,12 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
 
 #if GTK4
             link->set_halign(Gtk::Align::START);
-            box->append(*link);
+            dynamic_cast<Gtk::Box*>
+            (action_widget->get_child())->append(*link);
 #else
             link->set_halign(Gtk::ALIGN_START);
-            box->pack_start(*link);
+            dynamic_cast<Gtk::Box*>
+            (action_widget->get_child())->pack_start(*link);
 #endif
         }
     }
@@ -467,7 +469,7 @@ Tab::get_ui_file(const str &file_name) -> str
 auto
 Tab::has_unresolved_dependencies(const json &pkg) -> bool
 {
-    auto info = data::pkg_client->info(pkg["Name"].asString());
+    json info { data::pkg_client->info(pkg["Name"].asString()) };
 
     std::vector<json> all_deps;
     for (const auto& d : info["Depends"]) all_deps.push_back(d);
@@ -482,7 +484,7 @@ Tab::has_unresolved_dependencies(const json &pkg) -> bool
 
     static umap<str, bool> pkg_exists_cache;
 
-    return std::ranges::any_of(all_deps, [&](const auto& dep_val) {
+    return std::ranges::any_of(all_deps, [&](const auto &dep_val) {
         str dep_str = dep_val.asString();
         str dep_name = extract_dep_name(dep_str);
 
@@ -493,7 +495,7 @@ Tab::has_unresolved_dependencies(const json &pkg) -> bool
         pkg_exists_cache[dep_name] = found;
         return !found;
     });
-
+    return false;
 }
 
 
@@ -526,4 +528,14 @@ Tab::get_installed_pkgs()
             // alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)
         // );
     // }
+}
+
+
+void
+Tab::remove_all_child(Gtk::Box &container)
+{
+    auto children = container.get_children();
+    std::ranges::for_each(children, [&container](Gtk::Widget *child){
+        container.remove(*child);
+    });
 }

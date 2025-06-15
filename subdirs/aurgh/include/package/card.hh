@@ -21,8 +21,7 @@
 #ifndef __PACKAGE__CARD_HH__
 #define __PACKAGE__CARD_HH__
 
-#include <string>
-
+#include <sigc++/signal.h>
 #include <gtkmm/frame.h>
 #include <json/value.h>
 
@@ -53,12 +52,10 @@ namespace pkg {
     class Card : public Gtk::Frame
     {
     public:
-        explicit Card(
-            json            pkg,
-            const CardData &card_data
-        );
+        explicit Card(json pkg, const CardData &card_data);
 
-        auto get_action_button() -> Gtk::Button*&;
+        auto signal_action_pressed(
+            ) -> sigc::signal<void (pkg::Type, bool, const json &)>;
 
         void refresh();
 
@@ -83,6 +80,8 @@ namespace pkg {
         Gtk::Label *m_votes_label      = nullptr;
 
         bool m_button_dimmed;
+
+        sigc::signal<void (pkg::Type, bool, const json &)> m_signal;
 
     protected:
         auto setup() -> bool;
