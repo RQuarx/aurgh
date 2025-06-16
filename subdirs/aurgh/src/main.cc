@@ -95,11 +95,7 @@ main(int32_t argc, char **argv) -> int32_t
     data::config     = std::make_shared<Config>();
     data::pkg_client = std::make_shared<pkg::Client>();
 
-    data::logger->log(
-        Logger::Debug,
-        "Initialising curl with flag: "
-        "CURL_GLOBAL_ALL, CURL_VERSION_THREADSAFE"
-    );
+    data::logger->log(Logger::Debug, "Initialising curl");
     if (curl_global_init(CURL_INIT_FLAG) != 0) {
         data::logger->log(Logger::Error, "Failed to init curl");
     }
