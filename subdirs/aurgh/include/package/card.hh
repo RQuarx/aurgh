@@ -53,7 +53,10 @@ namespace pkg {
     class Card : public Gtk::Frame
     {
     public:
-        explicit Card(json pkg, const CardData &card_data, str_view icon_path);
+        explicit Card(BaseObjectType      *cobject,
+                      const builder_t     &builder,
+                      json                 pkg,
+                      shared_ptr<Actions> &actions);
 
         auto signal_action_pressed(
             ) -> sigc::signal<void (pkg::Type, bool, const json &)>;
@@ -61,9 +64,6 @@ namespace pkg {
         void refresh();
 
     private:
-        CardData m_card_data;
-
-        shared_ptr<str_pair_vec> m_installed_pkgs;
         shared_ptr<Actions>      m_actions;
         json                     m_package;
 
@@ -88,7 +88,7 @@ namespace pkg {
         sigc::signal<void (pkg::Type, bool, const json &)> m_signal;
 
     protected:
-        auto setup(const str &icon_path) -> bool;
+        auto setup() -> bool;
 
         void on_button_clicked(pkg::Type result, const str &pkg_name);
 

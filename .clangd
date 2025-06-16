@@ -29,7 +29,8 @@ Diagnostics:
             'cppcoreguidelines-special-member-functions',
             'cppcoreguidelines-missing-std-forward',
             'cppcoreguidelines-avoid-non-const-global-variables',
-            'readability-isolate-declaration'
+            'readability-isolate-declaration',
+            'cppcoreguidelines-avoid-magic-numbers',
         ]
 
 InlayHints:

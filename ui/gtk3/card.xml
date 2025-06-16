@@ -2,125 +2,136 @@
 <interface>
   <requires lib="gtk" version="3.0" />
 
-  <object class="GtkBox" id="card_box">
-    <property name="vexpand">false</property>
-    <property name="hexpand">true</property>
-    <property name="halign">fill</property>
-    <property name="valign">start</property>
-    <property name="margin">5</property>
+  <object class="GtkFrame" id="pkg_card">
 
+    <property name="margin-start">5</property>
+    <property name="vexpand">true</property>
+    <property name="visible">true</property>
+    <property name="hexpand">true</property>
+    <property name="valign">start</property>
+    <property name="halign">fill</property>
     <child>
-      <object class="GtkBox" id="info_box">
-        <property name="orientation">vertical</property>
-        <property name="margin-left">5</property>
+      <object class="GtkBox" id="card_box">
+        <property name="vexpand">false</property>
+        <property name="hexpand">true</property>
+        <property name="halign">fill</property>
+        <property name="valign">start</property>
+        <property name="margin">5</property>
 
         <child>
-          <object class="GtkBox" id="summary_box">
-            <property name="halign">start</property>
-            <property name="valign">start</property>
-            <property name="spacing">5</property>
+          <object class="GtkBox" id="info_box">
+            <property name="orientation">vertical</property>
+            <property name="margin-left">5</property>
 
             <child>
-              <object class="GtkBox" id="name_box">
+              <object class="GtkBox" id="summary_box">
+                <property name="halign">start</property>
+                <property name="valign">start</property>
                 <property name="spacing">5</property>
 
                 <child>
-                  <object class="GtkImage" id="package_image">
-                    <property name="icon-name">package-x-generic-symbolic</property>
-                  </object>
-                </child>
+                  <object class="GtkBox" id="name_box">
+                    <property name="spacing">5</property>
 
-                <child>
-                  <object class="GtkLinkButton" id="name_link">
                     <child>
-                      <object class="GtkLabel" id="name_label" />
+                      <object class="GtkImage" id="package_image">
+                        <property name="icon-name">package-x-generic-symbolic</property>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkLinkButton" id="name_link">
+                        <child>
+                          <object class="GtkLabel" id="name_label" />
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkLabel" id="outofdate_label" />
                     </child>
                   </object>
                 </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkBox" id="version_box">
+                <property name="halign">start</property>
 
                 <child>
-                  <object class="GtkLabel" id="outofdate_label"/>
+                  <object class="GtkLabel" id="version:_label">
+                    <property name="label">Version: </property>
+                    <property name="xalign">0.0</property>
+                    <property name="wrap">false</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="version_label" />
                 </child>
               </object>
             </child>
-          </object>
-        </child>
-
-        <child>
-          <object class="GtkBox" id="version_box">
-            <property name="halign">start</property>
 
             <child>
-              <object class="GtkLabel" id="version:_label">
-                <property name="label">Version: </property>
-                <property name="xalign">0.0</property>
-                <property name="wrap">false</property>
+              <object class="GtkBox" id="popularity_box">
+                <property name="halign">start</property>
+
+                <child>
+                  <object class="GtkLabel" id="popularity:_label">
+                    <property name="label">Popularity: </property>
+                    <property name="xalign">0.0</property>
+                    <property name="wrap">false</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="popularity_label" />
+                </child>
               </object>
             </child>
 
             <child>
-              <object class="GtkLabel" id="version_label"/>
-            </child>
-          </object>
-        </child>
+              <object class="GtkBox" id="votes_box">
+                <property name="halign">start</property>
 
-        <child>
-          <object class="GtkBox" id="popularity_box">
-            <property name="halign">start</property>
+                <child>
+                  <object class="GtkLabel" id="votes:_label">
+                    <property name="label">Votes: </property>
+                    <property name="xalign">0.0</property>
+                    <property name="wrap">false</property>
+                  </object>
+                </child>
 
-            <child>
-              <object class="GtkLabel" id="popularity:_label">
-                <property name="label">Popularity: </property>
-                <property name="xalign">0.0</property>
-                <property name="wrap">false</property>
+                <child>
+                  <object class="GtkLabel" id="votes_label" />
+                </child>
               </object>
             </child>
 
             <child>
-              <object class="GtkLabel" id="popularity_label"/>
-            </child>
-          </object>
-        </child>
-
-        <child>
-          <object class="GtkBox" id="votes_box">
-            <property name="halign">start</property>
-
-            <child>
-              <object class="GtkLabel" id="votes:_label">
-                <property name="label">Votes: </property>
+              <object class="GtkLabel" id="description_label">
+                <property name="margin-top">10</property>
+                <property name="halign">start</property>
+                <property name="label">FooBar</property>
                 <property name="xalign">0.0</property>
-                <property name="wrap">false</property>
+                <property name="wrap">true</property>
               </object>
             </child>
-
-            <child>
-              <object class="GtkLabel" id="votes_label"/>
-            </child>
           </object>
         </child>
 
         <child>
-          <object class="GtkLabel" id="description_label">
-            <property name="margin-top">10</property>
-            <property name="halign">start</property>
-            <property name="label">FooBar</property>
-            <property name="xalign">0.0</property>
-            <property name="wrap">true</property>
+          <object class="GtkButton" id="action_button">
+
+            <property name="valign">end</property>
+            <property name="hexpand">true</property>
+            <property name="halign">end</property>
+            <property name="opacity">1</property>
+            <property name="margin">5</property>
+
           </object>
         </child>
-      </object>
-    </child>
-
-    <child>
-      <object class="GtkButton" id="action_button">
-
-        <property name="valign">end</property>
-        <property name="hexpand">true</property>
-        <property name="halign">end</property>
-        <property name="opacity">1</property>
-        <property name="margin">5</property>
-
       </object>
     </child>
   </object>

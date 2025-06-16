@@ -49,6 +49,7 @@ namespace Gtk {
 
 namespace pkg {
     class Client;
+    class Card;
 
     using std::shared_ptr;
 
@@ -72,7 +73,6 @@ namespace pkg {
                                      bool        action_type,
                                      const json &pkg),
             on_dispatch_search_ready(),
-            get_installed_pkgs(),
             on_search(),
             setup();
 
@@ -119,18 +119,18 @@ namespace pkg {
          */
         static void remove_all_child(Gtk::Box &container);
 
+        static void get_installed_pkgs();
+
     private:
-        shared_ptr<Actions>   m_actions;
+        shared_ptr<Actions> m_actions;
 
-        pkg_uset m_installed_pkgs;
-        CardData m_card_data;
-
-        std::atomic<bool> m_searching;
         std::atomic<bool> m_running;
         Glib::Dispatcher  m_search_dispatcher;
         vec<json>         m_package_queue;
         json              m_search_result;
         str               m_card_ui_file;
+
+        vec<std::unique_ptr<pkg::Card>> m_cards;
 
         Gtk::Box *m_tab_box{};
         Gtk::Box *m_result_box{};

@@ -28,9 +28,8 @@
 #include "logger.hh"
 #include "data.hh"
 
-using const_str = const std::string;
 
-static const_str APP_ID = "org.rquarx.aur-graphical-helper";
+static const str     APP_ID         = "org.rquarx.aur-graphical-helper";
 static const int32_t CURL_INIT_FLAG = CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE;
 
 
@@ -40,7 +39,7 @@ namespace {
     public:
         AppWindow()
         {
-            std::string title = data::arg_parser->get_option("title");
+            str title = data::arg_parser->get_option("title");
             if (title.empty()) {
                 title = (*data::config->get_config())
                     ["app"]["default-title"].asString();
@@ -90,10 +89,11 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_SUCCESS;
     }
 
-    auto app         = Gtk::Application::create(APP_ID);
-    data::logger     = std::make_shared<Logger>();
-    data::config     = std::make_shared<Config>();
-    data::pkg_client = std::make_shared<pkg::Client>();
+    auto app             = Gtk::Application::create(APP_ID);
+    data::logger         = std::make_shared<Logger>();
+    data::config         = std::make_shared<Config>();
+    data::pkg_client     = std::make_shared<pkg::Client>();
+    data::installed_pkgs = std::make_shared<uset<str>>();
 
     data::logger->log(Logger::Debug, "Initialising curl");
     if (curl_global_init(CURL_INIT_FLAG) != 0) {
@@ -104,6 +104,6 @@ main(int32_t argc, char **argv) -> int32_t
     return app->make_window_and_run<AppWindow>(0, nullptr);
 #else
     AppWindow window;
-    return app->run(window, 0, nullptr);
+    return app->run(window);
 #endif
 }

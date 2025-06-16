@@ -21,6 +21,7 @@
 #ifndef __TYPES_HH__
 #define __TYPES_HH__
 
+#include <unordered_set>
 #include <unordered_map>
 #include <json/value.h>
 
@@ -37,5 +38,8 @@ using vec = std::vector<Tp>;
 
 template<typename Tp>
 using shared_ptr = std::shared_ptr<Tp>;
+
+template<typename Value>
+using uset = std::unordered_set<Value>;
 
 #endif /* __TYPES_HH__ */

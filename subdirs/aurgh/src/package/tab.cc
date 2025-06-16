@@ -56,17 +56,24 @@ using Gtk::Box;
 
 Tab::Tab() :
     m_actions(std::make_shared<pkg::Actions>()),
-    m_card_data({
-        .card_builder_file = get_ui_file("card.xml"),
-        .installed_pkgs    = std::make_shared<pkg_uset>(),
-        .actions           = m_actions,
-    }),
-    m_searching(false),
     m_card_ui_file(get_ui_file("card.xml")),
     m_spinner(Gtk::make_managed<Gtk::Spinner>())
 {
     data::logger->log(Logger::Debug, "Creating packages tab");
 
+    /* Prepare to create cards */
+    bool use_dark =
+        (*data::config->get_config())["app"]["use-dark-icon"].asBool();
+
+    str icon_name = std::format("pkg_icon_{}.svg",
+                                use_dark ? "dark" : "light");
+    data::package_icon_file = get_ui_file(icon_name);
+
+    /* Process:
+       1. Creating Gtk::Builder from tab.xml.
+       2. Setup the whole widget structure + Gtk::Spinner.
+       3. Connect the search dispatcher to the function.
+    */
     builder_t b;
 
     try {
@@ -136,14 +143,17 @@ Tab::setup_widgets(const builder_t &b)
 
     m_spinner->set_valign(Gtk::ALIGN_CENTER);
 #endif
+
+
 }
 
 
 void
 Tab::setup()
 {
-    auto search_by_keywords = pkg::Client::get_search_by_keywords();
-    auto sort_by_keywords   = pkg::Client::get_sort_by_keywords();
+    vec<str>
+        search_by_keywords = pkg::Client::get_search_by_keywords(),
+        sort_by_keywords   = pkg::Client::get_sort_by_keywords();
 
     for (const auto &w : search_by_keywords) m_search_by_combo->append(w);
     for (const auto &w : sort_by_keywords)   m_sort_by_combo->append(w);
@@ -190,11 +200,11 @@ Tab::setup()
 void
 Tab::on_search()
 {
-    str pkg_name = m_search_entry->get_text();
-    if (pkg_name.empty()) return;
+    /* Don't search if there's already a "Search process" running */
+    if (m_running) return;
 
+    /* Removes all cards from the results box */
     auto children = m_result_box->get_children();
-
     for (auto *child : children) {
         #if GTK4
             if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
@@ -205,6 +215,13 @@ Tab::on_search()
         #endif
     }
 
+    /* Putting this here means the results box will clear
+       when the search entry is empty
+    */
+    str pkg_name = m_search_entry->get_text();
+    if (pkg_name.empty()) return;
+
+    /* Start the spinner */
 #if GTK4
     m_result_box->set_valign(Gtk::Align::CENTER);
     m_spinner->set_visible();
@@ -222,18 +239,20 @@ Tab::on_search()
         Logger::Info, "Searching for: {}, by {}", pkg_name, search_by
     );
 
+    /* Search the object */
     std::jthread([this, pkg_name, search_by](){
-        m_searching = true;
         m_running = true;
 
-        try {
+        m_package_queue.clear();
+        m_package_queue.resize(0);
+        m_search_result.clear();
+        try { [[likely]]
             m_search_result = data::pkg_client->search(pkg_name, search_by);
-        } catch (const std::exception &e) {
+        } catch (const std::exception &e) { [[unlikely]]
             data::logger->log(Logger::Error, "Failed to search: {}", e.what());
             m_search_result = json(Json::arrayValue);
         }
 
-        m_searching = false;
         m_search_dispatcher.emit();
     }).detach();
 }
@@ -242,59 +261,78 @@ Tab::on_search()
 void
 Tab::on_dispatch_search_ready()
 {
-    if (m_search_result["resultcount"].asInt() < 1) {
+    /* Show a "No packages found." message when no packages were found. */
+    if (m_search_result["resultcount"].asInt() < 1) { [[unlikely]]
         data::logger->log(Logger::Debug, "Found no packages.");
-    }
-
-    if (m_search_result["resultcount"].asInt() > 0) {
-        data::logger->log(
-            Logger::Debug,
-            "Found {} packages.",
-            m_search_result["resultcount"].asInt()
-        );
-
-        str  sort_by = m_sort_by_combo->get_active_text();
-        bool reverse = m_reverse_sort_check->get_active();
-        json pkgs    = m_search_result["results"];
-        auto sorted  = utils::sort_json(pkgs, sort_by, reverse);
-
-        m_spinner->stop();
-
-#if GTK4
-        m_result_box->set_valign(Gtk::Align::START);
-#else
-        m_result_box->set_valign(Gtk::ALIGN_START);
-        m_result_box->remove(*m_spinner);
-#endif
         m_spinner->set_visible(false);
 
-        bool use_dark =
-            (*data::config->get_config())["app"]["use-dark-icon"].asBool();
-
-        str icon_name = std::format("pkg_icon_{}.svg",
-                                    use_dark ? "dark" : "light");
-
-        for (const auto &pkg : sorted) {
-            auto *card =
-                Gtk::make_managed<pkg::Card>(pkg,
-                                             m_card_data,
-                                             get_ui_file(icon_name));
-
-            card->signal_action_pressed().connect(sigc::mem_fun(
-                *this, &Tab::on_action_button_pressed
-            ));
+        auto *no_packages_label =
+            Gtk::make_managed<Gtk::Label>("No packages found.");
 
 #if GTK4
-            m_result_box->append(*card);
+        m_result_box->append(*no_packages_label);
 #else
-            m_result_box->pack_start(*card);
+        m_result_box->pack_start(*no_packages_label);
+        m_result_box->show_all_children();
 #endif
-        }
+        m_running = false;
+        return;
     }
 
-#if GTK3
-    m_result_box->show_all_children();
+    data::logger->log(
+        Logger::Debug,
+        "Found {} packages.",
+        m_search_result["resultcount"].asInt()
+    );
+
+    /* Fetch the package informations */
+    str  sort_by = m_sort_by_combo->get_active_text();
+    bool reverse = m_reverse_sort_check->get_active();
+    json pkgs    = m_search_result["results"];
+    auto sorted  = utils::sort_json(pkgs, sort_by, reverse);
+
+    /* Stop the spinner */
+    m_spinner->stop();
+
+#if GTK4
+    m_result_box->set_valign(Gtk::Align::START);
+#else
+    m_result_box->set_valign(Gtk::ALIGN_START);
+    m_result_box->remove(*m_spinner);
 #endif
+    m_spinner->set_visible(false);
+
+    data::logger->log(Logger::Debug, "Starting generating cards.");
+
+    /* Creating cards */
+    for (const auto &pkg : sorted) {
+        builder_t  builder = Gtk::Builder::create_from_file(m_card_ui_file);
+        pkg::Card *card    = nullptr;
+#if GTK4
+        card = Gtk::Builder::get_widget_derived<pkg::Card>(builder,
+                                                           "pkg_card",
+                                                           pkg,
+                                                           m_actions);
+#else
+        builder->get_widget_derived<pkg::Card>("pkg_card",
+                                                card,
+                                                pkg,
+                                                m_actions);
+#endif
+
+        card->signal_action_pressed().connect(sigc::mem_fun(
+            *this, &Tab::on_action_button_pressed
+        ));
+
+#if GTK4
+        m_result_box->append(*card);
+#else
+        m_result_box->pack_start(*card);
+        card->show_all_children();
+#endif
+    }
+
+    data::logger->log(Logger::Debug, "Finished generating cards.");
 
     m_running = false;
 }
@@ -303,21 +341,14 @@ Tab::on_dispatch_search_ready()
 void
 Tab::on_action_button_pressed(pkg::Type type, bool action_type, const json &pkg)
 {
+    /* Check for unresolved dependencies, currently disabled. */
+    /*
     if (action_type && type != Type::Remove) {
-        auto tick = std::chrono::system_clock::now();
-
         if (has_unresolved_dependencies(pkg)) {
             data::logger->log(Logger::Debug, "Has unresolved deps");
         }
-
-        auto tock = std::chrono::system_clock::now();
-
-        data::logger->log(
-            Logger::Debug,
-            "'Has unresolved dependencies check' time: {}",
-            std::chrono::duration_cast<std::chrono::milliseconds>(tock - tick)
-        );
     }
+    */
 
     bool all_empty = true;
 
@@ -325,10 +356,16 @@ Tab::on_action_button_pressed(pkg::Type type, bool action_type, const json &pkg)
         auto  pkgs   = m_actions->at(t);
         auto *action = m_action_widgets.at(t);
 
+        /* If the current action empty */
         if (pkgs->empty()) {
+            /* If it is the last action and all_empty is still true
+               Make the "No actions." label visible.
+            */
             if (t == Update && all_empty) {
                 m_no_actions_label->set_visible(true);
             }
+
+            /* else, just make the action label not visible */
             action->set_visible(false);
             continue;
         }
@@ -380,7 +417,7 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
     auto *action_widget = m_action_widgets.at(type);
 
     if (!m_action_widgets[type]->get_expanded()) {
-        auto pkgs     = m_actions->at(type);
+        auto pkgs = m_actions->at(type);
         remove_all_child(*dynamic_cast<Gtk::Box*>(action_widget->get_child()));
 
 
@@ -456,24 +493,21 @@ Tab::get_ui_file(const std::filesystem::path &file_name) -> str
 
     if (valid_file(file_name)) return file_name;
 
-    vec<fs::path>  candidates;
-    candidates.reserve(5);
-
     str
         gtk_version = std::format("gtk{}", GTKMM_MAJOR_VERSION),
-        base_path = (*data::config->get_config())["paths"]["ui-path"].asString();
+        base_path   =
+            (*data::config->get_config())["paths"]["ui-path"].asString();
 
-    candidates.emplace_back(fs::path(base_path) / file_name);
-    candidates.emplace_back(fs::path(base_path) / "ui" / file_name);
-    candidates.emplace_back(fs::path(base_path) / "ui" / gtk_version / file_name);
-    candidates.emplace_back(fs::path("ui") / file_name);
-    candidates.emplace_back(fs::path("ui") / gtk_version / file_name);
-    candidates.emplace_back(fs::path(gtk_version) / file_name);
-    candidates.emplace_back(
-        fs::path("/usr/share") / APP_NAME /
-        fs::path("ui") / gtk_version / file_name);
-    candidates.emplace_back(
-        fs::path("/usr/share") / APP_NAME / "ui" / file_name);
+    std::array<fs::path, 8> candidates = {
+        fs::path(base_path) / file_name,
+        fs::path(base_path) / "ui" / file_name,
+        fs::path(base_path) / "ui" / gtk_version / file_name,
+        fs::path("ui") / file_name,
+        fs::path("ui") / gtk_version / file_name,
+        fs::path(gtk_version) / file_name,
+        fs::path("/usr/share") / APP_NAME / "ui" / gtk_version / file_name,
+        fs::path("/usr/share") / APP_NAME / "ui" / file_name
+    };
 
     for (const fs::path &p : candidates) {
         if (valid_file(p)) return fs::canonical(p);
@@ -487,9 +521,9 @@ Tab::has_unresolved_dependencies(const json &pkg) -> bool
 {
     json info { data::pkg_client->info(pkg["Name"].asString()) };
 
-    std::vector<json> all_deps;
-    for (const auto& d : info["Depends"]) all_deps.push_back(d);
-    for (const auto& d : info["MakeDepends"]) all_deps.push_back(d);
+    vec<json> all_deps;
+    for (const auto &d : info["Depends"]) all_deps.push_back(d);
+    for (const auto &d : info["MakeDepends"]) all_deps.push_back(d);
 
     if (all_deps.empty()) return false;
 
@@ -518,32 +552,19 @@ Tab::has_unresolved_dependencies(const json &pkg) -> bool
 void
 Tab::get_installed_pkgs()
 {
-    m_installed_pkgs.clear();
+    data::installed_pkgs->clear();
 
     auto local_pkgs     = data::pkg_client->get_locally_installed_pkgs();
     auto installed_pkgs = data::pkg_client->get_installed_pkgs();
 
-    m_installed_pkgs.reserve(local_pkgs.size() + installed_pkgs.size());
+    data::installed_pkgs->reserve(local_pkgs.size() + installed_pkgs.size());
 
-    auto insert_to_set =
-    [this](const vec<alpm_pkg_t*> &pkgs)
-    {
-        for (auto *pkg : pkgs) {
-            m_installed_pkgs.emplace(
-                pkg
-            );
-        }
-    };
-
-    insert_to_set(local_pkgs);
-    insert_to_set(installed_pkgs);
-    // m_card_data.installed_pkgs->reserve(local_pkgs.size());
-
-    // for (auto *pkg : local_pkgs) {
-        // m_card_data.installed_pkgs->emplace_back(
-            // alpm_pkg_get_name(pkg), alpm_pkg_get_version(pkg)
-        // );
-    // }
+    for (auto *pkg : local_pkgs) {
+        data::installed_pkgs->emplace(alpm_pkg_get_name(pkg));
+    }
+    for (auto *pkg : installed_pkgs) {
+        data::installed_pkgs->emplace(alpm_pkg_get_name(pkg));
+    }
 }
 
 

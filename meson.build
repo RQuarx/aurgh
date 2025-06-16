@@ -1,10 +1,10 @@
 project(
     'aurgh',
     'cpp',
-    version: '0.3.0',
+    version: '0.3.1',
     default_options: [
         'cpp_std=c++23',
-        'optimization=2',
+        'optimization=3',
         'warning_level=3'
     ],
     license: 'GPL-3.0-or-later',

@@ -22,6 +22,7 @@
 #define __DATA_HH__
 
 #include "package/client.hh"
+#include "package/type.hh"
 #include "arg_parser.hh"
 #include "config.hh"
 #include "logger.hh"
@@ -34,6 +35,9 @@ namespace data {
     inline shared_ptr<Logger>    logger;
     inline shared_ptr<Config>    config;
     inline shared_ptr<Client>    pkg_client;
+    inline shared_ptr<uset<str>> installed_pkgs;
+
+    inline str package_icon_file;
 } /* namespace data */
 
 

@@ -23,8 +23,6 @@
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
 #include <gtkmm/box.h>
-#include <giomm/file.h>
-#include <json/value.h>
 
 #include <utility>
 
@@ -36,15 +34,15 @@
 using pkg::Card;
 
 
-Card::Card(json            pkg,
-           const CardData &card_data,
-           str_view        icon_path) :
-    m_card_data(card_data),
+Card::Card(BaseObjectType      *cobject,
+           const builder_t     &b,
+           json                 pkg,
+           shared_ptr<Actions> &actions) :
+    Gtk::Frame(cobject),
+    m_actions(actions),
     m_package(std::move(pkg)),
     m_button_dimmed(false)
 {
-    builder_t b = Gtk::Builder::create_from_file(card_data.card_builder_file);
-
 #if GTK4
     m_card             = b->get_widget<Gtk::Box>("card_box");
     m_action_button    = b->get_widget<Gtk::Button>("action_button");
@@ -56,10 +54,6 @@ Card::Card(json            pkg,
     m_popularity_label = b->get_widget<Gtk::Label>("popularity_label");
     m_votes_label      = b->get_widget<Gtk::Label>("votes_label");
     m_package_icon     = b->get_widget<Gtk::Image>("package_image");
-
-    set_child(*m_card);
-    set_valign(Gtk::Align::START);
-    set_halign(Gtk::Align::FILL);
 #else
     b->get_widget("card_box", m_card);
     b->get_widget("action_button", m_action_button);
@@ -71,16 +65,9 @@ Card::Card(json            pkg,
     b->get_widget("popularity_label", m_popularity_label);
     b->get_widget("votes_label", m_votes_label);
     b->get_widget("package_image", m_package_icon);
-
-    add(*m_card);
-    set_valign(Gtk::ALIGN_START);
-    set_halign(Gtk::ALIGN_FILL);
 #endif
 
-    set_vexpand(false);
-    set_hexpand(true);
-
-    setup(str(icon_path));
+    setup();
 }
 
 
@@ -91,11 +78,8 @@ Card::signal_action_pressed(
 
 
 auto
-Card::setup(const str &icon_path) -> bool
+Card::setup() -> bool
 {
-    set_margin_start(5);
-    set_margin_end(0);
-
     str
         pkg_desc    = m_package["Description"].asString(),
         pkg_version = m_package["Version"    ].asString(),
@@ -138,7 +122,7 @@ Card::setup(const str &icon_path) -> bool
     ));
 
     try {
-        m_package_icon->set(icon_path);
+        m_package_icon->set(data::package_icon_file);
 #if GTK4
         m_package_icon->set_icon_size(Gtk::IconSize::LARGE);
 #else
@@ -166,7 +150,7 @@ Card::setup(const str &icon_path) -> bool
 void
 Card::on_button_clicked(pkg::Type result, const str &pkg_name)
 {
-    auto vec = m_card_data.actions->at(result);
+    auto vec = m_actions->at(result);
 
     if (m_button_dimmed) {
         auto it = std::ranges::find(*vec, pkg_name);
@@ -207,7 +191,7 @@ void
 Card::refresh()
 {
     for (auto t : { pkg::Update, pkg::Install, pkg::Remove }) {
-        auto action = m_card_data.actions->at(t);
+        auto action = m_actions->at(t);
         auto pkg    = m_package["Name"].asString();
         if (!m_button_dimmed && utils::find(*action, pkg)) {
             m_button_dimmed = true;
