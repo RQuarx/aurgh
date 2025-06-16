@@ -80,7 +80,7 @@ Tab::Tab() :
     }
 
     setup_widgets(b);
-    m_spinner->hide();
+    m_spinner->set_visible(false);
     setup();
 
     #if GTK4
@@ -211,7 +211,7 @@ Tab::on_search()
 #else
     m_result_box->set_valign(Gtk::ALIGN_CENTER);
     m_result_box->pack_start(*m_spinner);
-    m_spinner->set_visible();
+    m_spinner->set_visible(true);
 #endif
 
     m_spinner->start();
@@ -268,9 +268,17 @@ Tab::on_dispatch_search_ready()
 #endif
         m_spinner->set_visible(false);
 
+        bool use_dark =
+            (*data::config->get_config())["app"]["use-dark-icon"].asBool();
+
+        str icon_name = std::format("pkg_icon_{}.svg",
+                                    use_dark ? "dark" : "light");
+
         for (const auto &pkg : sorted) {
-            auto *card = Gtk::make_managed<pkg::Card>(pkg,
-                                                              m_card_data);
+            auto *card =
+                Gtk::make_managed<pkg::Card>(pkg,
+                                             m_card_data,
+                                             get_ui_file(icon_name));
 
             card->signal_action_pressed().connect(sigc::mem_fun(
                 *this, &Tab::on_action_button_pressed
@@ -437,32 +445,40 @@ Tab::on_execute_button_pressed() -> bool
 
 
 auto
-Tab::get_ui_file(const str &file_name) -> str
+Tab::get_ui_file(const std::filesystem::path &file_name) -> str
 {
     namespace fs = std::filesystem;
 
-    auto valid_file = [](const str &file){
-        return fs::exists(file)
-            && fs::is_regular_file(file)
-            && fs::path(file).extension() == ".xml";
+    auto valid_file = [](const fs::path& file_path) -> bool {
+        return fs::exists(file_path)
+            && fs::is_regular_file(file_path);
     };
 
-    str gtk_version = std::to_string(GTKMM_MAJOR_VERSION);
-    str ui_path     = data::arg_parser->get_option("ui");
-
-    if (!ui_path.empty()) {
-        ui_path.append(std::format("/gtk{}/{}", gtk_version, file_name));
-
-        ui_path = std::filesystem::absolute(ui_path);
-
-        if (valid_file(ui_path)) return ui_path;
-    }
-
-    str path = std::format("/ui/gtk{}/{}", gtk_version, file_name);
-
     if (valid_file(file_name)) return file_name;
-    if (valid_file(path)) return path;
-    return (*data::config->get_config())["paths"]["ui-path"].asString() + path;
+
+    vec<fs::path>  candidates;
+    candidates.reserve(5);
+
+    str
+        gtk_version = std::format("gtk{}", GTKMM_MAJOR_VERSION),
+        base_path = (*data::config->get_config())["paths"]["ui-path"].asString();
+
+    candidates.emplace_back(fs::path(base_path) / file_name);
+    candidates.emplace_back(fs::path(base_path) / "ui" / file_name);
+    candidates.emplace_back(fs::path(base_path) / "ui" / gtk_version / file_name);
+    candidates.emplace_back(fs::path("ui") / file_name);
+    candidates.emplace_back(fs::path("ui") / gtk_version / file_name);
+    candidates.emplace_back(fs::path(gtk_version) / file_name);
+    candidates.emplace_back(
+        fs::path("/usr/share") / APP_NAME /
+        fs::path("ui") / gtk_version / file_name);
+    candidates.emplace_back(
+        fs::path("/usr/share") / APP_NAME / "ui" / file_name);
+
+    for (const fs::path &p : candidates) {
+        if (valid_file(p)) return fs::canonical(p);
+    }
+    return "";
 }
 
 

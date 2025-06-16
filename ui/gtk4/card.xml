@@ -29,7 +29,7 @@
 
                 <child>
                   <object class="GtkImage" id="package_image">
-                    <property name="icon-name">flatpak-symbolic</property>
+                    <property name="icon-name">package-x-generic-symbolic</property>
                   </object>
                 </child>
 
@@ -40,39 +40,9 @@
                     </child>
                   </object>
                 </child>
-              </object>
-            </child>
 
-            <child>
-              <object class="GtkLabel" id="version_label" />
-            </child>
-
-            <child>
-              <object class="GtkFrame" id="popularity_frame">
                 <child>
-                  <object class="GtkBox">
-                    <property name="margin-end">5</property>
-                    <property name="margin-start">5</property>
-                    <property name="spacing">5</property>
-
-                    <child>
-                      <object class="GtkLabel" id="popularity_label">
-                        <property name="tooltip-text">Popularity</property>
-                      </object>
-                    </child>
-
-                    <child>
-                      <object class="GtkSeparator">
-                        <property name="orientation">vertical</property>
-                      </object>
-                    </child>
-
-                    <child>
-                      <object class="GtkLabel" id="votes_label">
-                        <property name="tooltip-text">Number of votes</property>
-                      </object>
-                    </child>
-                  </object>
+                  <object class="GtkLabel" id="outofdate_label"/>
                 </child>
               </object>
             </child>
@@ -80,7 +50,62 @@
         </child>
 
         <child>
+          <object class="GtkBox" id="version_box">
+            <property name="halign">start</property>
+
+            <child>
+              <object class="GtkLabel" id="version:_label">
+                <property name="label">Version: </property>
+                <property name="xalign">0.0</property>
+                <property name="wrap">false</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="version_label"/>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkBox" id="popularity_box">
+            <property name="halign">start</property>
+
+            <child>
+              <object class="GtkLabel" id="popularity:_label">
+                <property name="label">Popularity: </property>
+                <property name="xalign">0.0</property>
+                <property name="wrap">false</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="popularity_label"/>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkBox" id="votes_box">
+            <property name="halign">start</property>
+
+            <child>
+              <object class="GtkLabel" id="votes:_label">
+                <property name="label">Votes: </property>
+                <property name="xalign">0.0</property>
+                <property name="wrap">false</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="votes_label"/>
+            </child>
+          </object>
+        </child>
+
+        <child>
           <object class="GtkLabel" id="description_label">
+            <property name="margin-top">10</property>
             <property name="halign">start</property>
             <property name="label">FooBar</property>
             <property name="xalign">0.0</property>

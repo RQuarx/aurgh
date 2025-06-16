@@ -124,7 +124,6 @@
         <property name="visible">true</property>
         <property name="vexpand">true</property>
         <property name="valign">fill</property>
-        <property name="spacing">10</property>
 
         <child>
           <object class="GtkScrolledWindow" id="search_results">

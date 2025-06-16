@@ -32,6 +32,7 @@
 namespace Gtk {
     class LinkButton;
     class Button;
+    class Image;
     class Label;
     class Box;
 }
@@ -52,7 +53,7 @@ namespace pkg {
     class Card : public Gtk::Frame
     {
     public:
-        explicit Card(json pkg, const CardData &card_data);
+        explicit Card(json pkg, const CardData &card_data, str_view icon_path);
 
         auto signal_action_pressed(
             ) -> sigc::signal<void (pkg::Type, bool, const json &)>;
@@ -73,18 +74,21 @@ namespace pkg {
         Gtk::Label *m_version_label = nullptr;
         Gtk::Label *m_desc_label    = nullptr;
 
-        Gtk::Label      *m_name_label = nullptr;
-        Gtk::LinkButton *m_name_link  = nullptr;
+        Gtk::Label      *m_name_label      = nullptr;
+        Gtk::LinkButton *m_name_link       = nullptr;
+        Gtk::Label      *m_outofdate_label = nullptr;
 
         Gtk::Label *m_popularity_label = nullptr;
         Gtk::Label *m_votes_label      = nullptr;
+
+        Gtk::Image *m_package_icon = nullptr;
 
         bool m_button_dimmed;
 
         sigc::signal<void (pkg::Type, bool, const json &)> m_signal;
 
     protected:
-        auto setup() -> bool;
+        auto setup(const str &icon_path) -> bool;
 
         void on_button_clicked(pkg::Type result, const str &pkg_name);
 

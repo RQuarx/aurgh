@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="4.0" />
+  <requires lib="gtk" version="4.0"/>
 
   <object class="GtkBox" id="tab_main">
 
@@ -129,7 +129,6 @@
         <property name="visible">true</property>
         <property name="vexpand">true</property>
         <property name="valign">fill</property>
-        <property name="spacing">10</property>
 
         <child>
           <object class="GtkScrolledWindow" id="search_results">

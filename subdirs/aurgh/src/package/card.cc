@@ -23,6 +23,7 @@
 #include <gtkmm/image.h>
 #include <gtkmm/label.h>
 #include <gtkmm/box.h>
+#include <giomm/file.h>
 #include <json/value.h>
 
 #include <utility>
@@ -35,10 +36,9 @@
 using pkg::Card;
 
 
-Card::Card(
-    json            pkg,
-    const CardData &card_data
-) :
+Card::Card(json            pkg,
+           const CardData &card_data,
+           str_view        icon_path) :
     m_card_data(card_data),
     m_package(std::move(pkg)),
     m_button_dimmed(false)
@@ -52,11 +52,10 @@ Card::Card(
     m_desc_label       = b->get_widget<Gtk::Label>("description_label");
     m_name_link        = b->get_widget<Gtk::LinkButton>("name_link");
     m_name_label       = b->get_widget<Gtk::Label>("name_label");
+    m_outofdate_label  = b->get_widget<Gtk::Label>("outofdate_label");
     m_popularity_label = b->get_widget<Gtk::Label>("popularity_label");
     m_votes_label      = b->get_widget<Gtk::Label>("votes_label");
-    
-    auto *img     = b->get_widget<Gtk::Image>("package_image");
-    img->set_from_icon_name("package-x-generic-symbolic");
+    m_package_icon     = b->get_widget<Gtk::Image>("package_image");
 
     set_child(*m_card);
     set_valign(Gtk::Align::START);
@@ -68,8 +67,10 @@ Card::Card(
     b->get_widget("description_label", m_desc_label);
     b->get_widget("name_link", m_name_link);
     b->get_widget("name_label", m_name_label);
+    b->get_widget("outofdate_label", m_outofdate_label);
     b->get_widget("popularity_label", m_popularity_label);
     b->get_widget("votes_label", m_votes_label);
+    b->get_widget("package_image", m_package_icon);
 
     add(*m_card);
     set_valign(Gtk::ALIGN_START);
@@ -79,7 +80,7 @@ Card::Card(
     set_vexpand(false);
     set_hexpand(true);
 
-    setup();
+    setup(str(icon_path));
 }
 
 
@@ -90,35 +91,38 @@ Card::signal_action_pressed(
 
 
 auto
-Card::setup() -> bool
+Card::setup(const str &icon_path) -> bool
 {
+    set_margin_start(5);
+    set_margin_end(0);
+
     str
         pkg_desc    = m_package["Description"].asString(),
         pkg_version = m_package["Version"    ].asString(),
         pkg_name    = m_package["Name"       ].asString(),
         url         = m_package["URL"        ].asString(),
-        markup      = "<b>{}</b>",
+        markup      = "<big>{}</big>",
         icon_name;
 
-    m_version_label->set_label(pkg_version);
-    m_desc_label   ->set_label(pkg_desc   );
+    m_desc_label->set_label(pkg_desc   );
 
     if (m_package["OutOfDate"] != json::null) {
-        markup = utils::format(markup, "<span foreground=\"red\">{}</span>");
+        m_outofdate_label->set_label("(Out-of-date)");
     }
 
     m_name_label->set_markup(utils::format(markup, pkg_name));
     m_name_link ->set_tooltip_text(url);
     m_name_link ->set_uri(url);
 
-    markup = "<sub>{}</sub>";
+    markup = "<b>{}</b>";
 
     uint32_t votes      = m_package["NumVotes"].asUInt();
     float    popularity =
         std::roundf(m_package["Popularity"].asFloat() * 100) / 100;
 
-    m_popularity_label->set_markup(utils::format(markup, popularity));
-    m_votes_label     ->set_markup(utils::format(markup, votes     ));
+    m_version_label   ->set_markup(utils::format(markup, pkg_version));
+    m_popularity_label->set_markup(utils::format(markup, popularity ));
+    m_votes_label     ->set_markup(utils::format(markup, votes      ));
 
     str_pair    pkg    = { pkg_name, pkg_version };
     int8_t      result = find_package(pkg);
@@ -132,6 +136,28 @@ Card::setup() -> bool
         sigc::mem_fun(*this, &Card::on_button_clicked),
         pkg::Type(result), pkg_name
     ));
+
+    try {
+        m_package_icon->set(icon_path);
+#if GTK4
+        m_package_icon->set_icon_size(Gtk::IconSize::LARGE);
+#else
+        m_package_icon->set_pixel_size(Gtk::ICON_SIZE_LARGE_TOOLBAR);
+#endif
+    } catch (const Glib::Error &e) {
+        data::logger->log(
+            Logger::Warn,
+            "Icon path not found, using default icon name "
+            "\"package-x-generic-symbolic\""
+        );
+#if GTK4
+        m_package_icon->set_from_icon_name("package-x-generic-symbolic");
+        m_package_icon->set_icon_size(Gtk::IconSize::LARGE);
+#else
+        m_package_icon->set_from_icon_name("package-x-generic-symbolic",
+                                           Gtk::ICON_SIZE_LARGE_TOOLBAR);
+#endif
+    }
 
     return true;
 }

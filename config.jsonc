@@ -36,6 +36,9 @@
 		"default-title": "AUR Graphical Helper",
 
 		/* Path to the pkexec binary */
-		"pkexec-binary": "/usr/bin/pkexec"
+		"pkexec-binary": "/usr/bin/pkexec",
+
+		/* Wheter to use a dark or light version of the package icon */
+		"use-dark-icon": false
 	}
 }

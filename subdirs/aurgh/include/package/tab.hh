@@ -21,6 +21,7 @@
 #ifndef __PACKAGE__TAB_HH__
 #define __PACKAGE__TAB_HH__
 
+#include <filesystem>
 #include <atomic>
 #include <memory>
 
@@ -110,7 +111,7 @@ namespace pkg {
          * @param file_name Name of the UI file.
          * @return Full file path to the UI resource.
          */
-        static auto get_ui_file(const str &file_name) -> str;
+        static auto get_ui_file(const std::filesystem::path &file_name) -> str;
 
 
         /**
