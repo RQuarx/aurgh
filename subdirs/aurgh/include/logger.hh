@@ -95,7 +95,7 @@ public:
                 "{} {} {}",
                 get_current_time(), label, message
             );
-            std::fflush(stdout);
+            std::fflush(log_level == Error ? stderr : stdout);
         }
     }
 

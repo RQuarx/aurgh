@@ -1,0 +1,24 @@
+19:59.311 [debug]: Logger instace successfully created with a log level of 0.
+19:59.312 [debug]: AUR Client instance successfully created
+19:59.312 [debug]: Initialising curl
+19:59.395 [debug]: Creating packages tab
+20:04.518 [debug]: Writting to cache file: /home/rquarx/.cache/aurgh/cache.jsonc
+20:04.518 [info]:  Searching for: zen-browser, by name
+24:01.745 [debug]: Logger instace successfully created with a log level of 0.
+24:01.746 [debug]: AUR Client instance successfully created
+24:01.746 [debug]: Initialising curl
+24:01.832 [debug]: Creating packages tab
+24:04.960 [debug]: Writting to cache file: /home/rquarx/.cache/aurgh/cache.jsonc
+24:04.960 [info]:  Searching for: zen-browser, by name
+25:12.391 [debug]: Logger instace successfully created with a log level of 0.
+25:12.392 [debug]: AUR Client instance successfully created
+25:12.392 [debug]: Initialising curl
+25:12.469 [debug]: Creating packages tab
+25:14.327 [debug]: Writting to cache file: /home/rquarx/.cache/aurgh/cache.jsonc
+25:14.327 [info]:  Searching for: paru, by name
+29:37.174 [debug]: Logger instace successfully created with a log level of 0.
+29:37.177 [debug]: AUR Client instance successfully created
+29:37.177 [debug]: Initialising curl
+29:37.270 [debug]: Creating packages tab
+29:39.981 [debug]: Writting to cache file: /home/rquarx/.cache/aurgh/cache.jsonc
+29:39.981 [info]:  Searching for: paru, by name

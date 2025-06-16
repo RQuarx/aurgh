@@ -342,13 +342,13 @@ void
 Tab::on_action_button_pressed(pkg::Type type, bool action_type, const json &pkg)
 {
     /* Check for unresolved dependencies, currently disabled. */
-    /*
     if (action_type && type != Type::Remove) {
         if (has_unresolved_dependencies(pkg)) {
-            data::logger->log(Logger::Debug, "Has unresolved deps");
+            data::logger->log(Logger::Debug,
+                              "Package {} has unresolved deps",
+                              pkg["Name"].asString());
         }
     }
-    */
 
     bool all_empty = true;
 
@@ -469,7 +469,7 @@ Tab::on_execute_button_pressed() -> bool
     }
     on_search();
     std::ranges::for_each(m_result_box->get_children(),
-    [](Gtk::Widget* c)
+    [](Gtk::Widget *c)
     {
         auto *card = dynamic_cast<pkg::Card*>(c);
         if (card != nullptr) {
@@ -486,7 +486,7 @@ Tab::get_ui_file(const std::filesystem::path &file_name) -> str
 {
     namespace fs = std::filesystem;
 
-    auto valid_file = [](const fs::path& file_path) -> bool {
+    auto valid_file = [](const fs::path &file_path) -> bool {
         return fs::exists(file_path)
             && fs::is_regular_file(file_path);
     };
@@ -522,30 +522,23 @@ Tab::has_unresolved_dependencies(const json &pkg) -> bool
     json info { data::pkg_client->info(pkg["Name"].asString()) };
 
     vec<json> all_deps;
-    for (const auto &d : info["Depends"]) all_deps.push_back(d);
-    for (const auto &d : info["MakeDepends"]) all_deps.push_back(d);
+    for (const auto &d : info["results"][0]["Depends"])     all_deps.push_back(d);
+    for (const auto &d : info["results"][0]["MakeDepends"]) all_deps.push_back(d);
 
     if (all_deps.empty()) return false;
-
-    auto extract_dep_name = [](const str& dep) -> str {
-        size_t pos = dep.find_first_of("<>=");
-        return (pos != str::npos) ? dep.substr(0, pos) : dep;
-    };
 
     static umap<str, bool> pkg_exists_cache;
 
     return std::ranges::any_of(all_deps, [&](const auto &dep_val) {
-        str dep_str = dep_val.asString();
-        str dep_name = extract_dep_name(dep_str);
+        str dep_name  = dep_val.asString();
 
-        auto it = pkg_exists_cache.find(dep_name);
-        if (it != pkg_exists_cache.end()) return !it->second;
+        if (dep_name.contains('>')) return false;
+        if (dep_name.contains('<')) return false;
+        if (dep_name.contains('=')) return false;
 
-        bool found = data::pkg_client->find_pkg(dep_name) != nullptr;
-        pkg_exists_cache[dep_name] = found;
-        return !found;
+        return !data::installed_pkgs->contains(dep_name) ||
+                data::pkg_client->find_pkg(dep_name) == nullptr;
     });
-    return false;
 }
 
 
