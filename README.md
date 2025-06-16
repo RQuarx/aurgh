@@ -11,7 +11,7 @@ Independent, minimal, and modern.
 [![Badge License]][License]
 ![Badge Language]
 
-<img src=https://github.com/user-attachments/assets/c9ad8212-6e43-493f-94d9-ddb37c222c5c width=700></img>
+<img src=https://github.com/user-attachments/assets/bd91dd10-842d-495d-8b25-8ee2978e6619 width=700></img>
 
 </div>
 
