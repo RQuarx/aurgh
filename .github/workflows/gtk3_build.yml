@@ -22,6 +22,15 @@ jobs:
       image: archlinux
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache pacman packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/pacman/pkg
+          key: ${{ runner.os }}-pacman-${{ hashFiles('assets/required-gtk3.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pacman-
+
       - name: Install dependencies
         shell: bash
         run: |
@@ -32,6 +41,7 @@ jobs:
         run: |
           CXX=clang++ CXX_LD=lld meson setup -Dgtk-version=3 target
           meson compile -C target
+
   gcc:
     name: "Build AURGH - gcc"
     runs-on: ubuntu-latest
@@ -39,11 +49,21 @@ jobs:
       image: archlinux
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache pacman packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/pacman/pkg
+          key: ${{ runner.os }}-pacman-${{ hashFiles('assets/required-gtk3.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pacman-
+
       - name: Install dependencies
         shell: bash
         run: |
           sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
           pacman -Syyu --noconfirm --noprogressbar --needed - < assets/required-gtk3.txt
+
       - name: compile
         run: |
           CXX=g++ CXX_LD=bfd meson setup -Dgtk-version=3 target

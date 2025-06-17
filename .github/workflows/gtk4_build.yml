@@ -22,6 +22,15 @@ jobs:
       image: archlinux
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache pacman packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/pacman/pkg
+          key: ${{ runner.os }}-pacman-${{ hashFiles('assets/required-gtk4.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pacman-
+
       - name: Install dependencies
         shell: bash
         run: |
@@ -30,8 +39,9 @@ jobs:
 
       - name: compile
         run: |
-          make GTK_VERSION=4 CXX=clang++ CXX_LD=lld
+          CXX=clang++ CXX_LD=lld meson setup -Dgtk-version=4 target
           meson compile -C target
+
   gcc:
     name: "Build AURGH - gcc"
     runs-on: ubuntu-latest
@@ -39,6 +49,15 @@ jobs:
       image: archlinux
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache pacman packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/pacman/pkg
+          key: ${{ runner.os }}-pacman-${{ hashFiles('assets/required-gtk4.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pacman-
+
       - name: Install dependencies
         shell: bash
         run: |
@@ -47,5 +66,5 @@ jobs:
 
       - name: compile
         run: |
-          make GTK_VERSION=4 CXX=g++ CXX_LD=bfd
-
+          CXX=g++ CXX_LD=bfd meson setup -Dgtk-version=4 target
+          meson compile -C target
