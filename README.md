@@ -29,6 +29,10 @@ Independent, minimal, and modern.
 - [ ] Core Arch repository management.
 - [ ] Basic AUR package management.
 
+## Problems
+
+- Abysmal memory usage (GTKmm like to leak widgets)
+
 ## Dependencies
 
 **Core dependencies** (common to both GTK3 and GTK4 builds):
@@ -59,12 +63,12 @@ $ cd aurgh
 
 Use the `make` command to compile the project. You can customize the build with these optional environment variables:
 
-| Variable      | Description                 | Default   |
-| ------------- | --------------------------- | --------- |
-| `CXX`         | C++ compiler                | `clang++` |
-| `CXX_LD`      | Linker                      | `lld`     |
-| `GTK_VERSION` | GTK version to compile with | `4`       |
-| `TARGET`      | Output directory            | `target`  |
+| Variable      | Description      | Default   |
+| ------------- | ---------------- | --------- |
+| `CXX`         | Compiler         | `clang++` |
+| `CXX_LD`      | Linker           | `lld`     |
+| `GTK_VERSION` | GTK version      | `4`       |
+| `TARGET`      | Output directory | `target`  |
 
 **Example:**
 

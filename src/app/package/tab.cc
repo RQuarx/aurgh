@@ -37,6 +37,7 @@
 #include "package/client.hh"
 #include "package/card.hh"
 #include "package/tab.hh"
+#include "widget_ptr.hh"
 #include "config.hh"
 #include "dialog.hh"
 #include "logger.hh"
@@ -204,6 +205,7 @@ Tab::on_search()
     for (auto *child : children) {
         if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
             m_result_box->remove(*child);
+            delete child;
             continue;
         }
 
@@ -365,10 +367,11 @@ Tab::on_action_button_pressed(pkg::Type   p_type,
                               p_pkg["Name"].asString());
             builder_t builder = Gtk::Builder::create_from_file(
                 utils::get_ui_file("dialog.xml", m_ui_base));
-            Dialog *dialog_window = nullptr;
+            widget_ptr<Dialog> window;
+            Dialog            *ptr = nullptr;
 
 #if GTK4
-            dialog_window = Gtk::Builder::get_widget_derived<Dialog>(
+            ptr = Gtk::Builder::get_widget_derived<Dialog>(
                 builder,
                 "confirmation_window",
                 "Unresolved Dependencies",
@@ -380,7 +383,7 @@ Tab::on_action_button_pressed(pkg::Type   p_type,
 #else
             builder->get_widget_derived<Dialog>(
                 "confirmation_window",
-                dialog_window,
+                ptr,
                 "Unresolved Dependencies",
                 std::format("The package {} has some unresolved dependencies, "
                             "do you want to install them?",
@@ -388,14 +391,13 @@ Tab::on_action_button_pressed(pkg::Type   p_type,
                 m_use_dark
             );
 #endif
+            window = ptr;
 
-            if (!dialog_window->wait_for_response()) {
-                data::app->remove_window(*dialog_window);
-                delete dialog_window;
+            if (!window->wait_for_response()) {
+                data::app->remove_window(*window);
                 return;
             }
-            delete dialog_window;
-            data::app->remove_window(*dialog_window);
+            data::app->remove_window(*window);
         }
     }
 
@@ -460,49 +462,6 @@ Tab::refresh_actions()
 
 
 void
-#if GTK4
-Tab::on_action_type_opened(pkg::Type p_type)
-#else
-Tab::on_action_type_opened(GdkEventButton *, pkg::Type p_type)
-#endif
-{
-    auto *action_widget = m_action_widgets.at(p_type);
-
-    if (!m_action_widgets[p_type]->get_expanded()) {
-        auto pkgs = m_actions->at(p_type);
-        remove_all_child(*dynamic_cast<Gtk::Box*>(action_widget->get_child()));
-
-
-        for (const auto &pkg : *pkgs) {
-            auto *link      = Gtk::make_managed<Gtk::LinkButton>();
-            str url = std::format(
-                "https://aur.archlinux.org/packages/{}", pkg
-            );
-
-            link->set_tooltip_text(url);
-            link->set_label(pkg);
-            link->set_visible();
-            link->set_uri(url);
-
-#if GTK4
-            link->set_halign(Gtk::Align::START);
-            dynamic_cast<Gtk::Box*>
-            (action_widget->get_child())->append(*link);
-#else
-            link->set_halign(Gtk::ALIGN_START);
-            dynamic_cast<Gtk::Box*>
-            (action_widget->get_child())->pack_start(*link);
-#endif
-            link->set_visible();
-
-        }
-    }
-
-    get_installed_pkgs();
-}
-
-
-void
 Tab::on_execute_button_pressed()
 {
     if (!m_actions->remove->empty()) {
@@ -515,13 +474,6 @@ Tab::on_execute_button_pressed()
         m_actions->install->clear();
     }
 
-    for (auto t : { pkg::Update, pkg::Install, pkg::Remove }) {
-#if GTK4
-        on_action_type_opened(t);
-#else
-        on_action_type_opened(nullptr, t);
-#endif
-    }
     on_search();
 }
 
@@ -577,5 +529,6 @@ Tab::remove_all_child(Gtk::Box &p_container)
     auto children = p_container.get_children();
     std::ranges::for_each(children, [&p_container](Gtk::Widget *child){
         p_container.remove(*child);
+        delete child;
     });
 }

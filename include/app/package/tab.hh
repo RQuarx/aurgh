@@ -77,17 +77,6 @@ namespace pkg {
         void setup();
         void refresh_actions();
 
-        /**
-         * @brief Opens the appropriate action for a package.
-         * @param p_type The type of package action selected.
-         */
-#if GTK4
-        void on_action_type_opened(pkg::Type p_type);
-#else
-
-        void on_action_type_opened(GdkEventButton *, pkg::Type p_type);
-#endif
-
 
         /**
          * @brief Triggered when the execute action button is pressed.
