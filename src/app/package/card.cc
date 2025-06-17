@@ -110,9 +110,9 @@ Card::setup() -> bool
     m_type       = pkg::Type(find_package(pkg));
 
     switch (m_type) {
-    case pkg::Install: icon_name = "document-save-symbolic";
-    case pkg::Remove:  icon_name = "edit-delete-symbolic";
-    default:           icon_name = "view-refresh-symbolic";
+    case pkg::Install: icon_name = "document-save-symbolic"; break;
+    case pkg::Remove:  icon_name = "edit-delete-symbolic";   break;
+    default:           icon_name = "view-refresh-symbolic";  break;
     }
 
     m_action_button->set_image_from_icon_name(icon_name);
