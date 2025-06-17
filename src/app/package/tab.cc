@@ -202,13 +202,16 @@ Tab::on_search()
     */
     auto children = m_result_box->get_children();
     for (auto *child : children) {
-        #if GTK4
-            if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
-                m_result_box->remove(*child);
-            }
-        #else
+        if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
             m_result_box->remove(*child);
-        #endif
+            continue;
+        }
+
+#if GTK3
+        if (dynamic_cast<Gtk::Spinner*>(child) != nullptr) {
+            m_result_box->remove(*child);
+        }
+#endif
     }
 
     /* Putting this here means the results box will be cleared
@@ -360,23 +363,39 @@ Tab::on_action_button_pressed(pkg::Type   p_type,
             data::logger->log(Logger::Debug,
                               "Package {} has unresolved deps",
                               p_pkg["Name"].asString());
-            // builder_t builder = Gtk::Builder::create_from_file(
-            //     utils::get_ui_file("dialog.xml", m_ui_base));
+            builder_t builder = Gtk::Builder::create_from_file(
+                utils::get_ui_file("dialog.xml", m_ui_base));
+            Dialog *dialog_window = nullptr;
 
-            // Dialog *dialog_window = nullptr;
-            // dialog_window = Gtk::Builder::get_widget_derived<Dialog>(
-            //     builder,
-            //     "confirmation_window",
-            //     "Unresolved Dependencies",
-            //     std::format("The package {} has some unresolved dependencies, "
-            //                 "do you want to install them?",
-            //                 pkg["Name"].asString()),
-            //     m_use_dark
-            // );
+#if GTK4
+            dialog_window = Gtk::Builder::get_widget_derived<Dialog>(
+                builder,
+                "confirmation_window",
+                "Unresolved Dependencies",
+                std::format("The package {} has some unresolved dependencies, "
+                            "do you want to install them?",
+                            p_pkg["Name"].asString()),
+                m_use_dark
+            );
+#else
+            builder->get_widget_derived<Dialog>(
+                "confirmation_window",
+                dialog_window,
+                "Unresolved Dependencies",
+                std::format("The package {} has some unresolved dependencies, "
+                            "do you want to install them?",
+                            p_pkg["Name"].asString()),
+                m_use_dark
+            );
+#endif
 
-            // if (!dialog_window->wait_for_response()) {
-            //     return;
-            // }
+            if (!dialog_window->wait_for_response()) {
+                data::app->remove_window(*dialog_window);
+                delete dialog_window;
+                return;
+            }
+            delete dialog_window;
+            data::app->remove_window(*dialog_window);
         }
     }
 

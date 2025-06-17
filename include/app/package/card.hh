@@ -58,6 +58,7 @@ namespace pkg {
                       const builder_t     &p_builder,
                       json                 p_pkg);
 
+
         [[nodiscard]]
         auto signal_action_pressed() -> action_signal;
 
@@ -67,22 +68,20 @@ namespace pkg {
 
         Gtk::Box *m_card = nullptr;
 
+        Gtk::LinkButton *m_name_link = nullptr;
+
         Gtk::Button *m_action_button = nullptr;
+        Gtk::Image  *m_package_icon  = nullptr;
 
-        Gtk::Label *m_version_label = nullptr;
-        Gtk::Label *m_desc_label    = nullptr;
+        Gtk::Label
+            *m_version_label    = nullptr,
+            *m_desc_label       = nullptr,
+            *m_name_label       = nullptr,
+            *m_outofdate_label  = nullptr,
+            *m_popularity_label = nullptr,
+            *m_votes_label      = nullptr;
 
-        Gtk::Label      *m_name_label      = nullptr;
-        Gtk::LinkButton *m_name_link       = nullptr;
-        Gtk::Label      *m_outofdate_label = nullptr;
-
-        Gtk::Label *m_popularity_label = nullptr;
-        Gtk::Label *m_votes_label      = nullptr;
-
-        Gtk::Image *m_package_icon = nullptr;
-
-        bool m_button_dimmed;
-
+        bool          m_button_dimmed;
         action_signal m_signal;
 
     protected:
