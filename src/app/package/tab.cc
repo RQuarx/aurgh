@@ -18,7 +18,6 @@
  */
 
 #include <filesystem>
-#include <chrono>
 #include <thread>
 
 #include <gtkmm/scrolledwindow.h>
@@ -30,6 +29,7 @@
 #include <gtkmm/spinner.h>
 #include <gtkmm/builder.h>
 #include <gtkmm/button.h>
+#include <gtkmm/window.h>
 #include <gtkmm/label.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/refptr.h>
@@ -38,6 +38,7 @@
 #include "package/card.hh"
 #include "package/tab.hh"
 #include "config.hh"
+#include "dialog.hh"
 #include "logger.hh"
 #include "utils.hh"
 #include "data.hh"
@@ -55,19 +56,18 @@ using Gtk::Box;
 
 
 Tab::Tab() :
+    m_use_dark((*data::config->get_config())["app"]["use-dark-icon"].asBool()),
+    m_ui_base((*data::config->get_config())["paths"]["ui-path"].asString()),
     m_actions(std::make_shared<pkg::Actions>()),
-    m_card_ui_file(get_ui_file("card.xml")),
+    m_card_ui_file(utils::get_ui_file("card.xml", m_ui_base)),
     m_spinner(Gtk::make_managed<Gtk::Spinner>())
 {
     data::logger->log(Logger::Debug, "Creating packages tab");
 
     /* Prepare to create cards */
-    bool use_dark =
-        (*data::config->get_config())["app"]["use-dark-icon"].asBool();
-
     str icon_name = std::format("pkg_icon_{}.svg",
-                                use_dark ? "dark" : "light");
-    data::package_icon_file = get_ui_file(icon_name);
+                                m_use_dark ? "dark" : "light");
+    data::package_icon_file = utils::get_ui_file(icon_name, m_ui_base);
 
     /* Process:
        1. Creating Gtk::Builder from tab.xml.
@@ -77,12 +77,17 @@ Tab::Tab() :
     builder_t b;
 
     try {
-        b = Gtk::Builder::create_from_file(get_ui_file("tab.xml"));
-    } catch (const Glib::FileError &e) {
+        b = Gtk::Builder::create_from_file(
+            utils::get_ui_file("tab.xml", m_ui_base));
+    } catch (const Glib::Error &e) {
         data::logger->log(
             Logger::Error,
             "Failed to parse .xml file: {}",
+#if GTK4
             e.what()
+#else
+            e.what().raw()
+#endif
         );
     }
 
@@ -339,7 +344,10 @@ Tab::on_dispatch_search_ready()
 
 
 void
-Tab::on_action_button_pressed(pkg::Type type, bool action_type, const json &pkg)
+Tab::on_action_button_pressed(pkg::Card  *card,
+                              pkg::Type   type,
+                              bool        action_type,
+                              const json &pkg)
 {
     /* Check for unresolved dependencies, currently disabled. */
     if (action_type && type != Type::Remove) {
@@ -347,6 +355,24 @@ Tab::on_action_button_pressed(pkg::Type type, bool action_type, const json &pkg)
             data::logger->log(Logger::Debug,
                               "Package {} has unresolved deps",
                               pkg["Name"].asString());
+            // builder_t builder = Gtk::Builder::create_from_file(
+            //     utils::get_ui_file("dialog.xml", m_ui_base));
+
+            // Dialog *dialog_window = nullptr;
+            // dialog_window = Gtk::Builder::get_widget_derived<Dialog>(
+            //     builder,
+            //     "confirmation_window",
+            //     "Unresolved Dependencies",
+            //     std::format("The package {} has some unresolved dependencies, "
+            //                 "do you want to install them?",
+            //                 pkg["Name"].asString()),
+            //     m_use_dark
+            // );
+
+            // if (!dialog_window->wait_for_response()) {
+            //     card->refresh();
+            //     return;
+            // }
         }
     }
 
@@ -478,41 +504,6 @@ Tab::on_execute_button_pressed() -> bool
     });
 
     return true;
-}
-
-
-auto
-Tab::get_ui_file(const std::filesystem::path &file_name) -> str
-{
-    namespace fs = std::filesystem;
-
-    auto valid_file = [](const fs::path &file_path) -> bool {
-        return fs::exists(file_path)
-            && fs::is_regular_file(file_path);
-    };
-
-    if (valid_file(file_name)) return file_name;
-
-    str
-        gtk_version = std::format("gtk{}", GTKMM_MAJOR_VERSION),
-        base_path   =
-            (*data::config->get_config())["paths"]["ui-path"].asString();
-
-    std::array<fs::path, 8> candidates = {
-        fs::path(base_path) / file_name,
-        fs::path(base_path) / "ui" / file_name,
-        fs::path(base_path) / "ui" / gtk_version / file_name,
-        fs::path("ui") / file_name,
-        fs::path("ui") / gtk_version / file_name,
-        fs::path(gtk_version) / file_name,
-        fs::path("/usr/share") / APP_NAME / "ui" / gtk_version / file_name,
-        fs::path("/usr/share") / APP_NAME / "ui" / file_name
-    };
-
-    for (const fs::path &p : candidates) {
-        if (valid_file(p)) return fs::canonical(p);
-    }
-    return "";
 }
 
 

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="confirmation_window">
+
+    <!-- <property name="default-height">350</property> -->
+    <property name="default-width">500</property>
+    <property name="visible">true</property>
+    <property name="modal">true</property>
+    <child>
+
+      <object class="GtkBox" id="confirmation_container">
+
+        <property name="orientation">vertical</property>
+        <property name="margin-bottom">10</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="margin-top">10</property>
+        <property name="hexpand">true</property>
+        <property name="vexpand">true</property>
+        <property name="halign">fill</property>
+        <property name="valign">fill</property>
+        <child>
+
+          <object class="GtkBox" id="confirmation_title_box">
+
+            <property name="margin-bottom">20</property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="halign">start</property>
+            <property name="valign">start</property>
+            <property name="spacing">10</property>
+            <child>
+
+              <object class="GtkImage" id="confirmation_title_img">
+
+                <property name="icon-name">warning-outline</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="confirmation_title">
+
+                <property name="valign">center</property>
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="halign">start</property>
+                <property name="yalign">0.5</property>
+                <property name="wrap">true</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+
+          <object class="GtkLabel" id="confirmation_message">
+
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="xalign">0.5</property>
+            <property name="wrap">true</property>
+          </object>
+        </child>
+
+        <child>
+
+          <object class="GtkBox" id="confirmation_buttons">
+
+            <property name="margin-top">20</property>
+            <property name="hexpand">true</property>
+            <property name="halign">fill</property>
+            <property name="spacing">10</property>
+            <child>
+
+              <object class="GtkBox" id="confirmation_button_decline">
+
+                <property name="hexpand">true</property>
+                <property name="halign">fill</property>
+                <property name="valign">end</property>
+                <child>
+
+                  <object class="GtkButton" id="confirmation_decline">
+
+                    <property name="label">Decline</property>
+                    <property name="hexpand">true</property>
+                    <property name="halign">fill</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+
+              <object class="GtkBox" id="confirmation_button_accept">
+
+                <property name="hexpand">true</property>
+                <property name="halign">fill</property>
+                <property name="valign">end</property>
+                <child>
+
+                  <object class="GtkButton" id="confirmation_accept">
+
+                    <property name="label">Accept</property>
+                    <property name="hexpand">true</property>
+                    <property name="halign">fill</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

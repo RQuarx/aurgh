@@ -59,7 +59,7 @@ namespace pkg {
                       shared_ptr<Actions> &actions);
 
         auto signal_action_pressed(
-            ) -> sigc::signal<void (pkg::Type, bool, const json &)>;
+            ) -> sigc::signal<void (pkg::Card *, pkg::Type, bool, const json &)>;
 
         void refresh();
 
@@ -85,7 +85,7 @@ namespace pkg {
 
         bool m_button_dimmed;
 
-        sigc::signal<void (pkg::Type, bool, const json &)> m_signal;
+        sigc::signal<void (pkg::Card *, pkg::Type, bool, const json &)> m_signal;
 
     protected:
         auto setup() -> bool;

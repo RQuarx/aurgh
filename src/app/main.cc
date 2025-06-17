@@ -89,7 +89,7 @@ main(int32_t argc, char **argv) -> int32_t
         return EXIT_SUCCESS;
     }
 
-    auto app             = Gtk::Application::create(APP_ID);
+    data::app            = Gtk::Application::create(APP_ID);
     data::logger         = std::make_shared<Logger>();
     data::config         = std::make_shared<Config>();
     data::pkg_client     = std::make_shared<pkg::Client>();
@@ -101,9 +101,9 @@ main(int32_t argc, char **argv) -> int32_t
     }
 
 #if GTK4
-    return app->make_window_and_run<AppWindow>(0, nullptr);
+    return data::app->make_window_and_run<AppWindow>(0, nullptr);
 #else
     AppWindow window;
-    return app->run(window);
+    return data::app->run(window);
 #endif
 }

@@ -73,7 +73,7 @@ Card::Card(BaseObjectType      *cobject,
 
 auto
 Card::signal_action_pressed(
-    ) -> sigc::signal<void (pkg::Type, bool, const json &)>
+    ) -> sigc::signal<void (pkg::Card *, pkg::Type, bool, const json &)>
 { return m_signal; }
 
 
@@ -161,13 +161,13 @@ Card::on_button_clicked(pkg::Type result, const str &pkg_name)
             m_button_dimmed = false;
         }
 
-        m_signal.emit(result, false, m_package);
+        m_signal.emit(this, result, false, m_package);
     } else {
         vec->push_back(pkg_name);
         m_action_button->set_opacity(INACTIVE_OPACITY);
         m_button_dimmed = true;
 
-        m_signal.emit(result, true, m_package);
+        m_signal.emit(this, result, true, m_package);
     }
 }
 

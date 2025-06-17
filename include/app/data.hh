@@ -21,6 +21,7 @@
 #ifndef __DATA_HH__
 #define __DATA_HH__
 
+#include <gtkmm/application.h>
 #include "package/client.hh"
 #include "package/type.hh"
 #include "arg_parser.hh"
@@ -31,11 +32,12 @@
 namespace data {
     using pkg::Client;
 
-    inline shared_ptr<ArgParser> arg_parser;
-    inline shared_ptr<Logger>    logger;
-    inline shared_ptr<Config>    config;
-    inline shared_ptr<Client>    pkg_client;
-    inline shared_ptr<uset<str>> installed_pkgs;
+    inline Glib::RefPtr<Gtk::Application> app;
+    inline shared_ptr<ArgParser>          arg_parser;
+    inline shared_ptr<Logger>             logger;
+    inline shared_ptr<Config>             config;
+    inline shared_ptr<Client>             pkg_client;
+    inline shared_ptr<uset<str>>          installed_pkgs;
 
     inline str package_icon_file;
 } /* namespace data */

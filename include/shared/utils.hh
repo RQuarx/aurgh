@@ -18,9 +18,10 @@
  */
 
 #pragma once
-#ifndef UTILS_HH__
-#define UTILS_HH__
+#ifndef __UTILS_HH__
+#define __UTILS_HH__
 
+#include <filesystem>
 #include <algorithm>
 #include <optional>
 #include <format>
@@ -37,6 +38,8 @@ namespace Gtk {
     class Box;
 }
 class ArgParser;
+
+namespace fs = std::filesystem;
 
 
 /**
@@ -151,6 +154,16 @@ namespace utils {
 
 
     /**
+     * @brief Resolves the full UI file path from a filename.
+     * @param file_name Name of the UI file.
+     * @param base_path The base path to the UI resources.
+     * @return Full file path to the UI resource.
+     */
+    auto get_ui_file(const fs::path    &file_name,
+                     const std::string &base_path) -> std::string;
+
+
+    /**
      * @brief A wrapper for std::format.
      * @param fmt Format string.
      * @param args Variadic arguments.
@@ -212,4 +225,4 @@ namespace utils {
     } /* namespace str */
 } /* namespace utils */
 
-#endif /* utils.hh */
+#endif /* __UTILS__HH__ */

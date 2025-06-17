@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <cerrno>
-#include <print>
 #include <regex>
 
 #include <gtkmm/widget.h>
@@ -255,5 +254,39 @@ namespace utils {
 
         result += str.substr(last_pos);
         return result;
+    }
+
+
+    auto
+    get_ui_file(const fs::path    &file_name,
+                const std::string &base_path) -> std::string
+    {
+        namespace fs = std::filesystem;
+
+        auto valid_file = [](const fs::path &file_path) -> bool {
+            return fs::exists(file_path)
+                && fs::is_regular_file(file_path);
+        };
+
+        std::array<fs::path, 13> candidates = {
+            fs::path("package") / file_name,
+            fs::path("icons") / file_name,
+            fs::path(".") / file_name,
+            fs::path(base_path) / file_name,
+            fs::path(base_path) / "ui/package" / file_name,
+            fs::path(base_path) / "ui/icons" / file_name,
+            fs::path(base_path) / "ui" / file_name,
+            fs::path("ui/package") / file_name,
+            fs::path("ui/icons") / file_name,
+            fs::path("ui") / file_name,
+            fs::path("/usr/share") / APP_NAME / "ui/package" / file_name,
+            fs::path("/usr/share") / APP_NAME / "ui/icons" / file_name,
+            fs::path("/usr/share") / APP_NAME / "ui" / file_name
+        };
+
+        for (const fs::path &p : candidates) {
+            if (valid_file(p)) return fs::canonical(p);
+        }
+        return "";
     }
 } /* namespace utils */

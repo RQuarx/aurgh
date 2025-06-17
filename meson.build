@@ -51,6 +51,6 @@ add_project_arguments([
     '-DGTK3=@0@'.format(gtk_version == 3),
 ], language: 'cpp')
 
-subdir('subdirs/shared')
-subdir('subdirs/helper')
-subdir('subdirs/aurgh')
+subdir('src/shared')
+subdir('src/app')
+subdir('src/cli')

@@ -69,7 +69,8 @@ namespace pkg {
 
         void
             setup_widgets           (const Glib::RefPtr<Gtk::Builder> &b),
-            on_action_button_pressed(pkg::Type   type,
+            on_action_button_pressed(pkg::Card  *card,
+                                     pkg::Type   type,
                                      bool        action_type,
                                      const json &pkg),
             on_dispatch_search_ready(),
@@ -107,14 +108,6 @@ namespace pkg {
 
 
         /**
-         * @brief Resolves the full UI file path from a filename.
-         * @param file_name Name of the UI file.
-         * @return Full file path to the UI resource.
-         */
-        static auto get_ui_file(const std::filesystem::path &file_name) -> str;
-
-
-        /**
          * @brief Removes all children inside of a Gtk::Box @p container .
          */
         static void remove_all_child(Gtk::Box &container);
@@ -122,6 +115,8 @@ namespace pkg {
         static void get_installed_pkgs();
 
     private:
+        bool                m_use_dark;
+        str                 m_ui_base;
         shared_ptr<Actions> m_actions;
 
         std::atomic<bool> m_running;
