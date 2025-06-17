@@ -56,15 +56,13 @@ using Gtk::Box;
 
 
 Tab::Tab() :
+    m_actions (std::make_shared<pkg::Actions>()),
     m_use_dark((*data::config->get_config())["app"]["use-dark-icon"].asBool()),
-    m_ui_base((*data::config->get_config())["paths"]["ui-path"].asString()),
-    m_actions(std::make_shared<pkg::Actions>()),
-    m_card_ui_file(utils::get_ui_file("card.xml", m_ui_base)),
-    m_spinner(Gtk::make_managed<Gtk::Spinner>())
+    m_ui_base ((*data::config->get_config())["paths"]["ui-path"].asString()),
+    m_spinner (Gtk::make_managed<Gtk::Spinner>())
 {
     data::logger->log(Logger::Debug, "Creating packages tab");
 
-    /* Prepare to create cards */
     str icon_name = std::format("pkg_icon_{}.svg",
                                 m_use_dark ? "dark" : "light");
     data::package_icon_file = utils::get_ui_file(icon_name, m_ui_base);
@@ -92,64 +90,53 @@ Tab::Tab() :
     }
 
     setup_widgets(b);
-    m_spinner->set_visible(false);
     setup();
-
-    #if GTK4
-        m_result_box->append(*m_spinner);
-        append(*m_tab_box);
-    #else
-        m_result_box->pack_start(*m_spinner);
-        add(*m_tab_box);
-        set_visible();
-    #endif
-
     get_installed_pkgs();
-
-    m_search_dispatcher.connect([this]() {
-        on_dispatch_search_ready();
-    });
+    m_search_dispatcher.connect([this]()-> void { on_dispatch_search_ready(); });
 }
 
 
 void
-Tab::setup_widgets(const builder_t &b)
+Tab::setup_widgets(const builder_t &p_b) /* p_b -> p_builder */
 {
 #if GTK4
-    m_tab_box            = b->get_widget<Box>("tab_main");
-    m_result_box         = b->get_widget<Box>("result_box");
-    m_results_scroll     = b->get_widget<ScrolledWindow>("search_results");
-    m_search_by_combo    = b->get_widget<ComboBoxText>("search_by");
-    m_sort_by_combo      = b->get_widget<ComboBoxText>("sort_by");
-    m_reverse_sort_check = b->get_widget<CheckButton>("reverse_sort");
-    m_search_entry       = b->get_widget<SearchEntry>("search_entry");
-    m_no_actions_label   = b->get_widget<Label>("no_actions_label");
-    m_execute_button     = b->get_widget<Button>("execute_actions_button");
+    m_tab_box            = p_b->get_widget<Box>("tab_main");
+    m_result_box         = p_b->get_widget<Box>("result_box");
+    m_results_scroll     = p_b->get_widget<ScrolledWindow>("search_results");
+    m_search_by_combo    = p_b->get_widget<ComboBoxText>("search_by");
+    m_sort_by_combo      = p_b->get_widget<ComboBoxText>("sort_by");
+    m_reverse_sort_check = p_b->get_widget<CheckButton>("reverse_sort");
+    m_search_entry       = p_b->get_widget<SearchEntry>("search_entry");
+    m_no_actions_label   = p_b->get_widget<Label>("no_actions_label");
+    m_execute_button     = p_b->get_widget<Button>("execute_actions_button");
 
-    m_action_widgets[Install] = b->get_widget<Expander>("actions_install");
-    m_action_widgets[Remove]  = b->get_widget<Expander>("actions_remove");
-    m_action_widgets[Update]  = b->get_widget<Expander>("actions_update");
+    m_action_widgets[Install] = p_b->get_widget<Expander>("actions_install");
+    m_action_widgets[Remove]  = p_b->get_widget<Expander>("actions_remove");
+    m_action_widgets[Update]  = p_b->get_widget<Expander>("actions_update");
 
     m_spinner->set_valign(Gtk::Align::CENTER);
+    m_result_box->append(*m_spinner);
+    append(*m_tab_box);
 #else
-    b->get_widget("tab_main",               m_tab_box);
-    b->get_widget("result_box",             m_result_box);
-    b->get_widget("search_results",         m_results_scroll);
-    b->get_widget("search_by",              m_search_by_combo);
-    b->get_widget("sort_by",                m_sort_by_combo);
-    b->get_widget("reverse_sort",           m_reverse_sort_check);
-    b->get_widget("search_entry",           m_search_entry);
-    b->get_widget("no_actions_label",       m_no_actions_label);
-    b->get_widget("execute_actions_button", m_execute_button);
+    p_b->get_widget("tab_main",               m_tab_box);
+    p_b->get_widget("result_box",             m_result_box);
+    p_b->get_widget("search_results",         m_results_scroll);
+    p_b->get_widget("search_by",              m_search_by_combo);
+    p_b->get_widget("sort_by",                m_sort_by_combo);
+    p_b->get_widget("reverse_sort",           m_reverse_sort_check);
+    p_b->get_widget("search_entry",           m_search_entry);
+    p_b->get_widget("no_actions_label",       m_no_actions_label);
+    p_b->get_widget("execute_actions_button", m_execute_button);
 
-    b->get_widget("actions_install", m_action_widgets[Install]);
-    b->get_widget("actions_remove",  m_action_widgets[Remove]);
-    b->get_widget("actions_update",  m_action_widgets[Update]);
+    p_b->get_widget("actions_install", m_action_widgets[Install]);
+    p_b->get_widget("actions_remove",  m_action_widgets[Remove]);
+    p_b->get_widget("actions_update",  m_action_widgets[Update]);
 
     m_spinner->set_valign(Gtk::ALIGN_CENTER);
+    m_result_box->pack_start(*m_spinner);
+    add(*m_tab_box);
+    set_visible();
 #endif
-
-
 }
 
 
@@ -163,11 +150,11 @@ Tab::setup()
     for (const auto &w : search_by_keywords) m_search_by_combo->append(w);
     for (const auto &w : sort_by_keywords)   m_sort_by_combo->append(w);
 
-    auto cache = data::config->get_cache();
+    json cache = *data::config->get_cache();
 
-    m_search_by_combo->set_active_text((*cache)["search-by-default"].asString());
-    m_sort_by_combo->set_active_text((*cache)["sort-by-default"].asString());
-    m_reverse_sort_check->set_active((*cache)["reverse-sort-default"].asBool());
+    m_search_by_combo->set_active_text(cache["search-by-default"].asString());
+    m_sort_by_combo->set_active_text(  cache["sort-by-default"]  .asString());
+    m_reverse_sort_check->set_active(  cache["reverse-sort-default"].asBool());
 
     if (m_search_by_combo->get_active_text() == nullptr) {
         m_search_by_combo->set_active_text("name");
@@ -176,31 +163,30 @@ Tab::setup()
         m_sort_by_combo->set_active_text("NumVotes");
     }
 
-    auto criteria_changed = sigc::bind(
-    [this](const shared_ptr<json> &cache)
-    {
-        (*cache)["sort-by-default"]      =
+    auto criteria_changed = [this]() -> void {
+        json cache = *data::config->get_cache();
+
+        cache["sort-by-default"]      =
             m_sort_by_combo->get_active_text().raw();
-        (*cache)["search-by-default"]    =
+        cache["search-by-default"]    =
             m_search_by_combo->get_active_text().raw();
-        (*cache)["reverse-sort-default"] =
+        cache["reverse-sort-default"] =
             m_reverse_sort_check->get_active();
 
         data::config->save();
         on_search();
-    }, cache);
+    };
 
-    m_search_by_combo->signal_changed().connect(criteria_changed);
-    m_sort_by_combo->signal_changed().connect(criteria_changed);
-    m_reverse_sort_check->signal_toggled().connect(criteria_changed);
-    m_search_entry->signal_activate().connect(criteria_changed);
+    m_reverse_sort_check->signal_toggled() .connect(criteria_changed);
+    m_search_by_combo   ->signal_changed() .connect(criteria_changed);
+    m_search_entry      ->signal_activate().connect(criteria_changed);
+    m_sort_by_combo     ->signal_changed() .connect(criteria_changed);
 
     m_execute_button->signal_clicked().connect([this](){
-        if (!on_execute_button_pressed()) {
-            exit(EXIT_FAILURE);
-        }
+        on_execute_button_pressed();
     });
 }
+
 
 void
 Tab::on_search()
@@ -208,7 +194,12 @@ Tab::on_search()
     /* Don't search if there's already a "Search process" running */
     if (m_running) return;
 
-    /* Removes all cards from the results box */
+    /* Removes all cards from the results box,
+       on GTK 3, the spinner would still occupy a space
+       even though it is not visible.
+       So the only way to actually "hide" it,
+       it to remove it from the container and add it later.
+    */
     auto children = m_result_box->get_children();
     for (auto *child : children) {
         #if GTK4
@@ -220,8 +211,10 @@ Tab::on_search()
         #endif
     }
 
-    /* Putting this here means the results box will clear
-       when the search entry is empty
+    /* Putting this here means the results box will be cleared
+       before the search entry is empty check is done.
+       Which means, the results box will be empty
+       if the search entry is empty.
     */
     str pkg_name = m_search_entry->get_text();
     if (pkg_name.empty()) return;
@@ -233,24 +226,24 @@ Tab::on_search()
 #else
     m_result_box->set_valign(Gtk::ALIGN_CENTER);
     m_result_box->pack_start(*m_spinner);
-    m_spinner->set_visible(true);
 #endif
 
     m_spinner->start();
 
     str search_by = m_search_by_combo->get_active_text();
 
-    data::logger->log(
-        Logger::Info, "Searching for: {}, by {}", pkg_name, search_by
-    );
+    data::logger->log(Logger::Info,
+                      R"(Searching for "{}", by "{}")",
+                      pkg_name, search_by);
 
     /* Search the object */
     std::jthread([this, pkg_name, search_by](){
         m_running = true;
 
-        m_package_queue.clear();
-        m_package_queue.resize(0);
-        m_search_result.clear();
+        /* It is unlikely for CURL to fail, so adding attributes will make
+           the compiler to be able to add more optimizations regarding this
+           try-catch thing.
+        */
         try { [[likely]]
             m_search_result = data::pkg_client->search(pkg_name, search_by);
         } catch (const std::exception &e) { [[unlikely]]
@@ -271,8 +264,8 @@ Tab::on_dispatch_search_ready()
         data::logger->log(Logger::Debug, "Found no packages.");
         m_spinner->set_visible(false);
 
-        auto *no_packages_label =
-            Gtk::make_managed<Gtk::Label>("No packages found.");
+        auto no_packages_label =
+            std::make_unique<Gtk::Label>("No packages found.");
 
 #if GTK4
         m_result_box->append(*no_packages_label);
@@ -284,11 +277,18 @@ Tab::on_dispatch_search_ready()
         return;
     }
 
-    data::logger->log(
-        Logger::Debug,
-        "Found {} packages.",
-        m_search_result["resultcount"].asInt()
-    );
+    data::logger->log(Logger::Debug,
+                      "Found {} packages.",
+                      m_search_result["resultcount"].asInt());
+    generate_cards();
+    m_running = false;
+}
+
+
+void
+Tab::generate_cards()
+{
+    data::logger->log(Logger::Debug, "Starting generating cards.");
 
     /* Fetch the package informations */
     str  sort_by = m_sort_by_combo->get_active_text();
@@ -301,60 +301,65 @@ Tab::on_dispatch_search_ready()
 
 #if GTK4
     m_result_box->set_valign(Gtk::Align::START);
+    m_spinner->set_visible(false);
 #else
     m_result_box->set_valign(Gtk::ALIGN_START);
     m_result_box->remove(*m_spinner);
 #endif
-    m_spinner->set_visible(false);
 
-    data::logger->log(Logger::Debug, "Starting generating cards.");
+    if (m_card_ui_file.empty()) { [[unlikely]]
+        m_card_ui_file = utils::get_ui_file("card.xml", m_ui_base);
+    }
 
     /* Creating cards */
+    size_t card_amounts = 0;
     for (const auto &pkg : sorted) {
         builder_t  builder = Gtk::Builder::create_from_file(m_card_ui_file);
         pkg::Card *card    = nullptr;
 #if GTK4
         card = Gtk::Builder::get_widget_derived<pkg::Card>(builder,
                                                            "pkg_card",
-                                                           pkg,
-                                                           m_actions);
+                                                           pkg);
+        m_result_box->append(*card);
 #else
-        builder->get_widget_derived<pkg::Card>("pkg_card",
-                                                card,
-                                                pkg,
-                                                m_actions);
+        builder->get_widget_derived<pkg::Card>("pkg_card", card, pkg);
+        m_result_box->pack_start(*card);
 #endif
 
         card->signal_action_pressed().connect(sigc::mem_fun(
             *this, &Tab::on_action_button_pressed
         ));
-
-#if GTK4
-        m_result_box->append(*card);
-#else
-        m_result_box->pack_start(*card);
-        card->show_all_children();
-#endif
+        card_amounts++;
     }
 
-    data::logger->log(Logger::Debug, "Finished generating cards.");
-
-    m_running = false;
+    data::logger->log(Logger::Debug,
+                      "Finished generating {} cards.",
+                      card_amounts);
 }
 
 
 void
-Tab::on_action_button_pressed(pkg::Card  *card,
-                              pkg::Type   type,
-                              bool        action_type,
-                              const json &pkg)
+Tab::on_action_button_pressed(pkg::Type   p_type,
+                              bool        p_action_type,
+                              const json &p_pkg)
 {
+    if (p_action_type) {
+        m_actions->at(p_type)->push_back(p_pkg["Name"].asString());
+    } else {
+        auto it = std::ranges::find(*m_actions->at(p_type),
+                                     p_pkg["Name"].asString());
+
+        if (it != m_actions->at(p_type)->end()) {
+            m_actions->at(p_type)->erase(it);
+        }
+    }
+
     /* Check for unresolved dependencies, currently disabled. */
-    if (action_type && type != Type::Remove) {
-        if (has_unresolved_dependencies(pkg)) {
+    if (p_action_type && p_type != Type::Remove) {
+        if (has_unresolved_dependencies(p_pkg)) {
             data::logger->log(Logger::Debug,
                               "Package {} has unresolved deps",
-                              pkg["Name"].asString());
+                              p_pkg["Name"].asString());
             // builder_t builder = Gtk::Builder::create_from_file(
             //     utils::get_ui_file("dialog.xml", m_ui_base));
 
@@ -370,28 +375,32 @@ Tab::on_action_button_pressed(pkg::Card  *card,
             // );
 
             // if (!dialog_window->wait_for_response()) {
-            //     card->refresh();
             //     return;
             // }
         }
     }
 
-    bool all_empty = true;
+    refresh_actions();
+}
 
+
+void
+Tab::refresh_actions()
+{
+    bool all_empty = true;
     for (auto t : { Install, Remove, Update }) {
         auto  pkgs   = m_actions->at(t);
         auto *action = m_action_widgets.at(t);
 
-        /* If the current action empty */
+        /* If the current action is emtpy, that means
+           the current expander action should not be shown,
+           and if it the last type (Update) and all_empty is still true,
+           then that means all of the actions are empty.
+        */
         if (pkgs->empty()) {
-            /* If it is the last action and all_empty is still true
-               Make the "No actions." label visible.
-            */
             if (t == Update && all_empty) {
                 m_no_actions_label->set_visible(true);
             }
-
-            /* else, just make the action label not visible */
             action->set_visible(false);
             continue;
         }
@@ -401,27 +410,24 @@ Tab::on_action_button_pressed(pkg::Card  *card,
             m_no_actions_label->set_visible(false);
         }
 
-        remove_all_child(*dynamic_cast<Gtk::Box*>(action->get_child()));
+        remove_all_child(*dynamic_cast<Gtk::Box *>(action->get_child()));
 
         for (const auto &action_pkg : *pkgs) {
             auto *link = Gtk::make_managed<Gtk::LinkButton>();
-            str url = std::format(
-                "https://aur.archlinux.org/packages/{}", action_pkg
-            );
+            str   url  = std::format("https://aur.archlinux.org/packages/{}",
+                                     action_pkg);
 
-            link->set_label(action_pkg);
-            link->set_uri(url);
             link->set_tooltip_text(url);
+            link->set_label(action_pkg);
+            link->set_visible();
+            link->set_uri(url);
 
 #if GTK4
             link->set_halign(Gtk::Align::START);
-            link->set_visible();
-            dynamic_cast<Gtk::Box*>
-            (action->get_child())->append(*link);
+            dynamic_cast<Gtk::Box *>(action->get_child())->append(*link);
 #else
             link->set_halign(Gtk::ALIGN_START);
-            dynamic_cast<Gtk::Box*>
-            (action->get_child())->pack_start(*link);
+            dynamic_cast<Gtk::Box *>(action->get_child())->pack_start(*link);
 #endif
 
         }
@@ -433,17 +439,18 @@ Tab::on_action_button_pressed(pkg::Card  *card,
     }
 }
 
+
 void
 #if GTK4
-Tab::on_action_type_opened(pkg::Type type)
+Tab::on_action_type_opened(pkg::Type p_type)
 #else
-Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
+Tab::on_action_type_opened(GdkEventButton *, pkg::Type p_type)
 #endif
 {
-    auto *action_widget = m_action_widgets.at(type);
+    auto *action_widget = m_action_widgets.at(p_type);
 
-    if (!m_action_widgets[type]->get_expanded()) {
-        auto pkgs = m_actions->at(type);
+    if (!m_action_widgets[p_type]->get_expanded()) {
+        auto pkgs = m_actions->at(p_type);
         remove_all_child(*dynamic_cast<Gtk::Box*>(action_widget->get_child()));
 
 
@@ -455,6 +462,7 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
 
             link->set_tooltip_text(url);
             link->set_label(pkg);
+            link->set_visible();
             link->set_uri(url);
 
 #if GTK4
@@ -466,6 +474,8 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
             dynamic_cast<Gtk::Box*>
             (action_widget->get_child())->pack_start(*link);
 #endif
+            link->set_visible();
+
         }
     }
 
@@ -473,8 +483,8 @@ Tab::on_action_type_opened(GdkEventButton * /*button_event*/, pkg::Type type)
 }
 
 
-auto
-Tab::on_execute_button_pressed() -> bool
+void
+Tab::on_execute_button_pressed()
 {
     if (!m_actions->remove->empty()) {
         data::pkg_client->remove(*m_actions->remove);
@@ -494,23 +504,13 @@ Tab::on_execute_button_pressed() -> bool
 #endif
     }
     on_search();
-    std::ranges::for_each(m_result_box->get_children(),
-    [](Gtk::Widget *c)
-    {
-        auto *card = dynamic_cast<pkg::Card*>(c);
-        if (card != nullptr) {
-            card->refresh();
-        }
-    });
-
-    return true;
 }
 
 
 auto
-Tab::has_unresolved_dependencies(const json &pkg) -> bool
+Tab::has_unresolved_dependencies(const json &p_pkg) -> bool
 {
-    json info { data::pkg_client->info(pkg["Name"].asString()) };
+    json info { data::pkg_client->info(p_pkg["Name"].asString()) };
 
     vec<json> all_deps;
     for (const auto &d : info["results"][0]["Depends"])     all_deps.push_back(d);
@@ -527,8 +527,8 @@ Tab::has_unresolved_dependencies(const json &pkg) -> bool
         if (dep_name.contains('<')) return false;
         if (dep_name.contains('=')) return false;
 
-        return !data::installed_pkgs->contains(dep_name) ||
-                data::pkg_client->find_pkg(dep_name) == nullptr;
+        if (data::pkg_client->find_pkg(dep_name) == nullptr) return true;
+        return !data::installed_pkgs->contains(dep_name);
     });
 }
 
@@ -553,10 +553,10 @@ Tab::get_installed_pkgs()
 
 
 void
-Tab::remove_all_child(Gtk::Box &container)
+Tab::remove_all_child(Gtk::Box &p_container)
 {
-    auto children = container.get_children();
-    std::ranges::for_each(children, [&container](Gtk::Widget *child){
-        container.remove(*child);
+    auto children = p_container.get_children();
+    std::ranges::for_each(children, [&p_container](Gtk::Widget *child){
+        p_container.remove(*child);
     });
 }

@@ -39,8 +39,8 @@ namespace Gtk {
 
 
 namespace pkg {
-    static const float INACTIVE_OPACITY = 0.5F;
-    static const float ACTIVE_OPACITY   = 1.0F;
+    static const double INACTIVE_OPACITY = 0.5F;
+    static const double ACTIVE_OPACITY   = 1.0F;
 
 
     /**
@@ -52,20 +52,18 @@ namespace pkg {
      */
     class Card : public Gtk::Frame
     {
+        using action_signal = sigc::signal<void (pkg::Type, bool, const json &)>;
     public:
-        explicit Card(BaseObjectType      *cobject,
-                      const builder_t     &builder,
-                      json                 pkg,
-                      shared_ptr<Actions> &actions);
+        explicit Card(BaseObjectType      *p_cobject,
+                      const builder_t     &p_builder,
+                      json                 p_pkg);
 
-        auto signal_action_pressed(
-            ) -> sigc::signal<void (pkg::Card *, pkg::Type, bool, const json &)>;
-
-        void refresh();
+        [[nodiscard]]
+        auto signal_action_pressed() -> action_signal;
 
     private:
-        shared_ptr<Actions>      m_actions;
-        json                     m_package;
+        json      m_package;
+        pkg::Type m_type;
 
         Gtk::Box *m_card = nullptr;
 
@@ -85,18 +83,18 @@ namespace pkg {
 
         bool m_button_dimmed;
 
-        sigc::signal<void (pkg::Card *, pkg::Type, bool, const json &)> m_signal;
+        action_signal m_signal;
 
     protected:
         auto setup() -> bool;
 
-        void on_button_clicked(pkg::Type result, const str &pkg_name);
+        void on_button_clicked();
 
         /**
          * @brief Searches for a package inside installed_aur_package
          * @returns -1 on none, 0 on all, 1 on name.
          */
-        static auto find_package(const str_pair &package) -> int8_t;
+        static auto find_package(const str_pair &p_pkg) -> int8_t;
     };
 } /* namespace pkg */
 

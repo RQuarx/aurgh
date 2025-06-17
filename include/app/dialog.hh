@@ -41,8 +41,8 @@ public:
 
 private:
     Gtk::Button
-        *m_decline_button,
-        *m_accept_button;
+        *m_decline_button = nullptr,
+        *m_accept_button  = nullptr;
 
     Glib::RefPtr<Glib::MainLoop> m_loop;
     bool m_response = false;

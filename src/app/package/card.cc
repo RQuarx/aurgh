@@ -34,37 +34,36 @@
 using pkg::Card;
 
 
-Card::Card(BaseObjectType      *cobject,
-           const builder_t     &b,
-           json                 pkg,
-           shared_ptr<Actions> &actions) :
-    Gtk::Frame(cobject),
-    m_actions(actions),
-    m_package(std::move(pkg)),
+Card::Card(BaseObjectType      *p_cobject,
+           const builder_t     &p_b,
+           json                 p_pkg) :
+    Gtk::Frame(p_cobject),
+    m_package(std::move(p_pkg)),
+    m_type(pkg::Install),
     m_button_dimmed(false)
 {
 #if GTK4
-    m_card             = b->get_widget<Gtk::Box>("card_box");
-    m_action_button    = b->get_widget<Gtk::Button>("action_button");
-    m_version_label    = b->get_widget<Gtk::Label>("version_label");
-    m_desc_label       = b->get_widget<Gtk::Label>("description_label");
-    m_name_link        = b->get_widget<Gtk::LinkButton>("name_link");
-    m_name_label       = b->get_widget<Gtk::Label>("name_label");
-    m_outofdate_label  = b->get_widget<Gtk::Label>("outofdate_label");
-    m_popularity_label = b->get_widget<Gtk::Label>("popularity_label");
-    m_votes_label      = b->get_widget<Gtk::Label>("votes_label");
-    m_package_icon     = b->get_widget<Gtk::Image>("package_image");
+    m_card             = p_b->get_widget<Gtk::Box>("card_box");
+    m_action_button    = p_b->get_widget<Gtk::Button>("action_button");
+    m_version_label    = p_b->get_widget<Gtk::Label>("version_label");
+    m_desc_label       = p_b->get_widget<Gtk::Label>("description_label");
+    m_name_link        = p_b->get_widget<Gtk::LinkButton>("name_link");
+    m_name_label       = p_b->get_widget<Gtk::Label>("name_label");
+    m_outofdate_label  = p_b->get_widget<Gtk::Label>("outofdate_label");
+    m_popularity_label = p_b->get_widget<Gtk::Label>("popularity_label");
+    m_votes_label      = p_b->get_widget<Gtk::Label>("votes_label");
+    m_package_icon     = p_b->get_widget<Gtk::Image>("package_image");
 #else
-    b->get_widget("card_box", m_card);
-    b->get_widget("action_button", m_action_button);
-    b->get_widget("version_label", m_version_label);
-    b->get_widget("description_label", m_desc_label);
-    b->get_widget("name_link", m_name_link);
-    b->get_widget("name_label", m_name_label);
-    b->get_widget("outofdate_label", m_outofdate_label);
-    b->get_widget("popularity_label", m_popularity_label);
-    b->get_widget("votes_label", m_votes_label);
-    b->get_widget("package_image", m_package_icon);
+    p_b->get_widget("card_box", m_card);
+    p_b->get_widget("action_button", m_action_button);
+    p_b->get_widget("version_label", m_version_label);
+    p_b->get_widget("description_label", m_desc_label);
+    p_b->get_widget("name_link", m_name_link);
+    p_b->get_widget("name_label", m_name_label);
+    p_b->get_widget("outofdate_label", m_outofdate_label);
+    p_b->get_widget("popularity_label", m_popularity_label);
+    p_b->get_widget("votes_label", m_votes_label);
+    p_b->get_widget("package_image", m_package_icon);
 #endif
 
     setup();
@@ -72,8 +71,7 @@ Card::Card(BaseObjectType      *cobject,
 
 
 auto
-Card::signal_action_pressed(
-    ) -> sigc::signal<void (pkg::Card *, pkg::Type, bool, const json &)>
+Card::signal_action_pressed() -> action_signal
 { return m_signal; }
 
 
@@ -88,7 +86,7 @@ Card::setup() -> bool
         markup      = "<big>{}</big>",
         icon_name;
 
-    m_desc_label->set_label(pkg_desc   );
+    m_desc_label->set_label(pkg_desc);
 
     if (m_package["OutOfDate"] != json::null) {
         m_outofdate_label->set_label("(Out-of-date)");
@@ -108,17 +106,18 @@ Card::setup() -> bool
     m_popularity_label->set_markup(utils::format(markup, popularity ));
     m_votes_label     ->set_markup(utils::format(markup, votes      ));
 
-    str_pair    pkg    = { pkg_name, pkg_version };
-    int8_t      result = find_package(pkg);
+    str_pair pkg = { pkg_name, pkg_version };
+    m_type       = pkg::Type(find_package(pkg));
 
-    if      (result == -1) { icon_name = "document-save-symbolic"; }
-    else if (result == 0 ) { icon_name = "edit-delete-symbolic";   }
-    else                   { icon_name = "view-refresh-symbolic";  }
+    switch (m_type) {
+    case pkg::Install: icon_name = "document-save-symbolic";
+    case pkg::Remove:  icon_name = "edit-delete-symbolic";
+    default:           icon_name = "view-refresh-symbolic";
+    }
 
     m_action_button->set_image_from_icon_name(icon_name);
-    m_action_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &Card::on_button_clicked),
-        pkg::Type(result), pkg_name
+    m_action_button->signal_clicked().connect(sigc::mem_fun(
+        *this, &Card::on_button_clicked
     ));
 
     try {
@@ -148,34 +147,26 @@ Card::setup() -> bool
 
 
 void
-Card::on_button_clicked(pkg::Type result, const str &pkg_name)
+Card::on_button_clicked()
 {
-    auto vec = m_actions->at(result);
-
     if (m_button_dimmed) {
-        auto it = std::ranges::find(*vec, pkg_name);
+        m_action_button->set_opacity(ACTIVE_OPACITY);
+        m_button_dimmed = false;
 
-        if (it != vec->end()) {
-            vec->erase(it);
-            m_action_button->set_opacity(ACTIVE_OPACITY);
-            m_button_dimmed = false;
-        }
-
-        m_signal.emit(this, result, false, m_package);
+        m_signal.emit(m_type, false, m_package);
     } else {
-        vec->push_back(pkg_name);
         m_action_button->set_opacity(INACTIVE_OPACITY);
         m_button_dimmed = true;
 
-        m_signal.emit(this, result, true, m_package);
+        m_signal.emit(m_type, true, m_package);
     }
 }
 
 
 auto
-Card::find_package(const str_pair &package) -> int8_t
+Card::find_package(const str_pair &p_pkg) -> int8_t
 {
-    if (data::pkg_client->find_pkg(package.first) != nullptr) {
+    if (data::pkg_client->find_pkg(p_pkg.first) != nullptr) {
         return 0;
     }
     return -1;
@@ -184,22 +175,4 @@ Card::find_package(const str_pair &package) -> int8_t
         // if (pkg_name == package.first) return 1;
     // }
     // return -1;
-}
-
-
-void
-Card::refresh()
-{
-    for (auto t : { pkg::Update, pkg::Install, pkg::Remove }) {
-        auto action = m_actions->at(t);
-        auto pkg    = m_package["Name"].asString();
-        if (!m_button_dimmed && utils::find(*action, pkg)) {
-            m_button_dimmed = true;
-            m_action_button->set_opacity(INACTIVE_OPACITY);
-            return;
-        }
-    }
-
-    m_button_dimmed = false;
-    m_action_button->set_opacity(ACTIVE_OPACITY);
 }

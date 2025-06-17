@@ -18,10 +18,9 @@
  */
 
 #pragma once
-#ifndef __PACKAGE__TAB_HH__
-#define __PACKAGE__TAB_HH__
+#ifndef __PACKAGE__TAB__HH
+#define __PACKAGE__TAB__HH
 
-#include <filesystem>
 #include <atomic>
 #include <memory>
 
@@ -66,64 +65,65 @@ namespace pkg {
         Tab();
 
     protected:
+        void setup_widgets           (const builder_t &p_builder);
 
-        void
-            setup_widgets           (const Glib::RefPtr<Gtk::Builder> &b),
-            on_action_button_pressed(pkg::Card  *card,
-                                     pkg::Type   type,
-                                     bool        action_type,
-                                     const json &pkg),
-            on_dispatch_search_ready(),
-            on_search(),
-            setup();
+        void on_action_button_pressed(pkg::Type   p_type,
+                                      bool        p_action_type,
+                                      const json &p_pkg);
 
+        void on_dispatch_search_ready();
+        void generate_cards();
+        void on_search();
+        void setup();
+        void refresh_actions();
+
+        /**
+         * @brief Opens the appropriate action for a package.
+         * @param p_type The type of package action selected.
+         */
 #if GTK4
-        /**
-         * @brief Opens the appropriate action for a package.
-         * @param type The type of package action selected.
-         */
-        void on_action_type_opened(pkg::Type type);
+        void on_action_type_opened(pkg::Type p_type);
 #else
-        /**
-         * @brief Opens the appropriate action for a package.
-         * @param button_event Pointer to the button press event.
-         * @param type         The type of package action selected.
-         */
-        void on_action_type_opened(GdkEventButton *button_event,
-                                   pkg::Type       type);
+
+        void on_action_type_opened(GdkEventButton *, pkg::Type p_type);
 #endif
 
 
         /**
          * @brief Triggered when the execute action button is pressed.
          */
-        auto on_execute_button_pressed() -> bool;
+        void on_execute_button_pressed();
 
 
         /**
          * @brief Checks if a package @p pkg has unresolved dependency.
-         * @param pkg The package to check for.
+         * @param p_pkg The package to check for.
          */
-        static auto has_unresolved_dependencies(const json &pkg) -> bool;
+        static auto has_unresolved_dependencies(const json &p_pkg) -> bool;
 
 
-        /**
-         * @brief Removes all children inside of a Gtk::Box @p container .
-         */
-        static void remove_all_child(Gtk::Box &container);
+        static void
+        /** @brief Removes all children inside of a Gtk::Box @p p_container . */
+            remove_all_child(Gtk::Box &p_container),
 
-        static void get_installed_pkgs();
+        /** @brief Fetches installed packages on the system. */
+            get_installed_pkgs();
 
     private:
-        bool                m_use_dark;
-        str                 m_ui_base;
-        shared_ptr<Actions> m_actions;
+        static inline str m_card_ui_file;
 
         std::atomic<bool> m_running;
         Glib::Dispatcher  m_search_dispatcher;
+
+        shared_ptr<Actions> m_actions;
+        bool                m_use_dark;
+
         vec<json>         m_package_queue;
         json              m_search_result;
-        str               m_card_ui_file;
+
+        str m_ui_base;
+
+        Gtk::Spinner *m_spinner;
 
         vec<std::unique_ptr<pkg::Card>> m_cards;
 
@@ -141,7 +141,6 @@ namespace pkg {
         std::map<pkg::Type, Gtk::Expander *> m_action_widgets;
 
         Gtk::Button  *m_execute_button{};
-        Gtk::Spinner *m_spinner{};
     };
 } /* namespace pkg */
 
