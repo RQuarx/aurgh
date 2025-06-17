@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __UTILS_HH__
-#define __UTILS_HH__
+#ifndef __UTILS__HH
+#define __UTILS__HH
 
 #include <filesystem>
 #include <algorithm>
@@ -225,4 +225,4 @@ namespace utils {
     } /* namespace str */
 } /* namespace utils */
 
-#endif /* __UTILS__HH__ */
+#endif /* __UTILS__HH */

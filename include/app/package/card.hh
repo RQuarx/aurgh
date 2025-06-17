@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __PACKAGE__CARD_HH__
-#define __PACKAGE__CARD_HH__
+#ifndef __PACKAGE__CARD__HH
+#define __PACKAGE__CARD__HH
 
 #include <sigc++/signal.h>
 #include <gtkmm/frame.h>
@@ -97,4 +97,4 @@ namespace pkg {
     };
 } /* namespace pkg */
 
-#endif /* __PACKAGE__CARD_HH__ */
+#endif /* __PACKAGE__CARD__HH */

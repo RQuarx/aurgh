@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __CONFIG_HH__
-#define __CONFIG_HH__
+#ifndef __CONFIG__HH
+#define __CONFIG__HH
 
 #include <json/value.h>
 #include "types.hh"
@@ -84,4 +84,4 @@ private:
     auto load_cache() -> bool;
 };
 
-#endif /* __CONFIG_HH__ */
+#endif /* __CONFIG__HH */

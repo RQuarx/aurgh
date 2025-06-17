@@ -17,8 +17,8 @@
  * along with aurgh. If not, see <https://www.gnu.org/licenses/>.
  */
 #pragma once
-#ifndef __DIALOG__HH__
-#define __DIALOG__HH__
+#ifndef __DIALOG__HH
+#define __DIALOG__HH
 
 #include <gtkmm/window.h>
 #include <glibmm/main.h>
@@ -49,4 +49,4 @@ private:
 };
 
 
-#endif /* __DIALOG__HH__ _ */
+#endif /* __DIALOG__HH _ */

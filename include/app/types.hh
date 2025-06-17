@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __TYPES_HH__
-#define __TYPES_HH__
+#ifndef __TYPES__HH
+#define __TYPES__HH
 
 #include <unordered_set>
 #include <unordered_map>
@@ -42,4 +42,4 @@ using shared_ptr = std::shared_ptr<Tp>;
 template<typename Value>
 using uset = std::unordered_set<Value>;
 
-#endif /* __TYPES_HH__ */
+#endif /* __TYPES__HH */

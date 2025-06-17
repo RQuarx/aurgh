@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef ARG_PARSER_HH__
-#define ARG_PARSER_HH__
+#ifndef __ARG_PARSER__HH
+#define __ARG_PARSER__HH
 
 #include <unordered_map>
 #include <string_view>
@@ -297,4 +297,4 @@ private:
     static auto split_str(sv str, size_t pos) -> arg_pair;
 };
 
-#endif /* arg_parser.hh */
+#endif /* __ARG_PARSER__HH */

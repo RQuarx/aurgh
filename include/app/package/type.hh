@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __PACKAGE__TYPE_HH__
-#define __PACKAGE__TYPE_HH__
+#ifndef __PACKAGE__TYPE__HH
+#define __PACKAGE__TYPE__HH
 
 #include <unordered_set>
 #include <cstdint>
@@ -159,4 +159,4 @@ struct std::formatter<pkg::Actions, CharT>
     }
 };
 
-#endif /* __PACKAGE__TYPE_HH__*/
+#endif /* __PACKAGE__TYPE__HH*/

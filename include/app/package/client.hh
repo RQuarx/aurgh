@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __PACKAGE__CLIENT_HH__
-#define __PACKAGE__CLIENT_HH__
+#ifndef __PACKAGE__CLIENT__HH
+#define __PACKAGE__CLIENT__HH
 
 #include <curl/curl.h>
 #include <alpm.h>
@@ -158,4 +158,4 @@ namespace pkg
     };
 } /* namespace pkg */
 
-#endif /* __PACKAGE__CLIENT_HH__ */
+#endif /* __PACKAGE__CLIENT__HH */

@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef LOG_HH__
-#define LOG_HH__
+#ifndef __LOG__HH
+#define __LOG__HH
 
 #include <fstream>
 #include <string>
@@ -66,4 +66,4 @@ private:
 
 };
 
-#endif /* log.hh */
+#endif /* __LOG__HH */

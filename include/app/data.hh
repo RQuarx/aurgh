@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef __DATA_HH__
-#define __DATA_HH__
+#ifndef __DATA__HH
+#define __DATA__HH
 
 #include <gtkmm/application.h>
 #include "package/client.hh"
@@ -43,4 +43,4 @@ namespace data {
 } /* namespace data */
 
 
-#endif /* __DATA_HH__ */
+#endif /* __DATA__HH */

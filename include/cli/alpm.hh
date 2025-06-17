@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef ALPM_HH__
-#define ALPM_HH__
+#ifndef __ALPM__HH
+#define __ALPM__HH
 
 #include <memory>
 #include <string>
@@ -84,4 +84,4 @@ private:
     int32_t              m_removal_flags;
 };
 
-#endif /* alpm.hh */
+#endif /* __ALPM__HH */
