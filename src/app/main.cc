@@ -18,6 +18,7 @@
  */
 
 #include <gtkmm/application.h>
+#include <gtkmm/builder.h>
 #include <gtkmm/window.h>
 #include <curl/curl.h>
 
@@ -46,6 +47,7 @@ namespace {
             }
 
             set_title(title);
+
             auto *pkg_tab = Gtk::make_managed<pkg::Tab>();
 
 #if GTK4
@@ -96,7 +98,7 @@ main(int32_t argc, char **argv) -> int32_t
     data::installed_pkgs = std::make_shared<uset<str>>();
 
     data::logger->log(Logger::Debug, "Initialising curl");
-    if (curl_global_init(CURL_INIT_FLAG) != 0) {
+    if (curl_global_init(CURL_INIT_FLAG) != 0) { [[unlikely]]
         data::logger->log(Logger::Error, "Failed to init curl");
     }
 

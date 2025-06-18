@@ -30,7 +30,7 @@
 
 Config::Config() :
     m_config(std::make_shared<json>(Json::objectValue)),
-    m_cache(std::make_shared<json>(Json::objectValue)),
+    m_cache (std::make_shared<json>(Json::objectValue)),
     m_config_path(data::arg_parser->get_option("config"))
 {
     using std::filesystem::is_regular_file;
@@ -41,16 +41,12 @@ Config::Config() :
     };
 
     if (m_config_path.empty()) {
-        m_config_path = std::format(
-            "{}/.config/aurgh/config.jsonc",
-            utils::get_env("HOME")
-        );
+        m_config_path = std::format("{}/.config/aurgh/config.jsonc",
+                                    utils::get_env("HOME"));
     }
 
-    m_cache_path = std::format(
-        "{}/.cache/aurgh/cache.jsonc",
-        utils::get_env("HOME")
-    );
+    m_cache_path = std::format("{}/.cache/aurgh/cache.jsonc",
+                               utils::get_env("HOME"));
 
     if (!valid_file(m_config_path)) {
         data::logger->log(
@@ -67,7 +63,7 @@ Config::Config() :
     }
 
     if (!load_cache()) {
-        throw std::runtime_error("Invalid config file");
+        throw std::runtime_error("Invalid cache file");
     }
 }
 
@@ -77,18 +73,16 @@ Config::save() -> bool
 {
     using std::filesystem::path;
 
-    path cache_path  = m_cache_path;
+    path cache_path = m_cache_path;
 
     if (!cache_path.parent_path().string().empty() &&
         !std::filesystem::exists(cache_path.parent_path())) {
         try {
             std::filesystem::create_directory(cache_path.parent_path());
         } catch (const std::exception &e) {
-            data::logger->log(
-                Logger::Error,
-                "Failed to create directory {}: {}",
-                cache_path.parent_path().string(), e.what()
-            );
+            data::logger->log(Logger::Error,
+                              "Failed to create directory {}: {}",
+                              cache_path.parent_path().string(), e.what());
             return false;
         }
     }
@@ -98,30 +92,25 @@ Config::save() -> bool
     try {
         file.open(m_cache_path);
     } catch (const std::exception &e) {
-        data::logger->log(
-            Logger::Error,
-            "Failed to open file {}: {}",
-            m_cache_path, e.what()
-        );
+        data::logger->log(Logger::Error,
+                          "Failed to open file {}: {}",
+                          m_cache_path, e.what());
         return false;
     }
 
     try {
         file << *m_cache;
     } catch (const std::exception &e) {
-        data::logger->log(
-            Logger::Error,
-            "Failed to write to file {}: {}",
-            m_cache_path, e.what()
-        );
+        data::logger->log(Logger::Error,
+                          "Failed to write to file {}: {}",
+                          m_cache_path, e.what());
         return false;
     }
 
-    data::logger->log(
-        Logger::Debug,
-        "Writting to cache file: {}",
-        m_cache_path
-    );
+    data::logger->log(Logger::Debug,
+                      "Writting to cache file: {}",
+                      m_cache_path);
+    load_cache();
 
     return true;
 }
@@ -145,11 +134,9 @@ Config::load_config() -> bool
     try {
         config_file.open(m_config_path);
     } catch (const std::exception &e) {
-        data::logger->log(
-            Logger::Error,
-            "Failed to read config file {}: {}",
-            m_config_path, e.what()
-        );
+        data::logger->log(Logger::Error,
+                          "Failed to read config file {}: {}",
+                          m_config_path, e.what());
         return false;
     }
 
@@ -157,11 +144,9 @@ Config::load_config() -> bool
     try {
         config_file >> *m_config;
     } catch (const std::exception &e) {
-        data::logger->log(
-            Logger::Error,
-            "Failed to parse json from config file {}: {}",
-            m_config_path, e.what()
-        );
+        data::logger->log(Logger::Error,
+                          "Failed to parse json from config file {}: {}",
+                          m_config_path, e.what());
         return false;
     }
 
@@ -187,11 +172,9 @@ Config::load_cache() -> bool
     try {
         cache_file >> *m_cache;
     } catch (const std::exception &e) {
-        data::logger->log(
-            Logger::Error,
-            "Failed to parse json from cache file {}: {}",
-            m_cache_path, e.what()
-        );
+        data::logger->log(Logger::Error,
+                          "Failed to parse json from cache file {}: {}",
+                          m_cache_path, e.what());
         return false;
     }
 

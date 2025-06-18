@@ -52,15 +52,15 @@ namespace pkg {
      */
     class Card : public Gtk::Frame
     {
-        using action_signal = sigc::signal<void (pkg::Type, bool, const json &)>;
+        using action_func = void (pkg::Type, bool, const json &);
     public:
-        explicit Card(BaseObjectType      *p_cobject,
-                      const builder_t     &p_builder,
-                      json                 p_pkg);
+        explicit Card(BaseObjectType  *p_cobject,
+                      const builder_t &p_builder,
+                      json             p_pkg);
 
 
         [[nodiscard]]
-        auto signal_action_pressed() -> action_signal;
+        auto signal_action_pressed() -> sigc::signal<action_func>;
 
     private:
         json      m_package;
@@ -81,11 +81,11 @@ namespace pkg {
             *m_popularity_label = nullptr,
             *m_votes_label      = nullptr;
 
-        bool          m_button_dimmed;
-        action_signal m_signal;
+        sigc::signal<action_func> m_signal;
+        bool                      m_button_dimmed;
 
     protected:
-        auto setup() -> bool;
+        void setup();
 
         void on_button_clicked();
 

@@ -34,9 +34,9 @@
 using pkg::Card;
 
 
-Card::Card(BaseObjectType      *p_cobject,
-           const builder_t     &p_b,
-           json                 p_pkg) :
+Card::Card(BaseObjectType  *p_cobject,
+           const builder_t &p_b,
+           json             p_pkg) :
     Gtk::Frame(p_cobject),
     m_package(std::move(p_pkg)),
     m_type(pkg::Install),
@@ -71,12 +71,12 @@ Card::Card(BaseObjectType      *p_cobject,
 
 
 auto
-Card::signal_action_pressed() -> action_signal
+Card::signal_action_pressed() -> sigc::signal<action_func>
 { return m_signal; }
 
 
-auto
-Card::setup() -> bool
+void
+Card::setup()
 {
     str
         pkg_desc    = m_package["Description"].asString(),
@@ -141,8 +141,6 @@ Card::setup() -> bool
                                            Gtk::ICON_SIZE_LARGE_TOOLBAR);
 #endif
     }
-
-    return true;
 }
 
 

@@ -153,16 +153,22 @@ Tab::setup()
 
     json cache = *data::config->get_cache();
 
-    m_search_by_combo->set_active_text(cache["search-by-default"].asString());
-    m_sort_by_combo->set_active_text(  cache["sort-by-default"]  .asString());
-    m_reverse_sort_check->set_active(  cache["reverse-sort-default"].asBool());
 
-    if (m_search_by_combo->get_active_text() == nullptr) {
-        m_search_by_combo->set_active_text("name");
-    }
-    if (m_sort_by_combo->get_active_text() == nullptr) {
-        m_sort_by_combo->set_active_text("NumVotes");
-    }
+    if (cache["search-by-default"].isString()) {
+        m_search_by_combo->set_active_text(
+            cache["search-by-default"].asString());
+    } else { m_search_by_combo->set_active_text("name"); }
+
+    if (cache["sort-by-default"].isString()) {
+        m_sort_by_combo->set_active_text(
+            cache["sort-by-default"].asString());
+    } else { m_sort_by_combo->set_active_text("NumVotes"); }
+
+    if (cache["reverse-sort-default"].isBool()) {
+        m_reverse_sort_check->set_active(
+            cache["reverse-sort-default"].asBool());
+    } else { m_reverse_sort_check->set_active(false); }
+
 
     auto criteria_changed = [this]() -> void {
         json cache = *data::config->get_cache();
@@ -454,9 +460,6 @@ Tab::refresh_actions()
         }
 
         action->set_visible(true);
-#if GTK3
-        action->show_all_children();
-#endif
     }
 }
 

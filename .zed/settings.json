@@ -1,0 +1,26 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+    "lsp": {
+        "clangd": {
+            "binary": {
+                "arguments": [
+                    "--experimental-modules-support",
+                    "--log=verbose",
+                    "--pretty",
+                    "--background-index",
+                    "--header-insertion-decorators",
+                    "--enable-config",
+                    "--header-insertion=never",
+                    "--malloc-trim",
+                    "--compile-commands-dir=./target",
+                    "-j=8"
+                ]
+            }
+        }
+    },
+    "wrap_guides": [ 80 ],
+    "format_on_save": "off"
+}
