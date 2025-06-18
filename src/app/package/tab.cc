@@ -171,13 +171,13 @@ Tab::setup()
 
 
     auto criteria_changed = [this]() -> void {
-        json cache = *data::config->get_cache();
+        auto cache = data::config->get_cache();
 
-        cache["sort-by-default"]      =
+        (*cache)["sort-by-default"]      =
             m_sort_by_combo->get_active_text().raw();
-        cache["search-by-default"]    =
+        (*cache)["search-by-default"]    =
             m_search_by_combo->get_active_text().raw();
-        cache["reverse-sort-default"] =
+        (*cache)["reverse-sort-default"] =
             m_reverse_sort_check->get_active();
 
         data::config->save();
