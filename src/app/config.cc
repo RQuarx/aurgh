@@ -40,7 +40,7 @@ Config::Config() :
         return exists(path) && is_regular_file(path);
     };
 
-    if (m_config_path.empty()) {
+    if (m_config_path.empty()) { [[likely]]
         m_config_path = std::format("{}/.config/aurgh/config.jsonc",
                                     utils::get_env("HOME"));
     }
@@ -48,7 +48,7 @@ Config::Config() :
     m_cache_path = std::format("{}/.cache/aurgh/cache.jsonc",
                                utils::get_env("HOME"));
 
-    if (!valid_file(m_config_path)) {
+    if (!valid_file(m_config_path)) { [[unlikely]]
         data::logger->log(
             Logger::Warn,
             "Config file {} doesn't exist! Using systemwide config path: {}",
@@ -58,11 +58,11 @@ Config::Config() :
         m_config_path = GLOBAL_CONFIG_PATH;
     }
 
-    if (!load_config()) {
+    if (!load_config()) { [[unlikely]]
         throw std::runtime_error("Invalid config file");
     }
 
-    if (!load_cache()) {
+    if (!load_cache()) { [[unlikely]]
         throw std::runtime_error("Invalid cache file");
     }
 }
@@ -76,7 +76,7 @@ Config::save() -> bool
     path cache_path = m_cache_path;
 
     if (!cache_path.parent_path().string().empty() &&
-        !std::filesystem::exists(cache_path.parent_path())) {
+        !std::filesystem::exists(cache_path.parent_path())) { [[unlikely]]
         try {
             std::filesystem::create_directory(cache_path.parent_path());
         } catch (const std::exception &e) {
@@ -89,18 +89,18 @@ Config::save() -> bool
 
     std::ofstream file;
 
-    try {
+    try { [[likely]]
         file.open(m_cache_path);
-    } catch (const std::exception &e) {
+    } catch (const std::exception &e) { [[unlikely]]
         data::logger->log(Logger::Error,
                           "Failed to open file {}: {}",
                           m_cache_path, e.what());
         return false;
     }
 
-    try {
+    try { [[likely]]
         file << *m_cache;
-    } catch (const std::exception &e) {
+    } catch (const std::exception &e) { [[unlikely]]
         data::logger->log(Logger::Error,
                           "Failed to write to file {}: {}",
                           m_cache_path, e.what());
@@ -165,7 +165,7 @@ Config::load_cache() -> bool
         return true;
     }
 
-    if (cache_file.peek() == std::ifstream::traits_type::eof()) {
+    if (cache_file.peek() == std::ifstream::traits_type::eof()) { [[unlikely]]
         return true;
     }
 

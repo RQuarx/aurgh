@@ -31,24 +31,24 @@ Logger::Logger() :
     m_use_color(PRETTY_LOGGING)
 {
     str log_option = data::arg_parser->get_option("log");
-    if (!log_option.empty()) {
-        if (log_option.contains(',')) {
+    if (!log_option.empty()) [[likely]] {
+        if (log_option.contains(',')) [[unlikely]] {
             /* Exits with error code 1 if it fails */
-            if (!handle_double_parameters(log_option)) {
+            if (!handle_double_parameters(log_option)) [[unlikely]] {
                 exit(EXIT_FAILURE);
             }
         } else {
-            if (utils::str::is_digit(log_option)) {
-                if (!set_leveL_threshold(std::stoi(log_option))) {
+            if (utils::str::is_digit(log_option)) [[likely]] {
+                if (!set_leveL_threshold(std::stoi(log_option))) [[unlikely]] {
                     exit(EXIT_FAILURE);
                 }
-            } else if (!open_log_file(log_option)) {
+            } else if (!open_log_file(log_option)) [[unlikely]] {
                 exit(EXIT_FAILURE);
             }
         }
     }
 
-    if (m_log_treshold == Level::None) m_log_treshold = Level::Warn;
+    if (m_log_treshold == Level::None) [[likely]] m_log_treshold = Level::Warn;
     log(
         Level::Debug,
         "Logger instace successfully created with a log level of {}.",
@@ -64,12 +64,12 @@ Logger::~Logger()
 auto
 Logger::is_valid_level(int32_t level) -> bool
 {
-    if (level > 3) {
+    if (level > 3) [[unlikely]] {
         log(Level::Error, "Invalid log level passed to {}!", m_log_arg);
         return false;
     }
 
-    if (m_log_treshold != Level::None) {
+    if (m_log_treshold != Level::None) [[unlikely]] {
         log(Level::Error, "Duplicate parameters passed to {}!", m_log_arg);
         return false;
     }
@@ -80,7 +80,7 @@ Logger::is_valid_level(int32_t level) -> bool
 auto
 Logger::set_leveL_threshold(int32_t level) -> bool
 {
-    if (!is_valid_level(level)) return false;
+    if (!is_valid_level(level)) [[unlikely]] return false;
     m_log_treshold = Level(level);
     return true;
 }
@@ -89,13 +89,13 @@ Logger::set_leveL_threshold(int32_t level) -> bool
 auto
 Logger::open_log_file(const str &file) -> bool
 {
-    if (m_log_file.is_open()) {
+    if (m_log_file.is_open()) [[unlikely]] {
         log(Level::Error, "Duplicate options to {}!", m_log_arg);
         return false;
     }
 
     try {
-        if (std::filesystem::exists(file)) {
+        if (std::filesystem::exists(file)) [[likely]] {
             m_log_file.open(file, std::ios_base::app);
         } else {
             m_log_file.open(file);
@@ -113,7 +113,7 @@ Logger::handle_double_parameters(const str &option) -> bool
 {
     return std::ranges::all_of(utils::str::split(option, option.find(',')),
         [this](const str &param){
-            if (utils::str::is_digit(param)) {
+            if (utils::str::is_digit(param)) [[likely]] {
                 return set_leveL_threshold(std::stoi(param));
             }
 

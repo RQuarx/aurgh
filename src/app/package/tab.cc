@@ -93,7 +93,8 @@ Tab::Tab() :
     setup_widgets(b);
     setup();
     get_installed_pkgs();
-    m_search_dispatcher.connect([this]()-> void { on_dispatch_search_ready(); });
+    m_search_dispatcher.connect(sigc::mem_fun(
+        *this, &Tab::on_dispatch_search_ready));
 }
 
 
@@ -153,21 +154,26 @@ Tab::setup()
 
     json cache = *data::config->get_cache();
 
-
-    if (cache["search-by-default"].isString()) {
+    if (cache["search-by-default"].isString()) [[likely]] {
         m_search_by_combo->set_active_text(
             cache["search-by-default"].asString());
-    } else { m_search_by_combo->set_active_text("name"); }
+    } else [[unlikely]] {
+        m_search_by_combo->set_active_text("name");
+    }
 
-    if (cache["sort-by-default"].isString()) {
+    if (cache["sort-by-default"].isString()) [[likely]] {
         m_sort_by_combo->set_active_text(
             cache["sort-by-default"].asString());
-    } else { m_sort_by_combo->set_active_text("NumVotes"); }
+    } else [[unlikely]] {
+        m_sort_by_combo->set_active_text("NumVotes");
+    }
 
-    if (cache["reverse-sort-default"].isBool()) {
+    if (cache["reverse-sort-default"].isBool()) [[likely]] {
         m_reverse_sort_check->set_active(
             cache["reverse-sort-default"].asBool());
-    } else { m_reverse_sort_check->set_active(false); }
+    } else [[unlikely]] {
+        m_reverse_sort_check->set_active(false);
+    }
 
 
     auto criteria_changed = [this]() -> void {
@@ -189,9 +195,8 @@ Tab::setup()
     m_search_entry      ->signal_activate().connect(criteria_changed);
     m_sort_by_combo     ->signal_changed() .connect(criteria_changed);
 
-    m_execute_button->signal_clicked().connect([this](){
-        on_execute_button_pressed();
-    });
+    m_execute_button->signal_clicked().connect(sigc::mem_fun(
+        *this, &Tab::on_execute_button_pressed));
 }
 
 
@@ -209,14 +214,14 @@ Tab::on_search()
     */
     auto children = m_result_box->get_children();
     for (auto *child : children) {
-        if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) {
+        if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) [[likely]] {
             m_result_box->remove(*child);
             delete child;
             continue;
         }
 
 #if GTK3
-        if (dynamic_cast<Gtk::Spinner*>(child) != nullptr) {
+        if (dynamic_cast<Gtk::Spinner*>(child) != nullptr) [[unlikely]] {
             m_result_box->remove(*child);
         }
 #endif
@@ -255,9 +260,9 @@ Tab::on_search()
            the compiler to be able to add more optimizations regarding this
            try-catch thing.
         */
-        try { [[likely]]
+        try {
             m_search_result = data::pkg_client->search(pkg_name, search_by);
-        } catch (const std::exception &e) { [[unlikely]]
+        } catch (const std::exception &e) {
             data::logger->log(Logger::Error, "Failed to search: {}", e.what());
             m_search_result = json(Json::arrayValue);
         }
@@ -271,7 +276,7 @@ void
 Tab::on_dispatch_search_ready()
 {
     /* Show a "No packages found." message when no packages were found. */
-    if (m_search_result["resultcount"].asInt() < 1) { [[unlikely]]
+    if (m_search_result["resultcount"].asInt() < 1) [[unlikely]] {
         data::logger->log(Logger::Debug, "Found no packages.");
         m_spinner->set_visible(false);
 
@@ -318,7 +323,7 @@ Tab::generate_cards()
     m_result_box->remove(*m_spinner);
 #endif
 
-    if (m_card_ui_file.empty()) { [[unlikely]]
+    if (m_card_ui_file.empty()) [[unlikely]] {
         m_card_ui_file = utils::get_ui_file("card.xml", m_ui_base);
     }
 
@@ -338,8 +343,7 @@ Tab::generate_cards()
 #endif
 
         card->signal_action_pressed().connect(sigc::mem_fun(
-            *this, &Tab::on_action_button_pressed
-        ));
+            *this, &Tab::on_action_button_pressed));
         card_amounts++;
     }
 
@@ -365,9 +369,9 @@ Tab::on_action_button_pressed(pkg::Type   p_type,
         }
     }
 
-    /* Check for unresolved dependencies, currently disabled. */
+    /* Check for unresolved dependencies. */
     if (p_action_type && p_type != Type::Remove) {
-        if (has_unresolved_dependencies(p_pkg)) {
+        if (has_unresolved_dependencies(p_pkg)) [[unlikely]] {
             data::logger->log(Logger::Debug,
                               "Package {} has unresolved deps",
                               p_pkg["Name"].asString());
@@ -487,10 +491,14 @@ Tab::has_unresolved_dependencies(const json &p_pkg) -> bool
     json info { data::pkg_client->info(p_pkg["Name"].asString()) };
 
     vec<json> all_deps;
-    for (const auto &d : info["results"][0]["Depends"])     all_deps.push_back(d);
-    for (const auto &d : info["results"][0]["MakeDepends"]) all_deps.push_back(d);
+    for (const auto &d : info["results"][0]["Depends"]) {
+        all_deps.push_back(d);
+    }
+    for (const auto &d : info["results"][0]["MakeDepends"]) {
+        all_deps.push_back(d);
+    }
 
-    if (all_deps.empty()) return false;
+    if (all_deps.empty()) [[unlikely]] return false;
 
     static umap<str, bool> pkg_exists_cache;
 

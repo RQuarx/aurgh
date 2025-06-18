@@ -61,9 +61,9 @@ namespace {
 
 
 auto
-main(int32_t argc, char **argv) -> int32_t
+main(int32_t p_argc, char **p_argv) -> int32_t
 {
-    data::arg_parser = std::make_shared<ArgParser>(argc, argv);
+    data::arg_parser = std::make_shared<ArgParser>(p_argc, p_argv);
 
     data::arg_parser->add_options(
         ArgInput({ "-l", "--log" },    "Shows or outputs the log", "path,int"),
@@ -98,7 +98,7 @@ main(int32_t argc, char **argv) -> int32_t
     data::installed_pkgs = std::make_shared<uset<str>>();
 
     data::logger->log(Logger::Debug, "Initialising curl");
-    if (curl_global_init(CURL_INIT_FLAG) != 0) { [[unlikely]]
+    if (curl_global_init(CURL_INIT_FLAG) != 0) [[unlikely]] {
         data::logger->log(Logger::Error, "Failed to init curl");
     }
 
