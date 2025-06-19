@@ -89,18 +89,18 @@ Config::save() -> bool
 
     std::ofstream file;
 
-    try { [[likely]]
+    try {
         file.open(m_cache_path);
-    } catch (const std::exception &e) { [[unlikely]]
+    } catch (const std::exception &e) {
         data::logger->log(Logger::Error,
                           "Failed to open file {}: {}",
                           m_cache_path, e.what());
         return false;
     }
 
-    try { [[likely]]
+    try {
         file << *m_cache;
-    } catch (const std::exception &e) { [[unlikely]]
+    } catch (const std::exception &e) {
         data::logger->log(Logger::Error,
                           "Failed to write to file {}: {}",
                           m_cache_path, e.what());

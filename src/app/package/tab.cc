@@ -328,7 +328,7 @@ Tab::generate_cards()
     }
 
     /* Creating cards */
-    size_t card_amounts = 0;
+    usize card_amounts = 0;
     for (const auto &pkg : sorted) {
         builder_t  builder = Gtk::Builder::create_from_file(m_card_ui_file);
         pkg::Card *card    = nullptr;
@@ -419,9 +419,9 @@ void
 Tab::refresh_actions()
 {
     bool all_empty = true;
-    for (auto t : { Install, Remove, Update }) {
-        auto  pkgs   = m_actions->at(t);
-        auto *action = m_action_widgets.at(t);
+    for (auto type : { Install, Remove, Update }) {
+        auto  pkgs   = m_actions->at(type);
+        auto *action = m_action_widgets.at(type);
 
         /* If the current action is emtpy, that means
            the current expander action should not be shown,
@@ -429,7 +429,7 @@ Tab::refresh_actions()
            then that means all of the actions are empty.
         */
         if (pkgs->empty()) {
-            if (t == Update && all_empty) {
+            if (type == Update && all_empty) {
                 m_no_actions_label->set_visible(true);
             }
             action->set_visible(false);

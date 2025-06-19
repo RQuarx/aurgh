@@ -25,10 +25,25 @@
 #include <unordered_map>
 #include <json/value.h>
 
+using i8  = std::int8_t;
+using i16 = std::int16_t;
+using i32 = std::int32_t;
+using i64 = std::int64_t;
+
+using u8  = std::uint8_t;
+using u16 = std::uint16_t;
+using u32 = std::uint32_t;
+using u64 = std::uint64_t;
+
+using usize = std::size_t;
+using ssize = std::int64_t;
 
 using json     = Json::Value;
 using str      = std::string;
 using str_view = std::string_view;
+
+template<typename T1, typename T2>
+using pair = std::pair<T1, T2>;
 
 template<typename Key, typename Tp>
 using umap = std::unordered_map<Key, Tp>;

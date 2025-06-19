@@ -135,7 +135,7 @@ namespace pkg
          * @param t Which path to initialize. (0 - root, 1 - db, 2 - helper)
          * @return A valid string of path, or an empty string on failure.
          */
-        auto initialize_path(uint8_t t) -> str;
+        auto initialize_path(u8 t) -> str;
 
 
         /**
@@ -151,10 +151,8 @@ namespace pkg
          * @param sync_dbs A list of sync databases.
          * @return 0 on native locality, 1 on foreign locality
          */
-        static auto get_pkg_locality(
-            const str   &pkg_name,
-            alpm_list_t *sync_dbs
-        ) -> uint8_t;
+        static auto get_pkg_locality(const str   &pkg_name,
+                                     alpm_list_t *sync_dbs) -> u8;
     };
 } /* namespace pkg */
 

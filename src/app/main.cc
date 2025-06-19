@@ -30,8 +30,8 @@
 #include "data.hh"
 
 
-static const str     APP_ID         = "org.rquarx.aur-graphical-helper";
-static const int32_t CURL_INIT_FLAG = CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE;
+static const str APP_ID         = "org.rquarx.aur-graphical-helper";
+static const i32 CURL_INIT_FLAG = CURL_GLOBAL_ALL | CURL_VERSION_THREADSAFE;
 
 
 namespace {
@@ -61,7 +61,7 @@ namespace {
 
 
 auto
-main(int32_t p_argc, char **p_argv) -> int32_t
+main(i32 p_argc, char **p_argv) -> i32
 {
     data::arg_parser = std::make_shared<ArgParser>(p_argc, p_argv);
 

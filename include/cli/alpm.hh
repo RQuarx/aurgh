@@ -21,24 +21,20 @@
 #ifndef __ALPM__HH
 #define __ALPM__HH
 
-#include <memory>
-#include <string>
-#include <vector>
-
 #include <alpm.h>
+#include "types.hh"
 
-class Log;
+class Logger;
 
 
 class Alpm
 {
 public:
     Alpm(
-        const std::string          &root_path,
-        const std::string          &db_path,
-        std::string                 prefix,
-        const std::shared_ptr<Log> &log,
-        alpm_errno_t               &err
+        const str                &root_path,
+        const str                &db_path,
+        str                       prefix,
+        alpm_errno_t             &err
     );
 
     ~Alpm();
@@ -50,7 +46,7 @@ public:
      * @return true on success, or false on failure.
      */
     [[nodiscard]]
-    auto remove_packages(const std::vector<std::string> &pkgs) -> bool;
+    auto remove_packages(const vec<str> &pkgs) -> bool;
 
 
     /**
@@ -59,9 +55,7 @@ public:
      * @return true on success, or false on failure.
      */
     [[nodiscard]]
-    auto download_and_install_package(
-        const std::string &pkg
-    ) -> bool;
+    auto download_and_install_package(const str &pkg) -> bool;
 
 
     /**
@@ -69,19 +63,19 @@ public:
      * @return A const std::string object.
      */
     [[nodiscard]]
-    auto get_str_err() const -> std::string;
+    auto get_str_err() const -> str;
 
 
-    void set_removal_flags(int32_t flag);
+    void set_removal_flags(i32 flag);
 
 private:
+    str
+        m_str_err,
+        m_prefix;
 
-    std::shared_ptr<Log> m_log;
-    std::string          m_str_err;
-    std::string          m_prefix;
     alpm_errno_t         m_err;
     alpm_handle_t       *m_handle{};
-    int32_t              m_removal_flags;
+    i32                  m_removal_flags;
 };
 
 #endif /* __ALPM__HH */

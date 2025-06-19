@@ -98,8 +98,8 @@ Card::setup()
 
     markup = "<b>{}</b>";
 
-    uint32_t votes      = m_package["NumVotes"].asUInt();
-    float    popularity =
+    u32   votes      = m_package["NumVotes"].asUInt();
+    float popularity =
         std::roundf(m_package["Popularity"].asFloat() * 100) / 100;
 
     m_version_label   ->set_markup(utils::format(markup, pkg_version));
@@ -162,7 +162,7 @@ Card::on_button_clicked()
 
 
 auto
-Card::find_package(const str_pair &p_pkg) -> int8_t
+Card::find_package(const str_pair &p_pkg) -> i8
 {
     if (data::pkg_client->find_pkg(p_pkg.first) != nullptr) {
         return 0;

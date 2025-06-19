@@ -62,7 +62,7 @@ Logger::~Logger()
 
 
 auto
-Logger::is_valid_level(int32_t level) -> bool
+Logger::is_valid_level(i32 level) -> bool
 {
     if (level > 3) [[unlikely]] {
         log(Level::Error, "Invalid log level passed to {}!", m_log_arg);
@@ -78,7 +78,7 @@ Logger::is_valid_level(int32_t level) -> bool
 
 
 auto
-Logger::set_leveL_threshold(int32_t level) -> bool
+Logger::set_leveL_threshold(i32 level) -> bool
 {
     if (!is_valid_level(level)) [[unlikely]] return false;
     m_log_treshold = Level(level);

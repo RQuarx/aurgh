@@ -45,7 +45,7 @@ public:
      *
      * This enum is used to categorize log messages based on their severity.
     */
-    enum Level : uint8_t
+    enum Level : u8
     {
         Debug,
         Info,
@@ -133,14 +133,14 @@ private:
      * and if the member level variable has value,
      * if it does, it will log an error and return false.
     */
-    auto is_valid_level(int32_t level) -> bool;
+    auto is_valid_level(i32 level) -> bool;
 
     /**
      * @brief Sets the member level threshold
      * @param level The level that it'll be set to
      * @returns true on success, or false on failure
     */
-    auto set_leveL_threshold(int32_t level) -> bool;
+    auto set_leveL_threshold(i32 level) -> bool;
 
     /**
      * @brief Opens the member log file with the give file path

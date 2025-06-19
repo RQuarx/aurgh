@@ -22,7 +22,6 @@
 #define __PACKAGE__TYPE__HH
 
 #include <unordered_set>
-#include <cstdint>
 #include <utility>
 #include <format>
 #include <memory>
@@ -44,9 +43,9 @@ using pkg_uset      = std::unordered_set<alpm_pkg_t*>;
 namespace pkg {
     class Client;
 
-    static const size_t DEFAULT_RESERVE_SIZE = 10ZU;
+    static const usize DEFAULT_RESERVE_SIZE = 10ZU;
 
-    enum Type : int8_t
+    enum Type : i8
     {
         Install = -1,
         Remove  = 0,

@@ -264,10 +264,8 @@ Client::get_installed_pkgs() -> vec<alpm_pkg_t*>
 
 
 auto
-Client::get_pkg_locality(
-    const str   &pkg_name,
-    alpm_list_t *sync_dbs
-) -> uint8_t
+Client::get_pkg_locality(const str   &pkg_name,
+                         alpm_list_t *sync_dbs) -> u8
 {
 	for (auto *j = sync_dbs; j != nullptr; j = alpm_list_next(j)) {
         auto *alpm_db = static_cast<alpm_db_t *>(j->data);
@@ -334,7 +332,7 @@ Client::remove(const vec<str> &pkgs) -> bool
 
 
 auto
-Client::initialize_path(uint8_t t) -> str
+Client::initialize_path(u8 t) -> str
 {
     using utils::expand_envs;
 

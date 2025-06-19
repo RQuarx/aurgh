@@ -31,11 +31,11 @@ namespace Gtk { class Button; }
 class Dialog : public Gtk::Window
 {
 public:
-    Dialog(BaseObjectType  *cobject,
-           const builder_t &b,
+    Dialog(BaseObjectType  *p_cobject,
+           const builder_t &p_b,
            const str       &p_title,
            const str       &p_message,
-           bool             use_dark);
+           bool             p_use_dark);
 
     auto wait_for_response() -> bool;
 

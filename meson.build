@@ -1,7 +1,7 @@
 project(
     'aurgh',
     'cpp',
-    version: '0.3.1',
+    version: '0.4.0',
     default_options: [
         'cpp_std=c++23',
         'optimization=3',
@@ -51,6 +51,27 @@ add_project_arguments([
     '-DGTK3=@0@'.format(gtk_version == 3),
 ], language: 'cpp')
 
-subdir('src/shared')
-subdir('src/app')
-subdir('src/cli')
+app_files = files(
+    'src/app/package/card.cc',
+    'src/app/package/client.cc',
+    'src/app/package/tab.cc',
+    'src/app/config.cc',
+    'src/app/dialog.cc',
+)
+
+cli_files = files(
+    'src/cli/alpm.cc',
+)
+
+sources = files(
+    'src/arg_parser.cc',
+    'src/logger.cc',
+    'src/main.cc',
+    'src/utils.cc',
+) + cli_files + app_files
+
+executable('aurgh', sources,
+           include_directories: include_directories('include',
+                                                    'include/app',
+                                                    'include/cli'))
+

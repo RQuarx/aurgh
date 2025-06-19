@@ -8,12 +8,12 @@
 #include "data.hh"
 
 
-Dialog::Dialog(BaseObjectType  *cobject,
-               const builder_t &b,
+Dialog::Dialog(BaseObjectType  *p_cobject,
+               const builder_t &p_b,
                const str       &p_title,
                const str       &p_message,
-               bool             use_dark) :
-    Gtk::Window(cobject)
+               bool             p_use_dark) :
+    Gtk::Window(p_cobject)
 {
     data::logger->log(
         Logger::Debug,
@@ -27,27 +27,27 @@ Dialog::Dialog(BaseObjectType  *cobject,
         *title   = nullptr;
 
 #if GTK4
-    title   = b->get_widget<Gtk::Label>("confirmation_title");
-    message = b->get_widget<Gtk::Label>("confirmation_message");
-    icon    = b->get_widget<Gtk::Image>("confirmation_title_img");
+    title   = p_b->get_widget<Gtk::Label>("confirmation_title");
+    message = p_b->get_widget<Gtk::Label>("confirmation_message");
+    icon    = p_b->get_widget<Gtk::Image>("confirmation_title_img");
 
-    m_accept_button  = b->get_widget<Gtk::Button>("confirmation_accept");
-    m_decline_button = b->get_widget<Gtk::Button>("confirmation_decline");
+    m_accept_button  = p_b->get_widget<Gtk::Button>("confirmation_accept");
+    m_decline_button = p_b->get_widget<Gtk::Button>("confirmation_decline");
 
     icon->set_icon_size(Gtk::IconSize::LARGE);
 #else
-    b->get_widget("confirmation_title",     title);
-    b->get_widget("confirmation_message",   message);
-    b->get_widget("confirmation_title_img", icon);
+    p_b->get_widget("confirmation_title",     title);
+    p_b->get_widget("confirmation_message",   message);
+    p_b->get_widget("confirmation_title_img", icon);
 
-    b->get_widget("confirmation_accept",  m_accept_button);
-    b->get_widget("confirmation_decline", m_decline_button);
+    p_b->get_widget("confirmation_accept",  m_accept_button);
+    p_b->get_widget("confirmation_decline", m_decline_button);
 
     icon->set_pixel_size(Gtk::ICON_SIZE_LARGE_TOOLBAR);
 #endif
 
     icon->set(utils::get_ui_file(
-              std::format("question_{}.svg", use_dark ? "dark" : "light"),
+              std::format("question_{}.svg", p_use_dark ? "dark" : "light"),
               (*data::config->get_config())["paths"]["ui-path"].asString()));
 
     title  ->set_markup(std::format("<big>{}</big>", p_title));

@@ -22,24 +22,24 @@
 #define __ARG_PARSER__HH
 
 #include <unordered_map>
-#include <string_view>
-#include <cstdint>
 #include <utility>
 #include <variant>
 #include <format>
 #include <string>
 #include <vector>
+#include "types.hh"
 
-using sv       = std::string_view;
-using arg_pair = std::pair<std::string, std::string>;
+using sv       = str_view;
+using arg_pair = pair<str, str>;
 
 
 struct ArgInput {
-    arg_pair    arg;
-    std::string description;
-    std::string param_description;
+    arg_pair arg;
+    str
+        description,
+        param_description;
 
-    ArgInput(arg_pair p_arg, std::string desc, std::string param_desc = "") :
+    ArgInput(arg_pair p_arg, str desc, str param_desc = "") :
         arg(p_arg),
         description(std::move(desc)),
         param_description(std::move(param_desc))
@@ -48,20 +48,17 @@ struct ArgInput {
 
 
 template <>
-struct std::formatter<ArgInput> : std::formatter<std::string> {
+struct std::formatter<ArgInput> : std::formatter<str> {
     auto
     format(const ArgInput& input, std::format_context& ctx) const
     {
-        std::string flag_str = std::format("{},{}", input.arg.first, input.arg.second);
-
-        std::string result = std::format(
-            "\t\033[1m{:<20}\033[0m{:<15}{:<15}",
-            flag_str,
-            input.param_description,
-            input.description
-        );
-
-        return std::formatter<std::string>::format(result, ctx);
+        str
+            flag_str = std::format("{},{}", input.arg.first, input.arg.second),
+            result   = std::format("\t\033[1m{:<20}\033[0m{:<15}{:<15}",
+                                   flag_str,
+                                   input.param_description,
+                                   input.description);
+        return std::formatter<str>::format(result, ctx);
     }
 };
 
@@ -78,7 +75,7 @@ struct std::formatter<ArgInput> : std::formatter<std::string> {
 class ArgParser
 {
 public:
-    ArgParser(int32_t argc, char **argv);
+    ArgParser(i32 argc, char **argv);
 
     /**
      * @brief Parses the command-line arguments.
@@ -98,7 +95,7 @@ public:
      * @note Return value must not be ignored.
      */
     [[nodiscard("Ignoring return value of an argument parser!")]]
-    auto get_flag(const std::string &name) -> bool;
+    auto get_flag(const str &name) -> bool;
 
 
     /**
@@ -110,7 +107,7 @@ public:
      * @note Return value must not be ignored.
      */
     [[nodiscard("Ignoring return value of an argument parser!")]]
-    auto get_option(const std::string &name) -> std::string;
+    auto get_option(const str &name) -> str;
 
 
     /**
@@ -140,18 +137,18 @@ public:
     [[nodiscard("add_* chain not ended in a parse() member!")]]
     auto add_options(T_Args &&...options) -> ArgParser&
     {
-        size_t first = m_defined_args.size();
+        usize i = m_defined_args.size();
         (m_defined_args.emplace_back(std::forward<T_Args>(options)), ...);
 
-        for (size_t i = first; i < m_defined_args.size(); i++) {
-            auto input = m_defined_args.at(i);
-            auto clean = clean_arg(input.arg);
+        for (; i < m_defined_args.size(); i++) {
+            const ArgInput &input = m_defined_args.at(i);
+            arg_pair        clean = clean_arg(input.arg);
 
             if (input.arg.second.empty()) {
                 throw std::invalid_argument("Long arg cannot be empty!");
             }
 
-            std::string param;
+            str param;
 
             bool _         = option_arg(param, input.arg);
             m_user_arg.insert_or_assign(clean.second, param);
@@ -189,12 +186,12 @@ public:
     [[nodiscard("add_* chain not ended in a parse() member!")]]
     auto add_flags(T_Args &&...options) -> ArgParser&
     {
-        size_t first = m_defined_args.size();
+        usize i = m_defined_args.size();
         (m_defined_args.emplace_back(std::forward<T_Args>(options)), ...);
 
-        for (size_t i = first; i < m_defined_args.size(); i++) {
-            auto input = m_defined_args.at(i);
-            auto clean = clean_arg(input.arg);
+        for (; i < m_defined_args.size(); i++) {
+            const ArgInput &input = m_defined_args.at(i);
+            arg_pair        clean = clean_arg(input.arg);
 
             if (clean.second == "version") m_override_version = true;
             if (clean.second == "help")    m_override_help    = true;
@@ -210,22 +207,20 @@ public:
     }
 
 private:
-    enum Type : uint8_t
+    enum Type : u8
     {
         Short = 0,
         Long  = 1
     };
 
-    template<typename Key, typename Tp>
-    using umap       = std::unordered_map<Key, Tp>;
-    using arg_t      = umap<Type, std::vector<std::pair<bool, std::string>>>;
-    using user_arg_t = umap<std::string, std::variant<bool, std::string>>;
+    using arg_t      = umap<Type, vec<pair<bool, str>>>;
+    using user_arg_t = umap<str, std::variant<bool, str>>;
 
     arg_t       m_arg_list;
-    std::string m_bin_path;
+    str         m_bin_path;
     user_arg_t  m_user_arg;
 
-    std::vector<ArgInput> m_defined_args;
+    vec<ArgInput> m_defined_args;
 
     /* Flags */
     bool m_override_help;
@@ -260,7 +255,7 @@ private:
      * @return True if the match was successful; false otherwise.
      */
     [[nodiscard]]
-    auto option_arg(std::string &param, arg_pair arg) -> bool;
+    auto option_arg(str &param, arg_pair arg) -> bool;
 
 
     /**
@@ -271,7 +266,7 @@ private:
      * @return True if matched.
      */
     [[nodiscard]]
-    auto find_option_short(std::string &option, sv short_arg) -> bool;
+    auto find_option_short(str &option, sv short_arg) -> bool;
 
 
     /**
@@ -282,7 +277,7 @@ private:
      * @return True if matched.
      */
     [[nodiscard]]
-    auto find_option_long(std::string &option, sv long_arg) -> bool;
+    auto find_option_long(str &option, sv long_arg) -> bool;
 
 
     /**
@@ -293,7 +288,7 @@ private:
      * @return A pair of substrings.
      */
     [[nodiscard]]
-    static auto split_str(sv str, size_t pos) -> arg_pair;
+    static auto split_str(sv str, usize pos) -> arg_pair;
 };
 
 #endif /* __ARG_PARSER__HH */

@@ -93,7 +93,7 @@ namespace pkg {
          * @brief Searches for a package inside installed_aur_package
          * @returns -1 on none, 0 on all, 1 on name.
          */
-        static auto find_package(const str_pair &p_pkg) -> int8_t;
+        static auto find_package(const str_pair &p_pkg) -> i8;
     };
 } /* namespace pkg */
 
