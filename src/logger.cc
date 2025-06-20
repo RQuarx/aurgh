@@ -65,12 +65,12 @@ auto
 Logger::is_valid_level(i32 level) -> bool
 {
     if (level > 3) [[unlikely]] {
-        log(Level::Error, "Invalid log level passed to {}!", m_log_arg);
+        log(Level::Error, "Invalid log level passed to {}!", LOG_ARG);
         return false;
     }
 
     if (m_log_treshold != Level::None) [[unlikely]] {
-        log(Level::Error, "Duplicate parameters passed to {}!", m_log_arg);
+        log(Level::Error, "Duplicate parameters passed to {}!", LOG_ARG);
         return false;
     }
     return true;
@@ -90,7 +90,7 @@ auto
 Logger::open_log_file(const str &file) -> bool
 {
     if (m_log_file.is_open()) [[unlikely]] {
-        log(Level::Error, "Duplicate options to {}!", m_log_arg);
+        log(Level::Error, "Duplicate options to {}!", LOG_ARG);
         return false;
     }
 
@@ -127,7 +127,7 @@ void
 Logger::log_to_file(Level log_level, str_view message)
 {
     std::jthread([this, log_level, message]() {
-        str_view label = m_labels.at(log_level).second;
+        str_view label = LABELS.at(log_level).second;
         std::println(
             m_log_file, "{} {} {}", get_current_time(), label, message
         );

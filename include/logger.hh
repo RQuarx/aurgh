@@ -84,8 +84,8 @@ public:
         m_previous_log_level = log_level;
 
         str_view label = (m_use_color
-            ? m_labels.at(log_level).first
-            : m_labels.at(log_level).second
+            ? LABELS.at(log_level).first
+            : LABELS.at(log_level).second
         );
         if (m_log_file.is_open()) log_to_file(log_level, message);
 
@@ -102,15 +102,16 @@ public:
     auto get_previous_log_level() -> Level;
 
 private:
-    static const inline umap<Level, label_pair> m_labels{
-        { Debug, { "\033[1;37m[\033[1;36mdebug\033[1;37m]:\033[0;0;0m", "[debug]:" } },
-        { Error, { "\033[1;37m[\033[1;31merror\033[1;37m]:\033[0;0;0m", "[error]:" } },
-        { Info,  { "\033[1;37m[\033[1;32minfo\033[1;37m]:\033[0;0;0m ", "[info]: " } },
-        { Warn,  { "\033[1;37m[\033[1;33mwarn\033[1;37m]:\033[0;0;0m ", "[warn]: " } },
-    };
-    const str m_log_arg         = "-l, --log";
-    Level m_previous_log_level  = None;
-    Level m_log_treshold        = None;
+    static constexpr std::array<label_pair, 4> LABELS {{
+        { "\033[1;37m[\033[1;36mdebug\033[1;37m]:\033[0;0;0m", "[debug]:" },
+        { "\033[1;37m[\033[1;32minfo\033[1;37m]:\033[0;0;0m ", "[info]: " },
+        { "\033[1;37m[\033[1;33mwarn\033[1;37m]:\033[0;0;0m ", "[warn]: " },
+        { "\033[1;37m[\033[1;31merror\033[1;37m]:\033[0;0;0m", "[error]:" },
+    }};
+    static constexpr str LOG_ARG = "-l, --log";
+    Level
+        m_previous_log_level = None,
+        m_log_treshold       = None;
 
     std::ofstream m_log_file;
     bool          m_use_color;

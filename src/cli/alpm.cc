@@ -8,12 +8,10 @@
 #define Err Logger::Error
 
 
-Alpm::Alpm(
-    const str    &p_root_path,
-    const str    &p_db_path,
-    str           p_prefix,
-    alpm_errno_t &p_err_msg
-) :
+Alpm::Alpm(const str    &p_root_path,
+           const str    &p_db_path,
+           str           p_prefix,
+           alpm_errno_t &p_err_msg) :
     m_prefix(std::move(p_prefix)),
     m_err(p_err_msg),
     m_handle(alpm_initialize(p_root_path.c_str(), p_db_path.c_str(), &m_err)),
@@ -59,13 +57,12 @@ Alpm::remove_packages(const vec<str> &p_pkgs) -> bool
 
         if (m_err == ALPM_ERR_UNSATISFIED_DEPS) {
             for (alpm_list_t *i = data; i != nullptr; i = alpm_list_next(data)) {
-                auto *miss    = static_cast<alpm_depmissing_t *>(i->data);
-                char *dep_str = alpm_dep_compute_string(miss->depend);
+                auto *miss  = static_cast<alpm_depmissing_t *>(i->data);
+                str dep_str = alpm_dep_compute_string(miss->depend);
                 data::logger->log(Logger::Error,
                                   "Removing {} breaks dependency "
                                   "'{}' required by {}.",
                                   miss->causingpkg, dep_str, miss->target);
-                free(dep_str);
                 alpm_depmissing_free(miss);
             }
         }

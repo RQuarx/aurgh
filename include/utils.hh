@@ -25,8 +25,6 @@
 #include <algorithm>
 #include <optional>
 #include <format>
-#include <string>
-#include <vector>
 #include <array>
 
 #include <curl/curl.h>
@@ -50,8 +48,8 @@ namespace fs = std::filesystem;
 namespace utils {
     using std::optional;
 
-    static const usize DEFAULT_COLOR_THRESHOLD = 16UZ;
-    static const usize DEFAULT_BUFFER_SIZE     = 256UZ;
+    static constexpr usize DEFAULT_COLOR_THRESHOLD = 16UZ;
+    static constexpr usize DEFAULT_BUFFER_SIZE     = 256UZ;
 
 
     /**

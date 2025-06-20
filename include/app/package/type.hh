@@ -43,7 +43,7 @@ using pkg_uset      = std::unordered_set<alpm_pkg_t*>;
 namespace pkg {
     class Client;
 
-    static const usize DEFAULT_RESERVE_SIZE = 10ZU;
+    static constexpr usize DEFAULT_RESERVE_SIZE = 10ZU;
 
     enum Type : i8
     {
