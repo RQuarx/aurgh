@@ -7,3 +7,4 @@ lld
 gtkmm-4.0
 glibmm-2.68
 pkg-config
+libgit2
