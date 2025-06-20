@@ -30,6 +30,7 @@
 #include <array>
 
 #include <curl/curl.h>
+#include "types.hh"
 
 namespace Json { class Value; }
 namespace Gtk {
@@ -49,8 +50,8 @@ namespace fs = std::filesystem;
 namespace utils {
     using std::optional;
 
-    static const size_t DEFAULT_COLOR_THRESHOLD = 16UZ;
-    static const size_t DEFAULT_BUFFER_SIZE     = 256UZ;
+    static const usize DEFAULT_COLOR_THRESHOLD = 16UZ;
+    static const usize DEFAULT_BUFFER_SIZE     = 256UZ;
 
 
     /**
@@ -59,10 +60,9 @@ namespace utils {
      * @param buffer_size Optional buffer size (default: 256).
      * @return Optional pair of output string and exit code.
      */
-    auto run_command(
-        const std::string &cmd,
-        size_t             buffer_size = DEFAULT_BUFFER_SIZE
-    ) -> optional<std::pair<std::string, int32_t>>;
+    auto run_command(const str &cmd,
+                     usize      buffer_size = DEFAULT_BUFFER_SIZE
+                    ) -> optional<pair<str, i32>>;
 
     /**
      * @brief Checks if the current terminal supports a given number of colors.
@@ -70,8 +70,7 @@ namespace utils {
      * @return True if the terminal supports at least that many colors.
      */
     auto term_has_colors(
-        int32_t threshold_color_amount = DEFAULT_COLOR_THRESHOLD
-    ) -> bool;
+        i32 threshold_color_amount = DEFAULT_COLOR_THRESHOLD) -> bool;
 
 
     /**
@@ -82,12 +81,10 @@ namespace utils {
      * @param userp Target string buffer.
      * @return Number of bytes handled.
      */
-    auto write_callback(
-        void        *contents,
-        size_t       size,
-        size_t       nmemb,
-        std::string &userp
-    ) -> size_t;
+    auto write_callback(void *contents,
+                        usize size,
+                        usize nmemb,
+                        str  &userp) -> usize;
 
 
     /**
@@ -97,11 +94,9 @@ namespace utils {
      * @param read_buffer String to store response data.
      * @return CURLcode result.
      */
-    auto perform_curl(
-        CURL              *curl,
-        const std::string &url,
-        std::string       &read_buffer
-    ) -> CURLcode;
+    auto perform_curl(CURL      *curl,
+                      const str &url,
+                      str       &read_buffer) -> CURLcode;
 
 
     /**
@@ -110,10 +105,8 @@ namespace utils {
      * @param argv Argument vector.
      * @return Exit code or -1 on error.
      */
-    auto execvp(
-        std::string              &file,
-        std::vector<std::string> &argv
-    ) -> int32_t;
+    auto execvp(str      &file,
+                vec<str> &argv) -> i32;
 
 
     /**
@@ -123,18 +116,17 @@ namespace utils {
      * @param reverse Whether to reverse the sort order.
      * @return A vector of sorted Json::Value objects.
      */
-    auto sort_json(
-        const Json::Value &root,
-        const std::string &sort_by,
-        bool               reverse = false
-    ) -> std::vector<std::reference_wrapper<const Json::Value>>;
+    auto sort_json(const json &root,
+                   const str  &sort_by,
+                   bool        reverse = false
+                  ) -> vec<std::reference_wrapper<const json>>;
 
 
     /**
      * @brief Returns the current errno value as a human-readable string.
      * @return The error string.
      */
-    auto serrno() -> std::string;
+    auto serrno() -> str;
 
 
     /**
@@ -142,7 +134,7 @@ namespace utils {
      * @param name Environment variable name.
      * @return The variable's value or empty string.
      */
-    auto get_env(const std::string &name) -> std::string;
+    auto get_env(const str &name) -> str;
 
 
     /**
@@ -150,7 +142,7 @@ namespace utils {
      * @param str The string that will be expanded.
      * @return The expanded string.
      */
-    auto expand_envs(const std::string &str) -> std::string;
+    auto expand_envs(const str &str) -> ::str;
 
 
     /**
@@ -159,8 +151,8 @@ namespace utils {
      * @param base_path The base path to the UI resources.
      * @return Full file path to the UI resource.
      */
-    auto get_ui_file(const fs::path    &file_name,
-                     const std::string &base_path) -> std::string;
+    auto get_ui_file(const fs::path &file_name,
+                     const str      &base_path) -> str;
 
 
     /**
@@ -170,7 +162,7 @@ namespace utils {
      * @return The formatted string.
      */
     template<typename... T_Args>
-    auto format(std::string_view fmt, T_Args&&... args) -> std::string
+    auto format(str_view fmt, T_Args &&...args) -> str
     { return std::vformat(fmt, std::make_format_args(args...)); }
 
 
@@ -181,7 +173,7 @@ namespace utils {
      * @return True if found, false otherwise.
      */
     template<typename T>
-    auto find(const std::vector<T> &vec, const T &obj) -> bool
+    auto find(const vec<T> &vec, const T &obj) -> bool
     { return std::ranges::find(vec, obj) != vec.end(); }
 
 
@@ -196,7 +188,7 @@ namespace utils {
          * @param pos The index where the string will be split.
          * @returns An array object with size 2.
          */
-        auto split(std::string_view str, size_t pos) -> std::array<std::string, 2>;
+        auto split(str_view str, usize pos) -> std::array<::str, 2>;
 
 
         /**
@@ -204,7 +196,7 @@ namespace utils {
          * @param str The input string.
          * @return A new trimmed string.
          */
-        auto trim(std::string_view str) -> std::string;
+        auto trim(str_view str) -> ::str;
 
 
         /**
@@ -213,7 +205,7 @@ namespace utils {
         * @param delim The character to count.
         * @return The number of times @p delim appears in @p str.
         */
-        auto count(std::string_view str, char delim) -> size_t;
+        auto count(str_view str, char delim) -> usize;
 
 
         /**
@@ -221,7 +213,7 @@ namespace utils {
          * @param str The input string.
          * @return Wheter @p str is only composed of digits.
          */
-        auto is_digit(const std::string &str) -> bool;
+        auto is_digit(const ::str &str) -> bool;
     } /* namespace str */
 } /* namespace utils */
 

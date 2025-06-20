@@ -77,6 +77,11 @@ class ArgParser
 public:
     ArgParser(i32 argc, char **argv);
 
+
+    /** @brief Returns argv[0]  */
+    auto get_bin_path() -> sv;
+
+
     /**
      * @brief Parses the command-line arguments.
      *

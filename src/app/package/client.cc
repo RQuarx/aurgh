@@ -290,40 +290,37 @@ Client::remove(const vec<str> &pkgs) -> bool
 
     for (const auto &pkg : pkgs) { root["pkgs"].append(pkg); }
 
-    data::logger->log(Logger::Info, "Removing: {}", root["pkgs"].toStyledString());
+    data::logger->log(Logger::Info,
+                      "Removing: {}",
+                      root["pkgs"].toStyledString());
+    data::logger->log(Logger::Debug, "{}", m_prefix_path);
 
     std::ofstream operation_file(m_prefix_path + "/operation.json");
     operation_file << root;
     operation_file.close();
 
-    auto res = utils::run_command(std::format(
-        "{} {} --prefix {}",
-        m_pkexec,
-        m_helper_path,
-        m_prefix_path
-    ));
+    auto res = utils::run_command(std::format("{} {} --prefix {} -l0",
+                                              m_pkexec,
+                                              data::arg_parser->get_bin_path(),
+                                              m_prefix_path));
 
     if (res->second != ALPM_ERR_OK) {
-        data::logger->log(
-            Logger::Error,
-            "Failed to remove package{} {}",
-            pkgs.size() == 1 ? "" : "s",
-            alpm_strerror(alpm_errno_t(res->second))
-        );
+        data::logger->log(Logger::Error,
+                          "Failed to remove package{} {}",
+                          pkgs.size() == 1 ? "" : "s",
+                          alpm_strerror(alpm_errno_t(res->second)));
         return false;
     }
 
     alpm_release(m_alpm_handle);
-    m_alpm_handle = alpm_initialize(
-        m_root_path.c_str(), m_db_path.c_str(), &m_alpm_errno
-    );
+    m_alpm_handle = alpm_initialize(m_root_path.c_str(),
+                                    m_db_path.c_str(),
+                                   &m_alpm_errno);
 
     if (m_alpm_handle == nullptr) {
-        data::logger->log(
-            Logger::Error,
-            "Failed to initialize alpm: {}",
-            alpm_strerror(m_alpm_errno)
-        );
+        data::logger->log(Logger::Error,
+                          "Failed to initialize alpm: {}",
+                          alpm_strerror(m_alpm_errno));
         return false;
     }
 

@@ -31,7 +31,8 @@ Diagnostics:
             'cppcoreguidelines-avoid-non-const-global-variables',
             'readability-isolate-declaration',
             'cppcoreguidelines-avoid-magic-numbers',
-            'readability-named-parameter'
+            'readability-named-parameter',
+            'bugprone-assignment-in-if-condition',
         ]
 
 InlayHints:

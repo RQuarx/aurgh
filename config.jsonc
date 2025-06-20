@@ -10,11 +10,8 @@
 		/* Pacman database path */
 		"db-path": "/var/lib/pacman",
 
-		/* AURGH helper binary path */
-		"helper-path": "/usr/share/aurgh/helper",
-
 		/* The place where aurgh does all of it work */
-		"prefix-path": "$XDG_CACHE_HOME/aurgh",
+		"prefix-path": "~/.cache/aurgh",
 
 		/* Filesystem root path */
 		"root-path": "/",

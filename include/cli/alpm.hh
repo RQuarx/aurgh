@@ -31,22 +31,22 @@ class Alpm
 {
 public:
     Alpm(
-        const str                &root_path,
-        const str                &db_path,
-        str                       prefix,
-        alpm_errno_t             &err
+        const str    &p_root_path,
+        const str    &p_db_path,
+        str           p_prefix,
+        alpm_errno_t &p_err
     );
 
     ~Alpm();
 
 
     /**
-     * @brief Removes packages @p pkgs from the local database.
-     * @param pkgs The packages that will be removed.
+     * @brief Removes packages @p p_pkgs from the local database.
+     * @param p_pkgs The packages that will be removed.
      * @return true on success, or false on failure.
      */
     [[nodiscard]]
-    auto remove_packages(const vec<str> &pkgs) -> bool;
+    auto remove_packages(const vec<str> &p_pkgs) -> bool;
 
 
     /**
@@ -76,6 +76,10 @@ private:
     alpm_errno_t         m_err;
     alpm_handle_t       *m_handle{};
     i32                  m_removal_flags;
+
+
+    /** @brief Removes a package @p p_target from the local database.  */
+    auto remove_package(const char *p_target) -> bool;
 };
 
 #endif /* __ALPM__HH */

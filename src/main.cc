@@ -128,18 +128,12 @@ namespace {
 
         if (data::arg_parser->get_flag("version")) {
             std::println(
-                "{} {}\n"
-                "├─jsoncpp - {}\n"
-                "├─libcurl - {}\n"
-                "├─libalpm - {}\n"
-                "├─glibmm  - {}.{}.{}\n"
-                "╰─gtkmm   - {}.{}.{}",
+                "{} {}\n",
+                "├─jsoncpp - {}\n",
+                "╰─libalpm - {}\n",
                 APP_NAME, APP_VERSION,
                 JSONCPP_VERSION_STRING,
-                curl_version_info(CURLVERSION_NOW)->version,
-                alpm_version(),
-                GLIBMM_MAJOR_VERSION, GLIBMM_MINOR_VERSION, GLIBMM_MICRO_VERSION,
-                GTKMM_MAJOR_VERSION, GTKMM_MINOR_VERSION, GTKMM_MICRO_VERSION
+                alpm_version()
             );
             return EXIT_SUCCESS;
         }
@@ -177,15 +171,14 @@ namespace {
         };
 
         if (type == "remove") {
-            std::vector<std::string> pkgs;
+            vec<str> pkgs;
             pkgs.reserve(operation["pkgs"].size());
 
-            for (const auto &p : operation["pkgs"]) {
-                pkgs.push_back(p.asString());
-            }
+            for (const auto &p : operation["pkgs"]) pkgs.push_back(p.asString());
 
-            bool _ = alpm.remove_packages(pkgs);
-            return remove(operation_file_path), 1;
+            bool retval = alpm.remove_packages(pkgs);
+            remove(operation_file_path);
+            return static_cast<i32>(!retval);
         }
 
         if (type == "install") {

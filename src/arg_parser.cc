@@ -34,6 +34,11 @@ ArgParser::ArgParser(int32_t argc, char **argv) :
 }
 
 
+auto
+ArgParser::get_bin_path() -> sv
+{ return m_bin_path; }
+
+
 void
 ArgParser::parse()
 {

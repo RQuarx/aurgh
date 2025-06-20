@@ -27,35 +27,36 @@
 #include <curl/curl.h>
 
 #include "utils.hh"
+#include "types.hh"
 
 
 namespace utils::str {
     auto
-    split(std::string_view str, size_t pos) -> std::array<std::string, 2>
+    split(str_view str, size_t pos) -> std::array<::str, 2>
     {
-        const std::string first(str.substr(0, pos));
-        const std::string second(str.substr(pos + 1));
+        const ::str first(str.substr(0, pos));
+        const ::str second(str.substr(pos + 1));
         return { first , second };
     }
 
 
     auto
-    trim(std::string_view str) -> std::string
+    trim(str_view str) -> ::str
     {
         size_t begin = str.find_first_not_of(" \t\n\r\f\v");
-        if (begin == std::string_view::npos) {
+        if (begin == str_view::npos) {
             return "";
         }
 
         size_t end = str.find_last_not_of(" \t\n\r\f\v");
-        return std::string{str.substr(begin, end - begin + 1)};
+        return ::str { str.substr(begin, end - begin + 1) };
     }
 
 
     auto
-    count(std::string_view str, char delim) -> size_t
+    count(str_view str, char delim) -> usize
     {
-        size_t i = 0;
+        usize i = 0;
         for (auto s : str) {
             if (s == delim) i++;
         }
@@ -65,7 +66,7 @@ namespace utils::str {
 
 
     auto
-    is_digit(const std::string &str) -> bool
+    is_digit(const ::str &str) -> bool
     {
         return std::ranges::all_of(str, [](char c){
             return std::isdigit(c);
@@ -73,36 +74,34 @@ namespace utils::str {
     }
 } /* namespace utils::str */
 
-
 namespace utils {
+using std::strlen;
+
+auto run_command(const ::str &cmd, usize buffer_size)
+    -> optional<pair<::str, i32>> {
+  vec<char> buffer(buffer_size);
+  ::str result;
+
+  auto pipe = std::unique_ptr<FILE, std::function<void(FILE *)>>(
+      popen((cmd + " 2>&1").c_str(), "r"), [](FILE *f) {
+        if (f)
+          pclose(f);
+      });
+
+  if (!pipe)
+    return std::nullopt;
+  while (fgets(buffer.data(), static_cast<i32>(buffer.size()), pipe.get()) !=
+         nullptr)
+    result += buffer.data();
+
+  return pair(result, pclose(pipe.release()));
+}
+
+
     auto
-    run_command(
-        const std::string &cmd,
-        size_t             buffer_size
-    ) -> optional<std::pair<std::string, int32_t>>
+    term_has_colors(i32 threshold_color_amount) -> bool
     {
-        std::vector<char> buffer(buffer_size);
-        std::string       result;
-
-        auto pipe = std::unique_ptr<FILE, std::function<void(FILE*)>>(
-            popen((cmd + " 2>&1").c_str(), "r"),
-            [](FILE* f) { if (f) pclose(f); }
-        );
-
-        if (!pipe) return std::nullopt;
-        while (fgets(
-                buffer.data(), static_cast<int32_t>(buffer.size()), pipe.get()
-            ) != nullptr
-        ) result += buffer.data();
-
-        return std::pair(result, pclose(pipe.release()));
-    }
-
-
-    auto
-    term_has_colors(int32_t threshold_color_amount) -> bool
-    {
-        if (std::string(std::getenv("COLORTERM")) == "truecolor") {
+        if (::str(std::getenv("COLORTERM")) == "truecolor") {
             return true;
         }
 
@@ -115,25 +114,21 @@ namespace utils {
 
 
     auto
-    write_callback(
-        void        *contents,
-        size_t       size,
-        size_t       nmemb,
-        std::string &userp
-    ) -> size_t
+    write_callback(void  *contents,
+                   usize  size,
+                   usize  nmemb,
+                   ::str &userp) -> usize
     {
-        size_t total_size = size * nmemb;
+        usize total_size = size * nmemb;
         userp.append(static_cast<char*>(contents), total_size);
         return total_size;
     }
 
 
     auto
-    perform_curl(
-        CURL              *curl,
-        const std::string &url,
-        std::string       &read_buffer
-    ) -> CURLcode
+    perform_curl(CURL        *curl,
+                 const ::str &url,
+                 ::str       &read_buffer) -> CURLcode
     {
         bool self_curl = (curl == nullptr);
 
@@ -152,17 +147,15 @@ namespace utils {
 
 
     auto
-    execvp(
-        std::string              &file,
-        std::vector<std::string> &argv
-    ) -> int32_t
+    execvp(::str      &file,
+           vec<::str> &argv) -> i32
     {
-        std::vector<char*> c_argv;
+        vec<char*> c_argv;
         c_argv.reserve(argv.size() + 2);
 
         c_argv.push_back(file.data());
 
-        for (std::string &arg : argv) {
+        for (::str &arg : argv) {
             c_argv.push_back(arg.data());
         }
         c_argv.push_back(nullptr);
@@ -172,7 +165,7 @@ namespace utils {
 
 
     auto
-    serrno() -> std::string
+    serrno() -> ::str
     {
         auto err = errno;
         return strerror(err);
@@ -180,7 +173,7 @@ namespace utils {
 
 
     auto
-    get_env(const std::string &name) -> std::string
+    get_env(const ::str &name) -> ::str
     {
         const char *env = std::getenv(name.c_str());
 
@@ -191,12 +184,12 @@ namespace utils {
 
     auto
     sort_json(
-        const Json::Value &root,
-        const std::string &sort_by,
-        bool               reverse
-    ) -> std::vector<std::reference_wrapper<const Json::Value>>
+        const json  &root,
+        const ::str &sort_by,
+        bool         reverse
+    ) -> vec<std::reference_wrapper<const json>>
     {
-        std::vector<std::reference_wrapper<const Json::Value>> result;
+        vec<std::reference_wrapper<const json>> result;
         result.reserve(root.size());
 
         for (const auto &j : root) {
@@ -231,35 +224,44 @@ namespace utils {
 
 
     auto
-    expand_envs(const std::string &str) -> std::string
+    expand_envs(const ::str &str) -> ::str
     {
-        std::regex           envar_regex { R"(\$([A-Za-z_][A-Za-z0-9_]*))" };
-        std::sregex_iterator it          { str.begin(), str.end(), envar_regex };
-        std::sregex_iterator end;
-        std::string          result;
-        size_t               last_pos = 0;
+        ::str output = str;
 
-        for (; it != end; it++) {
-            const std::smatch &match     = *it;
-            size_t             match_pos = match.position();
-            size_t             match_len = match.length();
-            std::string        var_name  = match.str(1);
-            std::string        value     = utils::get_env(var_name);
-
-            result += str.substr(last_pos, match_pos - last_pos);
-            result += (value.empty() ? match.str(1) : value );
-
-            last_pos = match_pos + match_len;
+        /* Expand ~ to $HOME */
+        if (!output.empty() && output[0] == '~') {
+            ::str home = get_env("HOME");
+            if (!home.empty()) output.replace(0, 1, home);
         }
 
-        result += str.substr(last_pos);
-        return result;
+        std::regex env_var_regex(R"(\$([A-Za-z_][A-Za-z0-9_]*))");
+        std::smatch match;
+
+        ::str::const_iterator search_start(output.cbegin());
+        while (std::regex_search(search_start,
+                                 output.cend(),
+                                 match,
+                                 env_var_regex)) {
+            ::str env_val = get_env(match[1].str());
+
+            if (env_val.empty()) {
+                search_start = match.suffix().first;
+                continue;
+            }
+
+            output.replace(match.position(0), match.length(0), env_val);
+            search_start = output.cbegin() +
+                           match.position(0) +
+                           static_cast<i32>(env_val.length());
+        }
+
+        return output;
     }
 
 
     auto
-    get_ui_file(const fs::path    &file_name,
-                const std::string &base_path) -> std::string
+    get_ui_file(const fs::path &file_name,
+                const ::str    &base_path) -> ::str
     {
         namespace fs = std::filesystem;
 
@@ -289,4 +291,4 @@ namespace utils {
         }
         return "";
     }
-} /* namespace utils */
+    } /* namespace utils */

@@ -5,16 +5,18 @@
 #include "alpm.hh"
 #include "data.hh"
 
+#define Err Logger::Error
+
 
 Alpm::Alpm(
-    const std::string          &root_path,
-    const std::string          &db_path,
-    std::string                 prefix,
-    alpm_errno_t               &err_msg
+    const str    &p_root_path,
+    const str    &p_db_path,
+    str           p_prefix,
+    alpm_errno_t &p_err_msg
 ) :
-    m_prefix(std::move(prefix)),
-    m_err(err_msg),
-    m_handle(alpm_initialize(root_path.c_str(), db_path.c_str(), &m_err)),
+    m_prefix(std::move(p_prefix)),
+    m_err(p_err_msg),
+    m_handle(alpm_initialize(p_root_path.c_str(), p_db_path.c_str(), &m_err)),
     m_removal_flags(ALPM_TRANS_FLAG_CASCADE | ALPM_TRANS_FLAG_RECURSE)
 {}
 
@@ -22,76 +24,106 @@ Alpm::Alpm(
 Alpm::~Alpm()
 { alpm_release(m_handle); }
 
- 
+
 auto
-Alpm::remove_packages(const std::vector<std::string> &pkgs) -> bool
+Alpm::remove_packages(const vec<str> &p_pkgs) -> bool
 {
-    alpm_list_t *data {};
-
-    if (alpm_trans_init(m_handle, m_removal_flags) < 0) {
-        data::logger->log(
-            Logger::Error,
-            "alpm_trans_init failed when removing packages: {}",
-            alpm_strerror(m_err)
-        );
+    /* Step 0: Create a new transaction. */
+    data::logger->log(Logger::Debug, "Creating transaction.");
+    if (alpm_trans_init(m_handle, m_removal_flags) == -1) [[unlikely]] {
+        data::logger->log(Err,
+                          "Failed to init transaction: {}",
+                          alpm_strerror(m_err));
         return false;
     }
 
-    alpm_db_t *local_db = alpm_get_localdb(m_handle);
-
-    for (const auto &pkg_name : pkgs) {
-        alpm_pkg_t *pkg = alpm_db_get_pkg(local_db, pkg_name.c_str());
-
-        if (pkg == nullptr) {
-            data::logger->log(
-                Logger::Error,
-                "alpm_db_get_pkg failed when removing packages: {}",
-                alpm_strerror(m_err)
-            );
-            return false;
-        }
-        if (alpm_remove_pkg(m_handle, pkg) < 0) {
-            data::logger->log(
-                Logger::Error,
-                "alpm_remove_pkg failed: {}",
-                alpm_strerror(m_err)
-            );
+    /* Step 1: Add targets to the created transaction. */
+    data::logger->log(Logger::Debug, "Adding targets.");
+    for (const str &pkg : p_pkgs) {
+        if (!remove_package(pkg.c_str())) [[unlikely]] {
+            if (alpm_trans_release(m_handle) == -1) [[unlikely]] {
+                data::logger->log(Err,
+                                  "Failed to release transaction: {}",
+                                  alpm_strerror(alpm_errno(m_handle)));
+            }
             return false;
         }
     }
 
-    if (alpm_trans_prepare(m_handle, &data) < 0) {
-        data::logger->log(
-            Logger::Error,
-            "alpm_trans_prepare failed when removing packages: {}",
-            alpm_strerror(m_err)
-        );
+    /* Step 2: Prepare for the removal. */
+    alpm_list_t *data = nullptr;
+    if (alpm_trans_prepare(m_handle, &data) == -1) [[unlikely]] {
+        data::logger->log(Err,
+                          "Failed to commit transactions: {}",
+                          alpm_strerror(alpm_errno(m_handle)));
 
-        if (data != nullptr) alpm_list_free(data);
+        if (m_err == ALPM_ERR_UNSATISFIED_DEPS) {
+            for (alpm_list_t *i = data; i != nullptr; i = alpm_list_next(data)) {
+                auto *miss    = static_cast<alpm_depmissing_t *>(i->data);
+                char *dep_str = alpm_dep_compute_string(miss->depend);
+                data::logger->log(Logger::Error,
+                                  "Removing {} breaks dependency "
+                                  "'{}' required by {}.",
+                                  miss->causingpkg, dep_str, miss->target);
+                free(dep_str);
+                alpm_depmissing_free(miss);
+            }
+        }
+
+        if (alpm_trans_release(m_handle) == -1) [[unlikely]] {
+            data::logger->log(Err,
+                              "Failed to release transaction: {}",
+                              alpm_strerror(alpm_errno(m_handle)));
+        }
+
+        alpm_list_free(data);
+        return false;
+    }
+    alpm_list_free(data);
+
+    /* Step 3: Perform the removal. */
+    data::logger->log(Logger::Debug, "Removing packages.");
+    if (alpm_trans_commit(m_handle, nullptr) == -1) [[unlikely]] {
+        data::logger->log(Err,
+                          "Failed to release transaction: {}",
+                          alpm_strerror(alpm_errno(m_handle)));
         return false;
     }
 
-    if (alpm_trans_commit(m_handle, &data) < 0) {
-        data::logger->log(
-            Logger::Error,
-            "alpm_trans_commit failed when removing packages: {}",
-            alpm_strerror(m_err)
-        );
-        if (data != nullptr) alpm_list_free(data);
+    if (alpm_trans_release(m_handle) == -1) [[unlikely]] {
+        data::logger->log(Err,
+                          "Failed to release transaction: {}",
+                          alpm_strerror(alpm_errno(m_handle)));
         return false;
     }
 
-    if (data != nullptr) alpm_list_free(data);
-    if (alpm_trans_release(m_handle) == 0) {
-        return true;
-    }
-    data::logger->log(
-        Logger::Error,
-        "alpm_trans_release failed when removing packages: {}",
-        alpm_strerror(m_err)
-    );
+    data::logger->log(Logger::Debug,
+                      "Successfully removed {} packages.",
+                      p_pkgs.size());
+    return true;
+}
 
-    return false;
+
+auto
+Alpm::remove_package(const char *p_target) -> bool
+{
+    alpm_db_t  *local_db = alpm_get_localdb(m_handle);
+    alpm_pkg_t *pkg      = alpm_db_get_pkg(local_db, p_target);
+
+    if (pkg == nullptr) [[unlikely]] {
+        data::logger->log(Err,
+                          "Failed to get package from local-db: {}",
+                          alpm_strerror(m_err));
+        return false;
+    }
+
+    if (alpm_remove_pkg(m_handle, pkg) == -1) [[unlikely]] {
+        data::logger->log(Err,
+                          "Failed to remove package {} from local-db: {}",
+                          p_target, alpm_strerror(m_err));
+        return false;
+    }
+    return true;
 }
 
 
