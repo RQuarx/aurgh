@@ -216,7 +216,6 @@ Tab::on_search()
     for (auto *child : children) {
         if (dynamic_cast<Gtk::Spinner*>(child) == nullptr) [[likely]] {
             m_result_box->remove(*child);
-            delete child;
             continue;
         }
 

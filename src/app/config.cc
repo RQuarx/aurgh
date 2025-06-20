@@ -165,7 +165,7 @@ Config::load_cache() -> bool
         return true;
     }
 
-    if (cache_file.peek() == std::ifstream::traits_type::eof()) { [[unlikely]]
+    if (cache_file.peek() == std::ifstream::traits_type::eof()) [[unlikely]] {
         return true;
     }
 

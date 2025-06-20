@@ -37,7 +37,7 @@ Independent, minimal, and modern.
 
 **Core dependencies** (common to both GTK3 and GTK4 builds):
 ```console
-meson pkgconf curl jsoncpp pacman
+meson pkgconf curl jsoncpp pacman libgit2
 ```
 
 **GTK3 Build**:

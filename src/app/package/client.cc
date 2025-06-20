@@ -293,7 +293,7 @@ Client::remove(const vec<str> &pkgs) -> bool
     data::logger->log(Logger::Info,
                       "Removing: {}",
                       root["pkgs"].toStyledString());
-    data::logger->log(Logger::Debug, "{}", m_prefix_path);
+    data::logger->log(Logger::Debug, "using {} for prefix path", m_prefix_path);
 
     std::ofstream operation_file(m_prefix_path + "/operation.json");
     operation_file << root;
@@ -334,8 +334,8 @@ Client::initialize_path(u8 t) -> str
     using utils::expand_envs;
 
     switch (t) {
-    case 0:  return expand_envs((*m_config)["paths"]["root-path"].asString());
-    case 1:  return expand_envs((*m_config)["paths"]["db-path"].asString());
+    case 0:  return expand_envs((*m_config)["paths"]["root-path"  ].asString());
+    case 1:  return expand_envs((*m_config)["paths"]["db-path"    ].asString());
     case 2:  return expand_envs((*m_config)["paths"]["helper-path"].asString());
     case 3:  return expand_envs((*m_config)["paths"]["prefix-path"].asString());
     default: return "";

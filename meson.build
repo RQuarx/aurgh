@@ -18,6 +18,7 @@ pretty_logging = get_option('pretty-logging')
 deps = [
     'libcurl',
     'jsoncpp',
+    'libgit2',
     'libalpm',
 ]
 
