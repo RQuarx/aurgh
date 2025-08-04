@@ -1,0 +1,55 @@
+name: GTK3 Build
+
+on:
+  push:
+    paths:
+      - '**/meson.build'
+      - '**/meson_options.txt'
+      - '**/*.meson'
+      - '.github/workflows/*.yml'
+      - '**/*.jsonc'
+      - '**/*.json'
+      - '**/*.cc'
+      - '**/*.hh'
+
+permissions:
+  contents: read
+
+jobs:
+  clang:
+    name: "Build AURGH - clang"
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
+          pacman -Syyu --noconfirm --noprogressbar --needed - < .github/deps.txt
+
+      - name: compile
+        run: |
+          CXX=clang++ CXX_LD=lld meson setup target
+          meson compile -C target
+
+  gcc:
+    name: "Build AURGH - gcc"
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
+          pacman -Syyu --noconfirm --noprogressbar --needed - < assets/required-gtk3.txt
+
+      - name: compile
+        run: |
+          CXX=g++ CXX_LD=bfd meson setup target
+          meson compile -C target

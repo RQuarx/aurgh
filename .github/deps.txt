@@ -1,0 +1,10 @@
+base
+base-devel
+cmake
+meson
+clang
+lld
+gtkmm3
+glibmm
+pkg-config
+libgit2
