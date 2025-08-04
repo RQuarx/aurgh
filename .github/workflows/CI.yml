@@ -1,4 +1,4 @@
-name: GTK3 Build
+name: AURGH Build
 
 on:
   push:
