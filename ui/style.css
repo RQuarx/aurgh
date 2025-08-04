@@ -1,0 +1,188 @@
+@define-color imgui-text                   rgb(229, 229, 229);
+@define-color imgui-text-disabled          rgb(153, 153, 153);
+@define-color imgui-window-bg              rgb(15,  15,  15 );
+@define-color imgui-child-bg               rgb(15,  15,  15 );
+@define-color imgui-popup-bg               rgb(20,  20,  20 );
+@define-color imgui-border                 rgb(112, 112, 129);
+@define-color imgui-frame-bg               rgb(31,  47,  69 );
+@define-color imgui-frame-bg-hovered       rgb(48,  86,  113);
+@define-color imgui-frame-bg-active        rgb(53,  98,  140);
+@define-color imgui-title-bg               rgb(10,  10,  10 );
+@define-color imgui-title-bg-active        rgb(41,  74,  122);
+@define-color imgui-menu-bar-bg            rgb(36,  36,  36 );
+@define-color imgui-scrollbar-bg           rgb(14,  14,  14 );
+@define-color imgui-scrollbar-grab         rgb(51,  51,  51 );
+@define-color imgui-scrollbar-grab-hovered rgb(77,  77,  77 );
+@define-color imgui-scrollbar-grab-active  rgb(105, 105, 105);
+@define-color imgui-check-mark             rgb(66,  150, 250);
+@define-color imgui-slider-grab            rgb(61,  133, 224);
+@define-color imgui-slider-grab-active     rgb(66,  150, 250);
+@define-color imgui-button                 rgb(48,  86,  113);
+@define-color imgui-button-hovered         rgb(66,  150, 250);
+@define-color imgui-button-active          rgb(15,  135, 250);
+@define-color imgui-header                 rgb(40,  74,  99 );
+@define-color imgui-header-hovered         rgb(56,  109, 159);
+@define-color imgui-header-active          rgb(66,  150, 250);
+@define-color imgui-separator              rgb(112, 112, 129);
+@define-color imgui-resize-grip            rgb(28,  45,  63 );
+@define-color imgui-resize-grip-hovered    rgb(53,  98,  140);
+@define-color imgui-resize-grip-active     rgb(63,  118, 174);
+@define-color imgui-plot-lines             rgb(156, 156, 156);
+@define-color imgui-plot-histogram         rgb(229, 178, 0  );
+@define-color imgui-drag-drop-target       rgb(255, 255, 0  );
+@define-color imgui-nav-highlight          rgb(66,  150, 250);
+
+
+*
+{   all: unset;
+    font-family: sans-serif;
+    font-size: 13px;
+}
+
+check
+{   -gtk-icon-transform: scale(0);
+    -gtk-icon-source: url("icons/check.svg");
+    background-color: @imgui-frame-bg;
+    padding: 3px;
+    border: 1px solid @imgui-border;
+    margin: -3px -3px 4px -3px;
+}
+
+check:hover { background-color: @imgui-frame-bg-hovered; }
+check:checked { -gtk-icon-transform: scale(1); }
+
+
+scrollbar
+{   background-color: @imgui-scrollbar-bg;
+    margin-top: 3px;
+    padding: 3px;
+}
+
+scrollbar slider
+{   border-radius: 15px;
+    background: @imgui-scrollbar-grab;
+    padding: 0px 3px;
+}
+
+scrollbar slider:hover
+{ background-color: @imgui-scrollbar-grab-hovered; }
+scrollbar slider:active { background-color: @imgui-scrollbar-grab-active; }
+
+frame { background-color: @imgui-frame-bg; }
+frame :hover { background-color: @imgui-frame-bg-hovered; }
+frame :active { background-color: @imgui-frame-bg-active; }
+
+frame > border
+{   padding: 5px;
+    border: 1px solid @imgui-border;
+}
+
+separator
+{   background-position: center center;
+    background-repeat: repeat-x;
+    background-image: image(@imgui-separator);
+    background-size: 1px 1px;
+    min-height: 7px;
+    min-width: 7px;
+    margin: -3px 0px;
+}
+
+#aurgh-container
+{ background-color: @imgui-window-bg; }
+    #aurgh-top-container
+    {   background-color: @imgui-frame-bg;
+        box-shadow: 0px 3px @imgui-button;
+        padding: 7px 7px 0px 7px;
+    }
+        #aurgh-tab-buttons
+        {   background-color: @imgui-button;
+            margin-right: 5px;
+            font-weight: bolder;
+            min-width: 100px;
+            padding: 5px;
+        }
+
+        #aurgh-tab-buttons:hover
+        {   background-color: @imgui-button-hovered;
+            box-shadow: 0px 3px @imgui-button-hovered;
+        }
+        #aurgh-tab-buttons:checked { box-shadow: 0px 3px @imgui-button-active; }
+
+        #aurgh-criteria-labels
+        {   margin: -3px -3px 4px -3px;
+            padding: 0px 10px;
+        }
+
+        #aurgh-criteria-combos
+        {   background-color: @imgui-frame-bg;
+            border: 1px solid @imgui-border;
+            margin: -3px -3px 4px -3px;
+        }
+
+        #aurgh-criteria-combos .linked button.combo arrow
+        {   -gtk-icon-source: -gtk-icontheme("go-down-symbolic");
+            background-color: @imgui-button;
+            min-width: 1em;
+            padding: 0px 7px;
+        }
+
+        #aurgh-criteria-combos window.popup { background-color: @imgui-frame-bg; }
+        #aurgh-criteria-combos :hover { background-color: @imgui-frame-bg-hovered; }
+        #aurgh-criteria-combos .linked button.combo:hover arrow
+        { background-color: @imgui-button-hovered; }
+
+        #aurgh-search-entry
+        {   background-color: @imgui-frame-bg;
+            padding: 2px 10px;
+            border: 1px solid @imgui-border;
+            margin: -3px -3px 4px 10px;
+        }
+
+        #aurgh-search-entry image.left { margin-right: 10px; }
+
+        #tab-content
+        {   margin-top: 3px;
+            padding: 7px;
+        }
+
+
+/* Cards */
+
+#card-container {
+    background-color: @imgui-title-bg;
+    border: 1px solid @imgui-border;
+    min-width: 323px;
+    padding: 0.5em;
+}
+
+#card-header
+{
+    padding: 5px;
+}
+
+#card-pkg-name {
+    font-weight: bolder;
+    margin-left: 5px;
+    font-size: large;
+    color: #0066CC;
+}
+#card-pkg-name:hover {
+    color: @imgui-button-hovered;
+}
+
+#card-pkg-info-container
+{
+    margin: 5px 5px 3px 5px;
+}
+
+#card-pkg-info {
+    background-color: @imgui-frame-bg;
+    font-weight: bolder;
+    padding: 0px 5px;
+    margin: 1px 0px;
+}
+
+#card-pkg-desc
+{
+    margin: 0px 5px 5px 5px;
+}

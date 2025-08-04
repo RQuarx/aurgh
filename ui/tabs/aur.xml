@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="3.0" />
+  <object class="GtkBox" id="aur_tab">
+
+    <property name="halign">fill</property>
+    <child>
+
+      <object class="GtkScrolledWindow" id="scroll_window">
+
+        <property name="hscrollbar-policy">never</property>
+        <property name="overlay-scrolling">false</property>
+        <property name="kinetic-scrolling">true</property>
+        <property name="halign">fill</property>
+        <child>
+
+          <object class="GtkBox">
+
+            <property name="orientation">vertical</property>
+            <property name="name">tab-content-container</property>
+            <child>
+
+              <object class="GtkFlowBox" id="content">
+
+                <property name="activate-on-single-click">true</property>
+                <property name="name">tab-content</property>
+                <property name="homogeneous">true</property>
+                <property name="column-spacing">5</property>
+                <property name="row-spacing">5</property>
+                <property name="hexpand">true</property>
+                <property name="halign">fill</property>
+
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
