@@ -8,6 +8,25 @@
 #include "log.hh"
 
 
+namespace
+{
+    auto
+    escape_pango_markup( const std::string &p_text ) -> std::string
+    {
+        std::ostringstream out;
+        for (char ch : p_text) {
+            switch (ch) {
+                case '&': out << "&amp;"; break;
+                case '<': out << "&lt;"; break;
+                case '>': out << "&gt;"; break;
+                default:  out << ch; break;
+            }
+        }
+        return out.str();
+    }
+}
+
+
 Card::Card( const std::shared_ptr<Logger> &logger,
             const Json::Value             &pkg ) :
     m_logger(logger),
@@ -26,7 +45,8 @@ Card::Card( const std::shared_ptr<Logger> &logger,
                          m_pkg[PKG_NAME], m_pkg[PKG_VERSION]));
     name_ver->set_halign(Gtk::ALIGN_START);
 
-    desc->set_markup(std::format("<big>{}</big>", m_pkg[PKG_DESC]));
+    desc->set_markup(std::format("<big>{}</big>",
+                                  escape_pango_markup(m_pkg[PKG_DESC])));
     desc->set_halign(Gtk::ALIGN_START);
     desc->set_valign(Gtk::ALIGN_START);
     desc->set_line_wrap();

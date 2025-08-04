@@ -69,41 +69,15 @@ Package::json_to_pkg( const Json::Value &json ) -> bool
         return false;
     }
 
-    static constexpr std::array<std::string, 7> required {{
-        "Name", "Version", "Maintainer",
-        "Description", "URL", "NumVotes",
-        "Keywords"
-    }};
-
-    for (const auto &field : required) {
-        if (json.isMember(field)) {
-            if (!json[field].isString()
-             && !json[field].isIntegral()
-             && !json[field].isArray()) {
-                m_logger->log<ERROR>("JSON member {} has the wrong type: {}",
-                                      field, json.toStyledString());
-                return false;
-            }
-            continue;
-        }
-
-        m_logger->log<ERROR>("Retrieved JSON has no member called {}: {}",
-                              field, json.toStyledString());
-        return false;
-    }
-
-    if (!json["Keywords"].isArray()) {
-        m_logger->log<ERROR>("Invalid type for keywords: {}",
-                              json.toStyledString());
-        return false;
-    }
-
     m_pkg[PKG_NAME]       = json["Name"].asString();
     m_pkg[PKG_VERSION]    = json["Version"].asString();
     m_pkg[PKG_MAINTAINER] = json["Maintainer"].asString();
     m_pkg[PKG_DESC]       = json["Description"].asString();
-    m_pkg[PKG_URL]        = json["URL"].asString();
     m_pkg[PKG_NUMVOTES]   = json["NumVotes"].asString();
+
+    if (!json["URL"].isNull())
+        m_pkg[PKG_URL] = json["URL"].asString();
+    else m_pkg[PKG_URL] = "";
 
     for (Json::ArrayIndex i { 0 }; i < json["Keywords"].size(); i++) {
         m_pkg.add_keyword(json["Keywords"][i].asString());

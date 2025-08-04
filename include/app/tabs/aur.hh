@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <glibmm/dispatcher.h>
 #include <gtkmm/box.h>
 #include "app/types.hh"
 
@@ -22,9 +23,12 @@ namespace aur
     private:
         std::shared_ptr<Logger> m_logger;
 
-        Gtk::FlowBox *m_content;
+        Gtk::Box *m_content;
 
         std::vector<Card> m_cards;
+        std::vector<Json::Value> m_pkgs;
+
+        Glib::Dispatcher m_on_search_dispatch;
 
     protected:
         void on_active( TabType          tab,
@@ -40,5 +44,8 @@ namespace aur
         auto get_pkgs_info(
             const std::vector<std::reference_wrapper<const Json::Value>> &pkgs
         ) -> Json::Value;
+
+
+        void add_cards_to_box( void );
     };
 }
