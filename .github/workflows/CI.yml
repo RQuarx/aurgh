@@ -47,7 +47,7 @@ jobs:
         shell: bash
         run: |
           sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
-          pacman -Syyu --noconfirm --noprogressbar --needed - < assets/required-gtk3.txt
+          pacman -Syyu --noconfirm --noprogressbar --needed - < .github/deps.txt
 
       - name: compile
         run: |
