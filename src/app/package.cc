@@ -4,6 +4,25 @@
 #include "config.hh"
 
 
+namespace
+{
+    auto
+    escape_pango_markup( const std::string &p_text ) -> std::string
+    {
+        std::ostringstream out;
+        for (char ch : p_text) {
+            switch (ch) {
+                case '&': out << "&amp;"; break;
+                case '<': out << "&lt;"; break;
+                case '>': out << "&gt;"; break;
+                default:  out << ch; break;
+            }
+        }
+        return out.str();
+    }
+}
+
+
 Package::Package( const std::shared_ptr<Logger> &logger,
                   const std::string             &pkg_name,
                   bool                           system ) :
@@ -69,11 +88,11 @@ Package::json_to_pkg( const Json::Value &json ) -> bool
         return false;
     }
 
-    m_pkg[PKG_NAME]       = json["Name"].asString();
-    m_pkg[PKG_VERSION]    = json["Version"].asString();
-    m_pkg[PKG_MAINTAINER] = json["Maintainer"].asString();
-    m_pkg[PKG_DESC]       = json["Description"].asString();
-    m_pkg[PKG_NUMVOTES]   = json["NumVotes"].asString();
+    m_pkg[PKG_NAME]       = escape_pango_markup(json["Name"].asString());
+    m_pkg[PKG_VERSION]    = escape_pango_markup(json["Version"].asString());
+    m_pkg[PKG_MAINTAINER] = escape_pango_markup(json["Maintainer"].asString());
+    m_pkg[PKG_DESC]       = escape_pango_markup(json["Description"].asString());
+    m_pkg[PKG_NUMVOTES]   = escape_pango_markup(json["NumVotes"].asString());
 
     if (!json["URL"].isNull())
         m_pkg[PKG_URL] = json["URL"].asString();

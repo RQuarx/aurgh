@@ -8,25 +8,6 @@
 #include "log.hh"
 
 
-namespace
-{
-    auto
-    escape_pango_markup( const std::string &p_text ) -> std::string
-    {
-        std::ostringstream out;
-        for (char ch : p_text) {
-            switch (ch) {
-                case '&': out << "&amp;"; break;
-                case '<': out << "&lt;"; break;
-                case '>': out << "&gt;"; break;
-                default:  out << ch; break;
-            }
-        }
-        return out.str();
-    }
-}
-
-
 Card::Card( const std::shared_ptr<Logger> &logger,
             const Json::Value             &pkg ) :
     m_logger(logger),
@@ -45,17 +26,15 @@ Card::Card( const std::shared_ptr<Logger> &logger,
                          m_pkg[PKG_NAME], m_pkg[PKG_VERSION]));
     name_ver->set_halign(Gtk::ALIGN_START);
 
-    desc->set_markup(std::format("<big>{}</big>",
-                                  escape_pango_markup(m_pkg[PKG_DESC])));
+    desc->set_markup(std::format("<big>{}</big>", m_pkg[PKG_DESC]));
     desc->set_halign(Gtk::ALIGN_START);
     desc->set_valign(Gtk::ALIGN_START);
     desc->set_line_wrap();
 
     keywords->set_spacing(10);
     keywords->set_halign(Gtk::ALIGN_START);
-    std::ranges::for_each(m_pkg.get_keywords(),
-    [keywords]( const std::string &kw )
-    {
+
+    for (const std::string &kw : m_pkg.get_keywords()) {
         auto frame { Gtk::make_managed<Gtk::Frame>() };
         auto label { Gtk::make_managed<Gtk::Label>(kw) };
 
@@ -63,7 +42,7 @@ Card::Card( const std::shared_ptr<Logger> &logger,
         frame->set_halign(Gtk::ALIGN_START);
         frame->add(*label);
         keywords->pack_start(*frame);
-    });
+    }
 
     info_box->set_spacing(10);
     info_box->pack_start(*name_ver);
@@ -76,6 +55,7 @@ Card::Card( const std::shared_ptr<Logger> &logger,
     m_card->set_spacing(10);
     m_card->set_name("card-container");
     m_card->pack_start(*info_box);
+    m_card->show_all_children();
 }
 
 

@@ -101,9 +101,9 @@ Tab::on_active( TabType          tab,
             /* Search the package and sort the json */
             Json::Value result { search_pkg(pkg_name, search_by) };
             auto sorted { sort_json(result, sort_by, reverse) };
+            auto infos { get_pkgs_info(sorted) };
 
-            for (const Json::Value &pkg : sorted)
-                m_pkgs.push_back(pkg);
+            for (const Json::Value &pkg : infos) m_pkgs.push_back(pkg);
 
             m_on_search_dispatch.emit();
         }).detach();
