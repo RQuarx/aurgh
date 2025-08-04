@@ -37,4 +37,5 @@ main = files(
 ) + app + cli
 
 executable('aurgh', main,
-           include_directories: include_directories('include', '.'))
+           include_directories: include_directories('include', '.'),
+           install: true)

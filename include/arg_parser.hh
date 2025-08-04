@@ -1,11 +1,10 @@
 #pragma once
 #include <unordered_map>
+#include <optional>
 #include <variant>
 #include <string>
 #include <vector>
 #include <span>
-
-#include "utils.hh"
 
 
 class ArgParser
@@ -30,7 +29,6 @@ public:
                    || std::is_same_v<T, std::string>
                    || std::is_integral_v<T>,
             "Expected either a string, bool, or an integral type.");
-        M_ASSERT(!input.second.empty(), "Long argument can't be empty!");
 
         std::string name { input.second.starts_with("--")
                          ? input.second.substr(2)

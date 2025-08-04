@@ -35,8 +35,6 @@ ArgParser::ArgParser( std::span<char *> p_args )
 void
 ArgParser::add_flag( const arg_input &input )
 {
-    M_ASSERT(!input.second.empty(), "Long argument can't be empty!");
-
     std::string name { input.second.starts_with("--")
                      ? input.second.substr(2)
                      : input.second };
@@ -59,7 +57,7 @@ ArgParser::add_flag( const arg_input &input )
 
 
 auto
-ArgParser::args_contain_short( const std::string &short_arg ) -> long
+ArgParser::args_contain_short( const std::string &short_arg ) -> int64_t
 {
     if (short_arg.empty()) return -1;
     const bool clean { !short_arg.starts_with('-') };
@@ -79,7 +77,7 @@ ArgParser::args_contain_short( const std::string &short_arg ) -> long
 
 
 auto
-ArgParser::args_contain_long( const std::string &long_arg ) -> long
+ArgParser::args_contain_long( const std::string &long_arg ) -> int64_t
 {
     const bool clean { !long_arg.starts_with("--") };
 

@@ -25,8 +25,7 @@ get_app_file( const std::string &file_path ) -> std::string
 
 
 auto
-get_builder(
-    const std::string &file_path ) -> std::expected<builder, std::string>
+get_builder(const std::string &file_path ) -> std::expected<builder, std::string>
 {
     const std::string ui_file { get_app_file(file_path) };
     if (ui_file.empty()) {
@@ -75,8 +74,7 @@ perform_curl( const char *url ) -> std::expected<std::string, CURLcode>
 
 
 auto
-json_from_string(
-    const std::string &str ) -> std::expected<Json::Value, std::string>
+json_from_string(const std::string &str ) -> std::expected<Json::Value, std::string>
 {
     std::istringstream iss { str };
     Json::Value root;

@@ -11,8 +11,8 @@ main( int32_t argc, char **argv ) -> int
 {
     ArgParser arg_parser { std::span(argv, static_cast<size_t>(argc)) };
 
-    arg_parser.add_option<std::string>({ "-l", "--log"    }, "2");
-    arg_parser.add_option<std::string>({ "-p", "--prefix" }, "" );
+    arg_parser.add_option<std::string>({ "-l", "--log"    }, "warn");
+    arg_parser.add_option<std::string>({ "-p", "--prefix" }, ""    );
 
     arg_parser.add_flag({ "-h", "--help"    });
     arg_parser.add_flag({ "-V", "--version" });
