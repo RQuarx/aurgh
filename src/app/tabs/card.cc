@@ -7,11 +7,13 @@
 #include "app/package.hh"
 #include "log.hh"
 
+using app::Card;
 
-Card::Card( const std::shared_ptr<Logger> &logger,
-            const Json::Value             &pkg ) :
-    m_logger(logger),
-    m_pkg(m_logger, pkg),
+
+Card::Card( const std::shared_ptr<Logger> &p_logger,
+            const Json::Value             &p_pkg ) :
+    m_logger(p_logger),
+    m_pkg(m_logger, p_pkg),
     m_card(Gtk::make_managed<Gtk::Box>())
 {
     auto *info_box { Gtk::make_managed<Gtk::VBox>() };

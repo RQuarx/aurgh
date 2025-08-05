@@ -16,37 +16,37 @@
 #include "config.hh"
 #include "log.hh"
 
-using aur::Tab;
+using app::aur::Tab;
 
 
 namespace
 {
     auto
-    sort_json( const Json::Value &root,
-               const std::string &sort_by,
-               bool               reverse
+    sort_json( const Json::Value &p_root,
+               const std::string &p_sort_by,
+               bool               p_reverse
     ) -> std::vector<std::reference_wrapper<const Json::Value>>
     {
-        if (!root.isArray()) return {};
+        if (!p_root.isArray()) return {};
 
         std::vector<std::reference_wrapper<const Json::Value>> result;
-        result.reserve(root.size());
+        result.reserve(p_root.size());
 
-        for (const Json::Value &j : root)
+        for (const Json::Value &j : p_root)
             result.emplace_back(j);
 
         std::ranges::sort(result,
-        [&sort_by, &reverse]( const auto &a, const auto &b ) -> bool
+        [&p_sort_by, &p_reverse]( const auto &a, const auto &b ) -> bool
         {
-            const Json::Value &a_val { a.get()[sort_by] };
-            const Json::Value &b_val { b.get()[sort_by] };
+            const Json::Value &a_val { a.get()[p_sort_by] };
+            const Json::Value &b_val { b.get()[p_sort_by] };
 
             if (a_val.isInt()) {
-                return reverse
+                return p_reverse
                     ? a_val.asInt() > b_val.asInt()
                     : a_val.asInt() < b_val.asInt();
             }
-            return reverse
+            return p_reverse
                 ? a_val.asString() > b_val.asString()
                 : a_val.asString() < b_val.asString();
         });
@@ -56,30 +56,30 @@ namespace
 }
 
 
-Tab::Tab( BaseObjectType                *cobject,
-          const builder_t               &builder,
-          const std::shared_ptr<Logger> &logger,
-          signal_type                    signal ) :
-    Gtk::Box(cobject),
-    m_logger(logger)
+Tab::Tab( BaseObjectType                *p_cobject,
+          const builder_t               &p_builder,
+          const std::shared_ptr<Logger> &p_logger,
+          signal_type                    p_signal ) :
+    Gtk::Box(p_cobject),
+    m_logger(p_logger)
 {
-    builder->get_widget("content", m_content);
+    p_builder->get_widget("content", m_content);
 
-    signal.connect(sigc::mem_fun(*this, &aur::Tab::on_active));
+    p_signal.connect(sigc::mem_fun(*this, &aur::Tab::on_active));
     m_on_search_dispatch.connect(sigc::mem_fun(
         *this, &Tab::add_cards_to_box));
 }
 
 
 void
-Tab::on_active( TabType          tab,
-                CriteriaWidgets &widgets,
-                CriteriaType     type )
+Tab::on_active( TabType          p_tab,
+                CriteriaWidgets &p_widgets,
+                CriteriaType     p_type )
 {
-    if (tab != AUR) return;
+    if (p_tab != AUR) return;
 
     /* Its a search signal. */
-    if (type == SEARCH_ENTRY) {
+    if (p_type == SEARCH_ENTRY) {
         m_cards.clear();
         m_pkgs.clear();
         m_content->foreach([this]( Gtk::Widget &p_child ){
@@ -87,10 +87,10 @@ Tab::on_active( TabType          tab,
             delete &p_child;
         });
 
-        const std::string pkg_name  { widgets.search_entry->get_text() };
-        const std::string search_by { widgets.search_by->get_active_id() };
-        const std::string sort_by   { widgets.sort_by->get_active_id() };
-        const bool reverse { widgets.reverse->get_active() };
+        const std::string pkg_name  { p_widgets.search_entry->get_text() };
+        const std::string search_by { p_widgets.search_by->get_active_id() };
+        const std::string sort_by   { p_widgets.sort_by->get_active_id() };
+        const bool reverse { p_widgets.reverse->get_active() };
 
         if (pkg_name.empty()) return;
         if (search_by.empty()) return;
@@ -114,50 +114,21 @@ Tab::on_active( TabType          tab,
 
 
 auto
-Tab::search_pkg( const std::string &pkg,
-                   const std::string &search_by ) -> Json::Value
+Tab::search_pkg( const std::string &p_pkg,
+                 const std::string &p_search_by ) -> Json::Value
 {
     std::string url { std::format("{}/search/{}?by={}", AUR_URL,
-                                                        pkg, search_by) };
-    m_logger->log<INFO>("Searching for {} by {}", pkg, search_by);
+                                                        p_pkg, p_search_by) };
+    m_logger->log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
     auto retval { perform_curl(url.c_str()) };
     if (!retval) {
         m_logger->log<ERROR>("Failed to search for {} by {}: {}",
-                              pkg, search_by,
+                              p_pkg, p_search_by,
                               curl_easy_strerror(retval.error()));
         return Json::nullValue;
     }
 
-    Json::Value json { *json_from_string(*retval).or_else(
-    [this]( const std::string &err ) -> res_or_string<Json::Value>
-    {
-        m_logger->log<ERROR>("Malformed input from the AUR: {}", err);
-        exit(1);
-        return {};
-    }) };
-
-    return json["results"];
-}
-
-
-auto
-Tab::get_pkgs_info( const std::vector<std::string> &pkgs ) -> Json::Value
-{
-    m_logger->log<INFO>("Fetching information for {} packages.", pkgs.size());
-    std::string url { std::format("{}/info?", AUR_URL) };
-
-    for (const std::string &pkg : pkgs)
-        url.append(std::format("arg%5B%5D={}&", pkg));
-    url.pop_back();
-
-    auto retval { perform_curl(url.c_str()) };
-    if (!retval) {
-        m_logger->log<ERROR>("Failed to get informations for {} packages: {}",
-                              pkgs.size(), curl_easy_strerror(retval.error()));
-        return Json::nullValue;
-    }
-
-    Json::Value json { *json_from_string(*retval).or_else(
+    Json::Value json { *Json::from_string(*retval).or_else(
     [this]( const std::string &err ) -> res_or_string<Json::Value>
     {
         m_logger->log<ERROR>("Malformed input from the AUR: {}", err);
@@ -171,24 +142,25 @@ Tab::get_pkgs_info( const std::vector<std::string> &pkgs ) -> Json::Value
 
 auto
 Tab::get_pkgs_info(
-    const std::vector<std::reference_wrapper<const Json::Value>> &pkgs
+    const std::vector<std::reference_wrapper<const Json::Value>> &p_pkgs
 ) -> Json::Value
 {
-    m_logger->log<INFO>("Fetching information for {} packages.", pkgs.size());
+    m_logger->log<INFO>("Fetching information for {} packages.", p_pkgs.size());
     std::string url { std::format("{}/info?", AUR_URL) };
 
-    for (std::reference_wrapper<const Json::Value> pkg : pkgs)
+    for (std::reference_wrapper<const Json::Value> pkg : p_pkgs)
         url.append(std::format("arg%5B%5D={}&", pkg.get()["Name"].asString()));
     url.pop_back();
 
     auto retval { perform_curl(url.c_str()) };
     if (!retval) {
         m_logger->log<ERROR>("Failed to get informations for {} packages: {}",
-                              pkgs.size(), curl_easy_strerror(retval.error()));
+                              p_pkgs.size(),
+                              curl_easy_strerror(retval.error()));
         return Json::nullValue;
     }
 
-    Json::Value json { *json_from_string(*retval).or_else(
+    Json::Value json { *Json::from_string(*retval).or_else(
     [this]( const std::string &err ) -> res_or_string<Json::Value>
     {
         m_logger->log<ERROR>("Malformed input from the AUR: {}", err);

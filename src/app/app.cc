@@ -16,8 +16,10 @@
 #include "app/app.hh"
 #include "log.hh"
 
+using app::App;
 
-AURGH::AURGH( const std::shared_ptr<Logger> &logger ) :
+
+App::App( const std::shared_ptr<Logger> &logger ) :
     m_app(Gtk::Application::create("org.kei.aurgh")),
     m_logger(logger)
 {
@@ -34,7 +36,7 @@ AURGH::AURGH( const std::shared_ptr<Logger> &logger ) :
         return {};
     }) };
 
-    auto builder { *get_builder("window.xml").or_else(
+    auto builder { *app::get_builder("window.xml").or_else(
     [this]( const std::string &err ) -> res_or_string<builder_t>
     {
         m_logger->log<ERROR>("Failed to create a Gtk::Builder: {}", err);
@@ -60,11 +62,11 @@ AURGH::AURGH( const std::shared_ptr<Logger> &logger ) :
     builder->get_widget("aurgh_content_box", m_content_box);
 
     m_aur_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &AURGH::on_tab_button_pressed), m_aur_button));
+        sigc::mem_fun(*this, &App::on_tab_button_pressed), m_aur_button));
     m_main_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &AURGH::on_tab_button_pressed), m_main_button));
+        sigc::mem_fun(*this, &App::on_tab_button_pressed), m_main_button));
     m_installed_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &AURGH::on_tab_button_pressed),
+        sigc::mem_fun(*this, &App::on_tab_button_pressed),
         m_installed_button));
 
     setup_criteria();
@@ -77,7 +79,7 @@ AURGH::AURGH( const std::shared_ptr<Logger> &logger ) :
 
 
 auto
-AURGH::init_curl( int64_t flags ) const -> res_or_string<void>
+App::init_curl( int64_t flags ) const -> res_or_string<void>
 {
     m_logger->log<INFO>("Initializing CURL.");
     CURLcode retval { curl_global_init(flags) };
@@ -90,7 +92,7 @@ AURGH::init_curl( int64_t flags ) const -> res_or_string<void>
 
 
 void
-AURGH::load_css( void ) const
+App::load_css( void ) const
 {
     m_logger->log<INFO>("Loading CSS file.");
     auto css_provider { Gtk::CssProvider::create() };
@@ -111,7 +113,7 @@ AURGH::load_css( void ) const
         throw std::runtime_error("");
     });
 
-    css_provider->load_from_path(get_app_file("style.css"));
+    css_provider->load_from_path(app::get_app_file("style.css"));
 
     auto screen { Gdk::Screen::get_default() };
     Gtk::StyleContext::add_provider_for_screen(
@@ -120,15 +122,15 @@ AURGH::load_css( void ) const
 
 
 auto
-AURGH::run( void ) -> int32_t
+App::run( void ) -> int32_t
 { return m_app->run(*m_window); }
 
 
 void
-AURGH::setup_tabs( void )
+App::setup_tabs( void )
 {
     m_logger->log<DEBUG>("Creating tabs");
-    auto aur { Gtk::Builder::create_from_file(get_app_file("tabs/aur.xml")) };
+    auto aur { Gtk::Builder::create_from_file(app::get_app_file("tabs/aur.xml")) };
     aur->get_widget_derived<aur::Tab>("aur_tab", m_aur_tab,
                                                  m_logger,
                                                  m_signal);
@@ -137,29 +139,29 @@ AURGH::setup_tabs( void )
 
 
 void
-AURGH::setup_criteria( void )
+App::setup_criteria( void )
 {
     m_criteria.search_by->signal_changed().connect(sigc::bind(
-        sigc::mem_fun(*this, &AURGH::on_criteria_change),
+        sigc::mem_fun(*this, &App::on_criteria_change),
         SEARCH_COMBO, TAB_NONE
     ));
     m_criteria.sort_by->signal_changed().connect(sigc::bind(
-        sigc::mem_fun(*this, &AURGH::on_criteria_change),
+        sigc::mem_fun(*this, &App::on_criteria_change),
         SORT_COMBO, TAB_NONE
     ));
     m_criteria.search_entry->signal_activate().connect(sigc::bind(
-        sigc::mem_fun(*this, &AURGH::on_criteria_change),
+        sigc::mem_fun(*this, &App::on_criteria_change),
         SEARCH_ENTRY, TAB_NONE
     ));
     m_criteria.reverse->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &AURGH::on_criteria_change),
+        sigc::mem_fun(*this, &App::on_criteria_change),
         REVERSE_CHECK, TAB_NONE
     ));
 }
 
 
 void
-AURGH::on_tab_button_pressed( Gtk::ToggleButton *button )
+App::on_tab_button_pressed( Gtk::ToggleButton *button )
 {
     auto rm_child {
         [this]( Gtk::Widget &w ){ m_content_box->remove(w); } };
@@ -197,7 +199,7 @@ AURGH::on_tab_button_pressed( Gtk::ToggleButton *button )
 
 
 void
-AURGH::on_criteria_change( CriteriaType type, TabType tab )
+App::on_criteria_change( CriteriaType type, TabType tab )
 {
     if (tab != TAB_NONE) {
         m_signal.emit(tab, m_criteria, type);

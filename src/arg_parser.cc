@@ -33,14 +33,14 @@ ArgParser::ArgParser( std::span<char *> p_args )
 
 
 void
-ArgParser::add_flag( const arg_input &input )
+ArgParser::add_flag( const arg_input &p_input )
 {
-    std::string name { input.second.starts_with("--")
-                     ? input.second.substr(2)
-                     : input.second };
+    std::string name { p_input.second.starts_with("--")
+                     ? p_input.second.substr(2)
+                     : p_input.second };
 
-    ssize_t s_idx { args_contain_short(input.first) };
-    ssize_t l_idx { args_contain_long(input.second) };
+    ssize_t s_idx { args_contain_short(p_input.first) };
+    ssize_t l_idx { args_contain_long(p_input.second) };
     bool exist { s_idx > -1 || l_idx > -1 };
     param_types value { exist };
 
@@ -49,7 +49,7 @@ ArgParser::add_flag( const arg_input &input )
     if (l_idx > -1) {
         m_args.erase(m_args.begin() + l_idx);
     } else if (s_idx > -1) {
-        char short_arg { input.first.at(input.first.size() - 1) };
+        char short_arg { p_input.first.at(p_input.first.size() - 1) };
 
         m_args.at(s_idx).erase(m_args.at(s_idx).find(short_arg));
     }
@@ -57,10 +57,10 @@ ArgParser::add_flag( const arg_input &input )
 
 
 auto
-ArgParser::args_contain_short( const std::string &short_arg ) -> int64_t
+ArgParser::args_contain_short( const std::string &p_short ) -> ssize_t
 {
-    if (short_arg.empty()) return -1;
-    const bool clean { !short_arg.starts_with('-') };
+    if (p_short.empty()) return -1;
+    const bool clean { !p_short.starts_with('-') };
 
     for (size_t i { 0 }; i < m_args.size(); i++) {
         std::string &arg = m_args.at(i);
@@ -68,8 +68,8 @@ ArgParser::args_contain_short( const std::string &short_arg ) -> int64_t
         if (!arg.starts_with("--") && !arg.starts_with('-')) continue;
 
         if (!clean) {
-            if (arg.contains(short_arg.at(1))) return i;
-        } else if (arg.contains(short_arg)) return i;
+            if (arg.contains(p_short.at(1))) return i;
+        } else if (arg.contains(p_short)) return i;
     }
 
     return -1;
@@ -77,9 +77,9 @@ ArgParser::args_contain_short( const std::string &short_arg ) -> int64_t
 
 
 auto
-ArgParser::args_contain_long( const std::string &long_arg ) -> int64_t
+ArgParser::args_contain_long( const std::string &p_long ) -> ssize_t
 {
-    const bool clean { !long_arg.starts_with("--") };
+    const bool clean { !p_long.starts_with("--") };
 
     for (size_t i { 0 }; i < m_args.size(); i++) {
         const std::string &arg { m_args.at(i) };
@@ -87,8 +87,8 @@ ArgParser::args_contain_long( const std::string &long_arg ) -> int64_t
         if (!arg.starts_with("--")) continue;
 
         if (!clean) {
-            if (long_arg == arg) return i;
-        } else if (long_arg == arg.substr(2)) return i;
+            if (p_long == arg) return i;
+        } else if (p_long == arg.substr(2)) return i;
     }
 
     return -1;

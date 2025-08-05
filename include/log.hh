@@ -1,9 +1,9 @@
 #pragma once
+#include <source_location>
+#include <iostream>
 #include <fstream>
 #include <format>
 #include <array>
-#include <print>
-#include <source_location>
 
 
 enum LogLevel : unsigned char
@@ -31,19 +31,33 @@ public:
             fmt(p_fmt), source(p_source) {}
     };
 
-    Logger( const std::string &arg_string );
+
+    /**
+     * p_arg_string would be a string given to the program by
+     * command-line argument, the form should follow these syntax:
+     *
+     *  - <log_level>
+     *  - <file_path>
+     *  - <log_level>,<file_path>
+     *
+     * Example:
+     *  - warn,out.log
+     *  - debug
+     *  - out.log
+     */
+    Logger( const std::string &p_arg_string );
 
 
     template<LogLevel T_Level, typename... T_Args>
-    void log( StringSource fmt,
-              T_Args  &&...args )
+    void log( StringSource p_fmt,
+              T_Args  &&...p_args )
     {
-        std::string msg { std::vformat(fmt.fmt,
-                          std::make_format_args(args...)) };
+        std::string msg { std::vformat(p_fmt.fmt,
+                          std::make_format_args(p_args...)) };
 
-        std::string func { fmt.source.function_name() };
-        std::string file { fmt.source.file_name() };
-        uint32_t line { fmt.source.line() };
+        std::string func { p_fmt.source.function_name() };
+        std::string file { p_fmt.source.file_name() };
+        uint32_t line { p_fmt.source.line() };
 
         func = func.substr(0, func.find('('));
 
@@ -63,16 +77,13 @@ public:
                              m_LABELS.at(T_Level).second,
                              func, file, line) };
 
-            std::println(m_log_file, "[{}]: {}", file_label, msg);
-            m_log_file.flush();
+            m_log_file << std::format("[{}]: {}", file_label, msg) << std::endl;
         }
 
-        if (T_Level >= m_threshold_level) {
-            std::FILE *stream { T_Level >= WARN ? stderr : stdout };
+        if (T_Level < m_threshold_level) return;
 
-            std::println(stream, "[{}]: \033[1m{}\033[0m", label, msg);
-            std::fflush(stream);
-        }
+        T_Level >= WARN ? std::cerr : std::cout <<
+            std::format("[{}]: \033[1m{}\033[0m", label, msg) << std::endl;
     }
 
 private:

@@ -1,32 +1,45 @@
 #include <cstring>
 #include <chrono>
-#include "utils.hh"
 #include "log.hh"
 
 
 namespace
 {
+    using str_pair = std::pair<std::string, std::string>;
+
+
     auto
-    string_to_loglevel( const std::string &str ) -> LogLevel
+    string_to_loglevel( const std::string &p_str ) -> LogLevel
     {
-        if (str.contains("debug")) return DEBUG;
-        if (str.contains("info" )) return INFO;
-        if (str.contains("warn" )) return WARN;
-        if (str.contains("error")) return ERROR;
+        if (p_str.contains("debug")) return DEBUG;
+        if (p_str.contains("info" )) return INFO;
+        if (p_str.contains("warn" )) return WARN;
+        if (p_str.contains("error")) return ERROR;
         return MAX;
+    }
+
+
+    auto
+    split_string( const std::string &str, const size_t &idx ) -> str_pair
+    {
+        if (idx == 0 || idx == std::string::npos)
+            return { str, "" };
+        auto a { str.substr(0,  idx) };
+        auto b { str.substr(idx + 1) };
+        return { a, b };
     }
 }
 
 
-Logger::Logger( const std::string &arg_string )
+Logger::Logger( const std::string &p_arg_string )
 {
     /* The input to the ctor should be either 'n', 'm', 'n,m', or 'm,n',
        where n is a number in a range of 0 -> 3, or a log-level,
        and m is a file path for the log file.
     */
 
-    const size_t comma_idx { arg_string.find(',') };
-    auto [ num, name ]     { split_string(arg_string, comma_idx) };
+    const size_t comma_idx { p_arg_string.find(',') };
+    auto [ num, name ]     { split_string(p_arg_string, comma_idx) };
 
     try {
         int32_t level { std::stoi(num) };

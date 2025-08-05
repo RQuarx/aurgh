@@ -7,9 +7,9 @@
 
 
 auto
-main( int32_t argc, char **argv ) -> int
+main( int32_t p_argc, char **p_argv ) -> int
 {
-    ArgParser arg_parser { std::span(argv, static_cast<size_t>(argc)) };
+    ArgParser arg_parser { std::span(p_argv, static_cast<size_t>(p_argc)) };
 
     arg_parser.add_option<std::string>({ "-l", "--log"    }, "warn");
     arg_parser.add_option<std::string>({ "-p", "--prefix" }, ""    );
@@ -25,6 +25,6 @@ main( int32_t argc, char **argv ) -> int
     std::string logger_arg { *std::get_if<std::string>(&args.at("log")) };
     auto logger { std::make_shared<Logger>(logger_arg) };
 
-    AURGH app { logger };
+    app::App app { logger };
     return app.run();
 }

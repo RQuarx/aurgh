@@ -1,6 +1,6 @@
 project('aurgh', 'cpp',
         default_options: [ 'cpp_std=c++23', 'warning_level=3' ],
-        version: '1.0.0-alpha',
+        version: '2.5.1-alpha',
         license: 'GPL-3.0-or-later')
 
 add_project_arguments([
