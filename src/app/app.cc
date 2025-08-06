@@ -130,7 +130,8 @@ void
 App::setup_tabs( void )
 {
     m_logger->log<DEBUG>("Creating tabs");
-    auto aur { Gtk::Builder::create_from_file(app::get_app_file("tabs/aur.xml")) };
+    auto aur { Gtk::Builder::create_from_file(
+               app::get_app_file("tabs/aur.xml")) };
     aur->get_widget_derived<aur::Tab>("aur_tab", m_aur_tab,
                                                  m_logger,
                                                  m_signal);
@@ -159,7 +160,7 @@ App::setup_criteria( void )
     ));
 
     m_criteria.search_by->set_active_id("name");
-    m_criteria.sort_by->set_active_id("num-votes");
+    m_criteria.sort_by->set_active_id("NumVotes");
 }
 
 

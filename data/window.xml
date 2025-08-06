@@ -115,9 +115,9 @@
                         <property name="name">aurgh-criteria-combos</property>
                         <items>
 
-                          <item id="name">Name</item>
-                          <item id="popularity">Popularity</item>
-                          <item id="num-votes">Votes</item>
+                          <item id="Name">Name</item>
+                          <item id="Popularity">Popularity</item>
+                          <item id="NumVotes">Votes</item>
                         </items>
                       </object>
                     </child>

@@ -36,6 +36,11 @@ main = files(
     'src/utils.cc',
 ) + app + cli
 
+subdir('data')
+
+install_subdir('data', install_dir: '/usr/share/aurgh')
+
 executable('aurgh', main,
            include_directories: include_directories('include', '.'),
-           install: true)
+           install: true,
+           install_dir: '/usr/bin')

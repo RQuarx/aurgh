@@ -11,8 +11,8 @@ static constexpr std::string_view
     ROOT        { "/" };
 
 
-/* A list of where the program should search for ui files */
-static constexpr std::array<std::string_view, 2> UI_PATHS {{
+/* A list of where the program should search for data dir */
+static constexpr std::array<std::string_view, 2> DATA_SEARCH_PATHS {{
     ".",
     "/usr/share/aurgh"
 }};

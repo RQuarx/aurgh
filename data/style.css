@@ -148,41 +148,25 @@ separator
 
 /* Cards */
 
-#card-container {
-    background-color: @imgui-title-bg;
-    border: 1px solid @imgui-border;
+#card-container
+{   background-color: @imgui-title-bg;
     min-width: 323px;
     padding: 0.5em;
+    border: 1px solid @imgui-border;
 }
-
-#card-header
-{
-    padding: 5px;
-}
-
-#card-pkg-name {
-    font-weight: bolder;
-    margin-left: 5px;
-    font-size: large;
-    color: #0066CC;
-}
-#card-pkg-name:hover {
-    color: @imgui-button-hovered;
-}
-
-#card-pkg-info-container
-{
-    margin: 5px 5px 3px 5px;
-}
-
-#card-pkg-info {
-    background-color: @imgui-frame-bg;
-    font-weight: bolder;
-    padding: 0px 5px;
-    margin: 1px 0px;
-}
-
-#card-pkg-desc
-{
-    margin: 0px 5px 5px 5px;
-}
+    #card-header { padding: 5px; }
+        #card-pkg-name
+        {   font-weight: bolder;
+            margin-left: 5px;
+            font-size: large;
+            color: #0066CC;
+        }
+        #card-pkg-name:hover { color: @imgui-button-hovered; }
+    #card-pkg-info-container { margin: 5px 5px 3px 5px; }
+        #card-pkg-info
+        {   background-color: @imgui-frame-bg;
+            font-weight: bolder;
+            padding: 0px 5px;
+            margin: 1px 0px;
+        }
+        #card-pkg-desc { margin: 0px 5px 5px 5px; }

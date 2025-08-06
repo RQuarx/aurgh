@@ -14,12 +14,12 @@ namespace app
     auto
     get_app_file( const std::string &p_file_path ) -> std::string
     {
-        for (std::filesystem::path base : UI_PATHS) {
+        for (std::filesystem::path base : DATA_SEARCH_PATHS) {
             if (std::filesystem::exists( base / p_file_path ))
                 return (base / p_file_path);
 
-            if (std::filesystem::exists( base / "ui" / p_file_path ))
-                return (base / "ui" / p_file_path);
+            if (std::filesystem::exists( base / "data" / p_file_path ))
+                return (base / "data" / p_file_path);
         }
 
         return "";

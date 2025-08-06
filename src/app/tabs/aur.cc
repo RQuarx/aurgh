@@ -1,3 +1,5 @@
+#include <thread>
+
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/searchentry.h>
 #include <gtkmm/checkbutton.h>
@@ -7,7 +9,6 @@
 #include <gtkmm/label.h>
 #include <curl/curl.h>
 #include <json/json.h>
-#include <thread>
 
 #include "app/tabs/card.hh"
 #include "app/tabs/aur.hh"
@@ -83,11 +84,9 @@ Tab::on_active( TabType          p_tab,
 
         if (pkg_name.empty())  return;
         if (search_by.empty()) return;
-        if (sort_by.empty())   return;
 
-        std::jthread(
-        [this, pkg_name, sort_by, search_by, reverse](){
-            /* Search the package and sort the json */
+        /* Search the package and sort the json */
+        std::jthread([=, this](){
             Json::Value result { search_pkg(pkg_name, search_by) };
             Json::Value infos  { get_pkgs_info(result["results"]) };
 
@@ -95,7 +94,9 @@ Tab::on_active( TabType          p_tab,
             for (Json::Value pkg : infos)
                 m_pkgs.emplace_back(pkg);
 
-            sort_json(m_pkgs, sort_by, reverse);
+            sort_json(m_pkgs,
+                      sort_by.empty() ? "NumVotes" : sort_by,
+                      reverse);
 
             m_on_search_dispatch.emit();
         }).detach();
@@ -109,9 +110,9 @@ auto
 Tab::search_pkg( const std::string &p_pkg,
                  const std::string &p_search_by ) -> Json::Value
 {
+    m_logger->log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
     std::string url { std::format("{}/search/{}?by={}", AUR_URL,
                                                         p_pkg, p_search_by) };
-    m_logger->log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
     auto retval { perform_curl(url.c_str()) };
     if (!retval) {
         m_logger->log<ERROR>("Failed to search for {} by {}: {}",
