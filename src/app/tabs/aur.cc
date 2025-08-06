@@ -21,25 +21,16 @@ using app::aur::Tab;
 
 namespace
 {
-    auto
-    sort_json( const Json::Value &p_root,
-               const std::string &p_sort_by,
-               bool               p_reverse
-    ) -> std::vector<std::reference_wrapper<const Json::Value>>
+    void
+    sort_json( std::vector<Json::Value> &p_jsons,
+               const std::string        &p_sort_by,
+               bool                      p_reverse )
     {
-        if (!p_root.isArray()) return {};
-
-        std::vector<std::reference_wrapper<const Json::Value>> result;
-        result.reserve(p_root.size());
-
-        for (const Json::Value &j : p_root)
-            result.emplace_back(j);
-
-        std::ranges::sort(result,
+        std::ranges::sort(p_jsons,
         [&p_sort_by, &p_reverse]( const auto &a, const auto &b ) -> bool
         {
-            const Json::Value &a_val { a.get()[p_sort_by] };
-            const Json::Value &b_val { b.get()[p_sort_by] };
+            const Json::Value &a_val { a[p_sort_by] };
+            const Json::Value &b_val { b[p_sort_by] };
 
             if (a_val.isInt()) {
                 return p_reverse
@@ -50,8 +41,6 @@ namespace
                 ? a_val.asString() > b_val.asString()
                 : a_val.asString() < b_val.asString();
         });
-
-        return result;
     }
 }
 
@@ -92,18 +81,21 @@ Tab::on_active( TabType          p_tab,
         const std::string sort_by   { p_widgets.sort_by->get_active_id() };
         const bool reverse { p_widgets.reverse->get_active() };
 
-        if (pkg_name.empty()) return;
+        if (pkg_name.empty())  return;
         if (search_by.empty()) return;
-        if (sort_by.empty()) return;
+        if (sort_by.empty())   return;
 
         std::jthread(
         [this, pkg_name, sort_by, search_by, reverse](){
             /* Search the package and sort the json */
             Json::Value result { search_pkg(pkg_name, search_by) };
-            auto sorted { sort_json(result, sort_by, reverse) };
-            auto infos { get_pkgs_info(sorted) };
+            Json::Value infos  { get_pkgs_info(result["results"]) };
 
-            for (const Json::Value &pkg : infos) m_pkgs.push_back(pkg);
+            m_pkgs.reserve(infos.size());
+            for (Json::Value pkg : infos)
+                m_pkgs.emplace_back(pkg);
+
+            sort_json(m_pkgs, sort_by, reverse);
 
             m_on_search_dispatch.emit();
         }).detach();
@@ -128,28 +120,25 @@ Tab::search_pkg( const std::string &p_pkg,
         return Json::nullValue;
     }
 
-    Json::Value json { *Json::from_string(*retval).or_else(
-    [this]( const std::string &err ) -> res_or_string<Json::Value>
-    {
-        m_logger->log<ERROR>("Malformed input from the AUR: {}", err);
-        exit(1);
-        return {};
-    }) };
-
-    return json["results"];
+    try {
+        return Json::from_string(*retval);
+    } catch (const std::exception &e) {
+        m_logger->log<ERROR>("Malformed value returned from the "
+                             "AUR: {}, output: {}", e.what(), *retval);
+        return Json::nullValue;
+    }
 }
 
 
 auto
-Tab::get_pkgs_info(
-    const std::vector<std::reference_wrapper<const Json::Value>> &p_pkgs
-) -> Json::Value
+Tab::get_pkgs_info( const Json::Value &p_pkgs ) -> Json::Value
 {
     m_logger->log<INFO>("Fetching information for {} packages.", p_pkgs.size());
     std::string url { std::format("{}/info?", AUR_URL) };
 
-    for (std::reference_wrapper<const Json::Value> pkg : p_pkgs)
-        url.append(std::format("arg%5B%5D={}&", pkg.get()["Name"].asString()));
+    for (Json::ArrayIndex i { 0 }; i < p_pkgs.size(); i++) {
+        url.append(std::format("arg%5B%5D={}&", p_pkgs[i]["Name"].asString()));
+    }
     url.pop_back();
 
     auto retval { perform_curl(url.c_str()) };
@@ -160,13 +149,7 @@ Tab::get_pkgs_info(
         return Json::nullValue;
     }
 
-    Json::Value json { *Json::from_string(*retval).or_else(
-    [this]( const std::string &err ) -> res_or_string<Json::Value>
-    {
-        m_logger->log<ERROR>("Malformed input from the AUR: {}", err);
-        exit(1);
-        return {};
-    }) };
+    auto json { Json::from_string(*retval) };
 
     return json["results"];
 }
@@ -175,16 +158,15 @@ Tab::get_pkgs_info(
 void
 Tab::add_cards_to_box( void )
 {
-    for ( const auto &pkg : m_pkgs ) {
+    for (const auto &pkg : m_pkgs) {
         m_cards.emplace_back(m_logger, pkg);
 
-        if (!m_cards.back().is_valid()) {
-            m_logger->log<WARN>("Invalid card for {}",
-                                pkg["Name"].asString());
+        if (m_cards.back().is_valid()) {
+            m_content->pack_start(*m_cards.back().get_widget());
             continue;
         }
 
-        m_content->pack_start(*m_cards.back().get_widget());
+        m_logger->log<WARN>("Invalid card for {}", pkg["Name"].asString());
     }
     m_content->show_all_children();
 }

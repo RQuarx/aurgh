@@ -38,9 +38,7 @@ namespace app::aur
         auto search_pkg( const std::string &p_pkg,
                          const std::string &p_search_by ) -> Json::Value;
 
-        auto get_pkgs_info(
-            const std::vector<std::reference_wrapper<const Json::Value>> &p_pkgs
-        ) -> Json::Value;
+        auto get_pkgs_info( const Json::Value &p_pkgs ) -> Json::Value;
 
 
         void add_cards_to_box( void );

@@ -80,8 +80,7 @@ namespace app
 namespace Json
 {
     auto
-    from_string( const std::string &p_str
-               ) -> std::expected<Json::Value, std::string>
+    from_string( const std::string &p_str ) -> Json::Value
     {
         std::istringstream iss { p_str };
         Json::Value root;
@@ -89,7 +88,7 @@ namespace Json
         try {
             iss >> root;
         } catch (const std::exception &e) {
-            return utils::unexpected(p_str);
+            throw std::runtime_error(e.what());
         }
         return root;
     }

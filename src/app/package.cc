@@ -46,15 +46,14 @@ Package::Package( const std::shared_ptr<Logger> &p_logger,
         return;
     }
 
-    Json::Value result { *Json::from_string(*retval).or_else(
-    [this]( const std::string &err ) -> std::expected<Json::Value, std::string>
-    {
-        m_logger->log<ERROR>("Malformed JSON from the AUR: {}", err);
+    try {
+        Json::Value result { Json::from_string(*retval) };
+        m_valid = json_to_pkg(result["results"][Json::ArrayIndex(0)]);
+    } catch (const std::exception &e) {
+        m_logger->log<ERROR>("Failed to parse package {}: {}",
+                              p_pkg_name, e.what());
         m_valid = false;
-        return {};
-    }) };
-
-    m_valid = json_to_pkg(result["results"][Json::ArrayIndex(0)]);
+    }
 }
 
 

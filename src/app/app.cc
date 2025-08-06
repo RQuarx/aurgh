@@ -157,6 +157,9 @@ App::setup_criteria( void )
         sigc::mem_fun(*this, &App::on_criteria_change),
         REVERSE_CHECK, TAB_NONE
     ));
+
+    m_criteria.search_by->set_active_id("name");
+    m_criteria.sort_by->set_active_id("num-votes");
 }
 
 

@@ -71,9 +71,7 @@ namespace Json
     /**
      * @brief A wrapper for converting std::string object to a Json::Value object.
      *
-     * @return An std::expected<Json::Value, std::string> object, where the Err
-     *         std::string object contains the error message from an exception.
+     * @return A Json::Value object.
      */
-    auto from_string( const std::string &p_str
-                    ) -> std::expected<Json::Value, std::string>;
+    auto from_string( const std::string &p_str ) -> Json::Value;
 }
