@@ -1,7 +1,10 @@
 #include <format>
 
+#include <gtkmmconfig.h>
 #include <json/reader.h>
 #include <json/value.h>
+#include <curl/curl.h>
+#include <alpm.h>
 
 #include "config.hh"
 #include "utils.hh"
@@ -15,19 +18,19 @@ namespace
         std::string str { std::vformat(fmt, std::make_format_args(args...)) };
         return str;
     }
+}
 
 
+namespace utils
+{
     auto
     get_env( const std::string &p_str ) -> std::string
     {
         const char *res { std::getenv(p_str.c_str()) };
         return res == nullptr ? "" : res;
     }
-}
 
 
-namespace utils
-{
     auto
     get_prefix_path( void ) -> std::string
     {
@@ -49,6 +52,18 @@ namespace utils
         }
 
         return result;
+    }
+
+
+    void
+    init_versions( void )
+    {
+        VERSIONS["gtkmm"] = std::format("{}.{}.{}", GTKMM_MAJOR_VERSION,
+                                                    GTKMM_MINOR_VERSION,
+                                                    GTKMM_MICRO_VERSION);
+        VERSIONS["libcurl"] = curl_version_info(CURLVERSION_NOW)->version;
+        VERSIONS["jsoncpp"] = JSONCPP_VERSION_STRING;
+        VERSIONS["libalpm"] = alpm_version();
     }
 }
 

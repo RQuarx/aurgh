@@ -32,20 +32,8 @@ public:
     };
 
 
-    /**
-     * p_arg_string would be a string given to the program by
-     * command-line argument, the form should follow these syntax:
-     *
-     *  - <log_level>
-     *  - <file_path>
-     *  - <log_level>,<file_path>
-     *
-     * Example:
-     *  - warn,out.log
-     *  - debug
-     *  - out.log
-     */
-    Logger( const std::string &p_arg_string );
+    Logger( const std::string &p_log_level,
+            const std::string &p_log_file = "" );
 
 
     template<LogLevel T_Level, typename... T_Args>

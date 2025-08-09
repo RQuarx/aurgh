@@ -31,46 +31,46 @@ namespace
 }
 
 
-Logger::Logger( const std::string &p_arg_string )
+Logger::Logger( const std::string &p_log_level, const std::string &p_log_file )
 {
     /* The input to the ctor should be either 'n', 'm', 'n,m', or 'm,n',
        where n is a number in a range of 0 -> 3, or a log-level,
        and m is a file path for the log file.
     */
 
-    const size_t comma_idx { p_arg_string.find(',') };
-    auto [ num, name ]     { split_string(p_arg_string, comma_idx) };
+    if (p_log_level.empty()) {
+        m_threshold_level = WARN;
+    } else {
+        try {
+            int32_t level { std::stoi(p_log_level) };
+            if (level >= MAX) {
+                log<WARN>("Log level too large, using default 'warn' level.");
+                throw std::exception(); /* Trigger the catch */
+            } else {
+                m_threshold_level = static_cast<LogLevel>(level);
+            }
+        } catch (...) {
+            LogLevel level { string_to_loglevel(p_log_level) };
 
-    try {
-        int32_t level { std::stoi(num) };
-        if (level >= MAX) {
-            log<WARN>("Log level too large, using default 'warn' level.");
-            throw std::exception(); /* Trigger the catch */
-        } else {
-            m_threshold_level = static_cast<LogLevel>(std::stoi(num));
-        }
-    } catch (...) {
-        LogLevel level { string_to_loglevel(num) };
-
-        if (level == MAX) {
-            m_threshold_level = WARN;
-            std::swap(name, num);
-        } else {
-            m_threshold_level = level;
+            if (level == MAX) {
+                log<WARN>("Invalid log level {}, using default 'warn' level",
+                           p_log_level);
+                m_threshold_level = WARN;
+            } else m_threshold_level = level;
         }
     }
 
-    if (!name.empty()) {
-        m_log_file.open(name, std::ios_base::app);
+    if (!p_log_file.empty()) {
+        m_log_file.open(p_log_file, std::ios_base::app);
         if (m_log_file.fail() && !m_log_file.eof()) {
-            log<ERROR>("Failed to open {}: {}", name, std::strerror(errno));
+            log<ERROR>("Failed to open {}: {}",
+                        p_log_file, std::strerror(errno));
             exit(1);
         }
     }
 
     log<DEBUG>("Logger instance successfully created with a log-level of {}",
                 m_LABELS.at(m_threshold_level).second);
-
 }
 
 

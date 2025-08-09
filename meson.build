@@ -30,7 +30,6 @@ cli = files(
 )
 
 main = files(
-    'src/arg_parser.cc',
     'src/log.cc',
     'src/main.cc',
     'src/utils.cc',

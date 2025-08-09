@@ -1,4 +1,5 @@
 #pragma once
+#include <unordered_map>
 #include <expected>
 #include <format>
 #include <string>
@@ -8,6 +9,9 @@ namespace Json { class Value; }
 
 namespace utils
 {
+    inline std::unordered_map<std::string, std::string> VERSIONS;
+
+
     template<typename T_Err>
     auto unexpected( T_Err err ) -> std::unexpected<T_Err>
     { return std::unexpected<T_Err>(err); }
@@ -22,10 +26,16 @@ namespace utils
     }
 
 
+    auto get_env( const std::string &p_key ) -> std::string;
+
+
     /**
      * @brief Returns the PREFIX_PATH from config.hh
      */
     auto get_prefix_path( void ) -> std::string;
+
+
+    void init_versions( void );
 
 
     template<class T_Exception, typename... T_Args>
