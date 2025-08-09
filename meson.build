@@ -1,6 +1,6 @@
 project('aurgh', 'cpp',
         default_options: [ 'cpp_std=c++23', 'warning_level=3' ],
-        version: '2.5.1-alpha',
+        version: '1.7.1-alpha',
         license: 'GPL-3.0-or-later')
 
 add_project_arguments([
@@ -13,7 +13,7 @@ add_project_dependencies([
     dependency('gtkmm-3.0'),
     dependency('libcurl'),
     dependency('jsoncpp'),
-    dependency('libalpm'),
+    dependency('libalpm')
 ], language: 'cpp')
 
 

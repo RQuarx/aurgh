@@ -1,3 +1,9 @@
+Completion:
+    HeaderInsertion: Never
+    CodePatterns: All
+    AllScopes: Yes
+
 InlayHints:
     ParameterNames: No
     TypeNameLimit: 10
+    DeducedTypes: No

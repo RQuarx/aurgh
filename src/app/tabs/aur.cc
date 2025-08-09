@@ -15,6 +15,7 @@
 #include "app/utils.hh"
 #include "aliases.hh"
 #include "config.hh"
+#include "utils.hh"
 #include "log.hh"
 
 using app::aur::Tab;
@@ -35,12 +36,12 @@ namespace
 
             if (a_val.isInt()) {
                 return p_reverse
-                    ? a_val.asInt() > b_val.asInt()
-                    : a_val.asInt() < b_val.asInt();
+                    ? a_val.asInt() < b_val.asInt()
+                    : a_val.asInt() > b_val.asInt();
             }
             return p_reverse
-                ? a_val.asString() > b_val.asString()
-                : a_val.asString() < b_val.asString();
+                ? a_val.asString() < b_val.asString()
+                : a_val.asString() > b_val.asString();
         });
     }
 }

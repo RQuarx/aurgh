@@ -2,6 +2,7 @@
 #include "app/package.hh"
 #include "app/utils.hh"
 #include "config.hh"
+#include "utils.hh"
 
 using app::Package;
 

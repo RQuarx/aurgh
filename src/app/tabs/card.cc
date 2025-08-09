@@ -16,12 +16,12 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
     m_pkg(m_logger, p_pkg),
     m_card(Gtk::make_managed<Gtk::Box>())
 {
-    auto *info_box { Gtk::make_managed<Gtk::VBox>() };
+    auto *info_box   { Gtk::make_managed<Gtk::VBox>() };
     auto *button_box { Gtk::make_managed<Gtk::VBox>() };
 
     auto *name_ver { Gtk::make_managed<Gtk::Label>() };
-    auto *desc { Gtk::make_managed<Gtk::Label>() };
-    auto *keywords { Gtk::make_managed<Gtk::Box>() };
+    auto *desc     { Gtk::make_managed<Gtk::Label>() };
+    auto *keywords { Gtk::make_managed<Gtk::Box>()   };
 
     name_ver->set_markup(std::format(
                         "<span size='xx-large'><b>{}</b></span>    {}",

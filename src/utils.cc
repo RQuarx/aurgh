@@ -1,4 +1,8 @@
 #include <format>
+
+#include <json/reader.h>
+#include <json/value.h>
+
 #include "config.hh"
 #include "utils.hh"
 
@@ -45,5 +49,22 @@ namespace utils
         }
 
         return result;
+    }
+}
+
+namespace Json
+{
+    auto
+    from_string( const std::string &p_str ) -> Json::Value
+    {
+        std::istringstream iss { p_str };
+        Json::Value root;
+
+        try {
+            iss >> root;
+        } catch (const std::exception &e) {
+            throw std::runtime_error(e.what());
+        }
+        return root;
     }
 }

@@ -9,7 +9,6 @@ namespace Glib
     class RefPtr;
 }
 namespace Gtk { class Builder; }
-namespace Json { class Value; }
 
 using builder = Glib::RefPtr<Gtk::Builder>;
 
@@ -63,15 +62,4 @@ namespace app
      */
     auto perform_curl( const char *p_url
                      ) -> std::expected<std::string, CURLcode>;
-}
-
-
-namespace Json
-{
-    /**
-     * @brief A wrapper for converting std::string object to a Json::Value object.
-     *
-     * @return A Json::Value object.
-     */
-    auto from_string( const std::string &p_str ) -> Json::Value;
 }

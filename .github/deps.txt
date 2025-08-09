@@ -7,4 +7,3 @@ lld
 gtkmm3
 glibmm
 pkg-config
-libgit2

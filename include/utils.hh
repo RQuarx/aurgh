@@ -3,6 +3,8 @@
 #include <format>
 #include <string>
 
+namespace Json { class Value; }
+
 
 namespace utils
 {
@@ -35,4 +37,15 @@ namespace utils
 
         throw T_Exception(msg);
     }
+}
+
+
+namespace Json
+{
+    /**
+     * @brief A wrapper for converting std::string object to a Json::Value object.
+     *
+     * @return A Json::Value object.
+     */
+    auto from_string( const std::string &p_str ) -> Json::Value;
 }
