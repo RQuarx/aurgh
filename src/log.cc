@@ -5,9 +5,6 @@
 
 namespace
 {
-    using str_pair = std::pair<std::string, std::string>;
-
-
     auto
     string_to_loglevel( const std::string &p_str ) -> LogLevel
     {
@@ -17,27 +14,11 @@ namespace
         if (p_str.contains("error")) return ERROR;
         return MAX;
     }
-
-
-    auto
-    split_string( const std::string &str, const size_t &idx ) -> str_pair
-    {
-        if (idx == 0 || idx == std::string::npos)
-            return { str, "" };
-        auto a { str.substr(0,  idx) };
-        auto b { str.substr(idx + 1) };
-        return { a, b };
-    }
 }
 
 
 Logger::Logger( const std::string &p_log_level, const std::string &p_log_file )
 {
-    /* The input to the ctor should be either 'n', 'm', 'n,m', or 'm,n',
-       where n is a number in a range of 0 -> 3, or a log-level,
-       and m is a file path for the log file.
-    */
-
     if (p_log_level.empty()) {
         m_threshold_level = WARN;
     } else {
@@ -65,7 +46,7 @@ Logger::Logger( const std::string &p_log_level, const std::string &p_log_file )
         if (m_log_file.fail() && !m_log_file.eof()) {
             log<ERROR>("Failed to open {}: {}",
                         p_log_file, std::strerror(errno));
-            exit(1);
+            throw std::exception();
         }
     }
 

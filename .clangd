@@ -1,6 +1,4 @@
 Completion:
-    HeaderInsertion: Never
-    CodePatterns: All
     AllScopes: Yes
 
 InlayHints:
