@@ -1,12 +1,17 @@
 project('aurgh', 'cpp',
         default_options: [ 'cpp_std=c++23', 'warning_level=3' ],
         version: '1.7.1-alpha',
-        license: 'GPL-3.0-or-later')
+        license: 'GPL-3.0-or-later',
+        license_files: [ 'COPYING' ])
 
-add_project_arguments([
-    '-DAPP_NAME="@0@"'.format(meson.project_name()),
-    '-DAPP_VERSION="@0@"'.format(meson.project_version())
-], language: 'cpp')
+cxx_args = [
+    '-DAPP_NAME="'    + meson.project_name()    + '"',
+    '-DAPP_VERSION="' + meson.project_version() + '"'
+]
+
+if get_option('buildtype').contains('debug')
+    cxx_args += '-DAPP_DEBUG'
+endif
 
 add_project_dependencies([
     dependency('fontconfig'),
@@ -26,20 +31,21 @@ app = files(
 )
 
 cli = files(
-    
+    'src/cli/cli.cc',
 )
 
 main = files(
     'src/log.cc',
     'src/main.cc',
     'src/utils.cc',
-) + app + cli
+)
+
+include = include_directories('include', '.')
 
 subdir('data')
 
 install_subdir('data', install_dir: '/usr/share/aurgh')
-
-executable('aurgh', main,
-           include_directories: include_directories('include', '.'),
-           install: true,
-           install_dir: '/usr/bin')
+executable('aurgh', main + app + cli,
+           include_directories: include,
+           cpp_args: cxx_args,
+           install: true)

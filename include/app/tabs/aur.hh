@@ -1,7 +1,11 @@
 #pragma once
 #include <memory>
+#include <queue>
+
 #include <glibmm/dispatcher.h>
 #include <gtkmm/box.h>
+
+#include "app/package.hh"
 #include "app/types.hh"
 
 namespace Gtk { class Builder; class FlowBox; }
@@ -29,6 +33,8 @@ namespace app::aur
         std::vector<Json::Value> m_pkgs;
 
         Glib::Dispatcher m_on_search_dispatch;
+
+        std::queue<Package> m_package_queue;
 
     protected:
         void on_active( TabType          p_tab,

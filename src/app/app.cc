@@ -1,15 +1,8 @@
 #include <expected>
 
-#include <gtkmm/comboboxtext.h>
-#include <gtkmm/togglebutton.h>
-#include <gtkmm/checkbutton.h>
-#include <gtkmm/cssprovider.h>
-#include <gtkmm/searchentry.h>
-#include <gtkmm/window.h>
-#include <gtkmm/box.h>
-#include <glibmm/fileutils.h>
-#include <glibmm/markup.h>
 #include <curl/curl.h>
+#include <glibmm.h>
+#include <gtkmm.h>
 
 #include "app/utils.hh"
 #include "aliases.hh"
@@ -25,7 +18,9 @@ App::App( const std::shared_ptr<Logger> &logger ) :
 {
     m_logger->log<INFO>("Starting application");
 
-    /* Silent the 'Fontconfig warning: using without calling FcInit()'. */
+    /* Silent the 'Fontconfig warning: using without calling FcInit()'
+       warning.
+    */
     FcInit();
 
     auto _ { init_curl(CURL_VERSION_THREADSAFE).or_else(

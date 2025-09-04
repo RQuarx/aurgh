@@ -1,8 +1,5 @@
-#include <gtkmm/scrolledwindow.h>
-#include <gtkmm/frame.h>
-#include <gtkmm/label.h>
-#include <gtkmm/grid.h>
-#include <gtkmm/box.h>
+#include <gtkmm.h>
+
 #include "app/tabs/card.hh"
 #include "app/package.hh"
 #include "log.hh"
@@ -11,10 +8,14 @@ using app::Card;
 
 
 Card::Card( const std::shared_ptr<Logger> &p_logger,
-            const Json::Value             &p_pkg ) :
+            const Json::Value             &p_pkg,
+            const Type                    &p_card_type ) :
     m_logger(p_logger),
     m_pkg(m_logger, p_pkg),
-    m_card(Gtk::make_managed<Gtk::Box>())
+    m_card(Gtk::make_managed<Gtk::Box>()),
+    m_install(Gtk::make_managed<Gtk::ToggleButton>()),
+    m_add_to_queue(Gtk::make_managed<Gtk::ToggleButton>()),
+    m_uninstall(Gtk::make_managed<Gtk::ToggleButton>())
 {
     auto *info_box   { Gtk::make_managed<Gtk::VBox>() };
     auto *button_box { Gtk::make_managed<Gtk::VBox>() };
@@ -52,12 +53,25 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
     info_box->pack_start(*keywords);
 
     button_box->set_halign(Gtk::ALIGN_END);
+    button_box->set_orientation(Gtk::ORIENTATION_VERTICAL);
+    button_box->pack_start(*m_add_to_queue);
+    button_box->pack_start(*m_install);
+    button_box->pack_start(*m_uninstall);
+
+    m_add_to_queue->set_image_from_icon_name("list-add-symbolic");
+    m_install->set_image_from_icon_name("document-save-symbolic");
+    m_uninstall->set_image_from_icon_name("list-remove-symbolic");
 
     m_card->set_halign(Gtk::ALIGN_FILL);
     m_card->set_spacing(10);
     m_card->set_name("card-container");
     m_card->pack_start(*info_box);
     m_card->show_all_children();
+
+    if (p_card_type == Card::INSTALL)
+        m_uninstall->hide();
+    else
+        m_install->show();
 }
 
 

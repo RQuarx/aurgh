@@ -1,14 +1,8 @@
 #include <thread>
 
-#include <gtkmm/comboboxtext.h>
-#include <gtkmm/searchentry.h>
-#include <gtkmm/checkbutton.h>
-#include <gtkmm/linkbutton.h>
-#include <gtkmm/builder.h>
-#include <gtkmm/flowbox.h>
-#include <gtkmm/label.h>
 #include <curl/curl.h>
 #include <json/json.h>
+#include <gtkmm.h>
 
 #include "app/tabs/card.hh"
 #include "app/tabs/aur.hh"
@@ -161,7 +155,7 @@ void
 Tab::add_cards_to_box( void )
 {
     for (const auto &pkg : m_pkgs) {
-        m_cards.emplace_back(m_logger, pkg);
+        m_cards.emplace_back(m_logger, pkg, Card::INSTALL);
 
         if (m_cards.back().is_valid()) {
             m_content->pack_start(*m_cards.back().get_widget());

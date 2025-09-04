@@ -1,8 +1,6 @@
 #include <filesystem>
 
 #include <gtkmm/builder.h>
-#include <json/reader.h>
-#include <json/value.h>
 
 #include "app/utils.hh"
 #include "config.hh"

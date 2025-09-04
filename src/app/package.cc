@@ -15,10 +15,10 @@ namespace
         std::ostringstream out;
         for (char ch : p_text) {
             switch (ch) {
-                case '&': out << "&amp;"; break;
-                case '<': out << "&lt;"; break;
-                case '>': out << "&gt;"; break;
-                default:  out << ch; break;
+            case '&': out << "&amp;"; break;
+            case '<': out << "&lt;"; break;
+            case '>': out << "&gt;"; break;
+            default:  out << ch; break;
             }
         }
         return out.str();
@@ -61,9 +61,7 @@ Package::Package( const std::shared_ptr<Logger> &p_logger,
 Package::Package( const std::shared_ptr<Logger> &p_logger,
                   const Json::Value             &p_pkg ) :
     m_logger(p_logger)
-{
-    m_valid = json_to_pkg(p_pkg);
-}
+{ m_valid = json_to_pkg(p_pkg); }
 
 
 auto

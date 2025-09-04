@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 
+#include <glibmm/signalproxy.h>
 #include <sigc++/signal.h>
 #include <json/value.h>
 
@@ -9,7 +10,7 @@
 
 namespace Gtk
 {
-    class Button;
+    class ToggleButton;
     class Box;
 }
 class Logger;
@@ -20,31 +21,37 @@ namespace app
     class Card
     {
     public:
-        enum button_type
+        enum Type
         {
-            BUTTON_INSTALL,
-            BUTTON_ADD_TO_QUEUE,
-            BUTTON_UNINSTALL
+            INSTALL,
+            UNINSTALL
         };
-        using button_sig = sigc::signal<void_or_err, button_type>;
+
 
         Card( const std::shared_ptr<Logger> &p_logger,
-            const std::string               &p_pkg_name );
+              const std::string             &p_pkg_name,
+              const Type                    &p_card_type );
 
         Card( const std::shared_ptr<Logger> &p_logger,
-            const Json::Value               &p_pkg );
+              const Json::Value             &p_pkg,
+              const Type                    &p_card_type );
 
         ~Card( void );
 
-
-        [[nodiscard]]
-        auto on_button_clicked( void ) -> button_sig;
 
         [[nodiscard]]
         auto get_widget( void ) -> Gtk::Box *;
 
         [[nodiscard]]
         auto is_valid( void ) -> bool;
+
+        [[nodiscard]]
+        auto get_package( void ) -> Package &;
+
+
+        auto signal_on_add_to_queue( void ) -> Glib::SignalProxy<void>;
+        auto signal_on_install( void ) -> Glib::SignalProxy<void>;
+        auto signal_on_uninstall( void ) -> Glib::SignalProxy<void>;
 
 
     private:
@@ -54,8 +61,8 @@ namespace app
 
         Gtk::Box *m_card;
 
-        Gtk::Button *m_install;
-        Gtk::Button *m_add_to_queue;
-        Gtk::Button *m_uninstall;
+        Gtk::ToggleButton *m_install;
+        Gtk::ToggleButton *m_add_to_queue;
+        Gtk::ToggleButton *m_uninstall;
     };
 }

@@ -1,8 +1,6 @@
 #pragma once
 #include <memory>
-#include <gtkmm/application.h>
-#include <gtkmm/notebook.h>
-#include <gtkmm/builder.h>
+#include <gtkmm.h>
 #include "app/tabs/aur.hh"
 #include "app/types.hh"
 
