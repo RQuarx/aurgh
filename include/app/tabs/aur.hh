@@ -47,6 +47,6 @@ namespace app::aur
         auto get_pkgs_info( const Json::Value &p_pkgs ) -> Json::Value;
 
 
-        void add_cards_to_box( void );
+        void add_cards_to_box();
     };
 }

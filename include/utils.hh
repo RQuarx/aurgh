@@ -32,21 +32,10 @@ namespace utils
     /**
      * @brief Returns the PREFIX_PATH from config.hh
      */
-    auto get_prefix_path( void ) -> std::string;
+    auto get_prefix_path() -> std::string;
 
 
-    void init_versions( void );
-
-
-    template<class T_Exception, typename... T_Args>
-    auto fthrow( std::format_string<T_Args...> p_fmt,
-                 T_Args                   &&...p_args )
-    {
-        std::string msg {
-            std::vformat(p_fmt, std::make_format_args(p_args...)) };
-
-        throw T_Exception(msg);
-    }
+    void init_versions();
 }
 
 

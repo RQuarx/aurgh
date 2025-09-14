@@ -86,7 +86,7 @@ Tab::on_active( TabType          p_tab,
             Json::Value infos  { get_pkgs_info(result["results"]) };
 
             m_pkgs.reserve(infos.size());
-            for (Json::Value pkg : infos)
+            for (const Json::Value &pkg : infos)
                 m_pkgs.emplace_back(pkg);
 
             sort_json(m_pkgs,
@@ -132,9 +132,8 @@ Tab::get_pkgs_info( const Json::Value &p_pkgs ) -> Json::Value
     m_logger->log<INFO>("Fetching information for {} packages.", p_pkgs.size());
     std::string url { std::format("{}/info?", AUR_URL) };
 
-    for (Json::ArrayIndex i { 0 }; i < p_pkgs.size(); i++) {
+    for (Json::ArrayIndex i { 0 }; i < p_pkgs.size(); i++)
         url.append(std::format("arg%5B%5D={}&", p_pkgs[i]["Name"].asString()));
-    }
     url.pop_back();
 
     auto retval { perform_curl(url.c_str()) };
@@ -152,7 +151,7 @@ Tab::get_pkgs_info( const Json::Value &p_pkgs ) -> Json::Value
 
 
 void
-Tab::add_cards_to_box( void )
+Tab::add_cards_to_box()
 {
     for (const auto &pkg : m_pkgs) {
         m_cards.emplace_back(m_logger, pkg, Card::INSTALL);

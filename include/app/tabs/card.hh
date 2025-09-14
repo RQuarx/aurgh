@@ -6,7 +6,6 @@
 #include <json/value.h>
 
 #include "app/package.hh"
-#include "app/types.hh"
 
 namespace Gtk
 {
@@ -21,7 +20,7 @@ namespace app
     class Card
     {
     public:
-        enum Type
+        enum Type : uint8_t
         {
             INSTALL,
             UNINSTALL
@@ -40,18 +39,18 @@ namespace app
 
 
         [[nodiscard]]
-        auto get_widget( void ) -> Gtk::Box *;
+        auto get_widget() -> Gtk::Box *;
 
         [[nodiscard]]
-        auto is_valid( void ) -> bool;
+        auto is_valid() -> bool;
 
         [[nodiscard]]
-        auto get_package( void ) -> Package &;
+        auto get_package() -> Package &;
 
 
-        auto signal_on_add_to_queue( void ) -> Glib::SignalProxy<void>;
-        auto signal_on_install( void ) -> Glib::SignalProxy<void>;
-        auto signal_on_uninstall( void ) -> Glib::SignalProxy<void>;
+        auto signal_on_add_to_queue() -> Glib::SignalProxy<void>;
+        auto signal_on_install() -> Glib::SignalProxy<void>;
+        auto signal_on_uninstall() -> Glib::SignalProxy<void>;
 
 
     private:

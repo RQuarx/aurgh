@@ -87,7 +87,7 @@ App::init_curl( int64_t flags ) const -> res_or_string<void>
 
 
 void
-App::load_css( void ) const
+App::load_css() const
 {
     m_logger->log<INFO>("Loading CSS file.");
     auto css_provider { Gtk::CssProvider::create() };
@@ -117,12 +117,12 @@ App::load_css( void ) const
 
 
 auto
-App::run( void ) -> int32_t
+App::run() -> int32_t
 { return m_app->run(*m_window); }
 
 
 void
-App::setup_tabs( void )
+App::setup_tabs()
 {
     m_logger->log<DEBUG>("Creating tabs");
     auto aur { Gtk::Builder::create_from_file(
@@ -135,7 +135,7 @@ App::setup_tabs( void )
 
 
 void
-App::setup_criteria( void )
+App::setup_criteria()
 {
     m_criteria.search_by->signal_changed().connect(sigc::bind(
         sigc::mem_fun(*this, &App::on_criteria_change),

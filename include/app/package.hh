@@ -8,7 +8,7 @@ namespace Json { class Value; }
 
 namespace app
 {
-    enum PkgInfo
+    enum PkgInfo : uint8_t
     {
         PKG_NAME       = 0,
         PKG_VERSION    = 1,
@@ -65,10 +65,10 @@ namespace app
         auto operator[]( PkgInfo p_info ) -> std::string &;
 
         [[nodiscard]]
-        auto get_keywords( void ) -> const std::vector<std::string> &;
+        auto get_keywords() const -> const std::vector<std::string> &;
 
         [[nodiscard]]
-        auto is_valid( void ) -> bool;
+        auto is_valid() const -> bool;
 
     private:
         std::shared_ptr<Logger> m_logger;

@@ -27,9 +27,9 @@ Logger::Logger( const std::string &p_log_level, const std::string &p_log_file )
             if (level >= MAX) {
                 log<WARN>("Log level too large, using default 'warn' level.");
                 throw std::exception(); /* Trigger the catch */
-            } else {
-                m_threshold_level = static_cast<LogLevel>(level);
             }
+
+            m_threshold_level = static_cast<LogLevel>(level);
         } catch (...) {
             LogLevel level { string_to_loglevel(p_log_level) };
 
@@ -56,7 +56,7 @@ Logger::Logger( const std::string &p_log_level, const std::string &p_log_file )
 
 
 auto
-Logger::get_time( void ) const -> const std::string
+Logger::get_time() -> std::string
 {
     using std::chrono::duration;
     using ms = std::chrono::milliseconds;

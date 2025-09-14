@@ -38,8 +38,8 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
     keywords->set_halign(Gtk::ALIGN_START);
 
     for (const std::string &kw : m_pkg.get_keywords()) {
-        auto frame { Gtk::make_managed<Gtk::Frame>() };
-        auto label { Gtk::make_managed<Gtk::Label>(kw) };
+        auto *frame { Gtk::make_managed<Gtk::Frame>() };
+        auto *label { Gtk::make_managed<Gtk::Label>(kw) };
 
         frame->set_hexpand(false);
         frame->set_halign(Gtk::ALIGN_START);
@@ -76,14 +76,14 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
 
 
 auto
-Card::is_valid( void ) -> bool
+Card::is_valid() -> bool
 { return m_pkg.is_valid(); }
 
 
-Card::~Card( void )
+Card::~Card()
 {}
 
 
 auto
-Card::get_widget( void ) -> Gtk::Box *
+Card::get_widget() -> Gtk::Box *
 { return m_card; }

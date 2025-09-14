@@ -42,3 +42,10 @@ Cli::Cli( const std::shared_ptr<Logger> &p_logger,
     }
     std::println("");
 }
+
+
+auto
+Cli::run() -> int
+{
+    return 1;
+}

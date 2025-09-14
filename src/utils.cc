@@ -24,17 +24,17 @@ namespace
 namespace utils
 {
     auto
-    get_env( const std::string &p_str ) -> std::string
+    get_env( const std::string &p_key ) -> std::string
     {
-        const char *res { std::getenv(p_str.c_str()) };
+        const char *res { std::getenv(p_key.c_str()) };
         return res == nullptr ? "" : res;
     }
 
 
     auto
-    get_prefix_path( void ) -> std::string
+    get_prefix_path() -> std::string
     {
-        std::string result { "" };
+        std::string result;
 
         for (size_t i { 0 }; i < PREFIX_PATH.length(); i++) {
             if (PREFIX_PATH.at(i) == '$' && PREFIX_PATH.at(i + 1) == '{') {
@@ -42,7 +42,7 @@ namespace utils
                 while (PREFIX_PATH.at(end_idx) != '}') end_idx++;
                 std::string var { PREFIX_PATH.substr(i + 2, end_idx - 2) };
 
-                result += get_env(var.c_str());
+                result += get_env(var);
 
                 i += end_idx;
                 continue;

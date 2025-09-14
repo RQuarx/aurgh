@@ -65,13 +65,12 @@ public:
                              m_LABELS.at(T_Level).second,
                              func, file, line) };
 
-            m_log_file << std::format("[{}]: {}", file_label, msg) << std::endl;
+            m_log_file << std::format("[{}]: {}", file_label, msg) << '\n';
+            m_log_file.flush();
         }
 
         if (T_Level < m_threshold_level) return;
-
-        T_Level >= WARN ? std::cerr : std::cout <<
-            std::format("[{}]: \033[1m{}\033[0m", label, msg) << std::endl;
+        std::println(std::cerr, "[{}]: \033[1m{}\033[0m\n", label, msg);
     }
 
 private:
@@ -87,5 +86,5 @@ private:
 
 
     [[nodiscard]]
-    auto get_time( void ) const -> const std::string;
+    static auto get_time() -> std::string;
 };

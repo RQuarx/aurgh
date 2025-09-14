@@ -70,12 +70,12 @@ Package::operator[]( PkgInfo p_info ) -> std::string &
 
 
 auto
-Package::get_keywords( void ) -> const std::vector<std::string> &
+Package::get_keywords() const  -> const std::vector<std::string> &
 { return m_pkg.keywords; }
 
 
 auto
-Package::is_valid( void ) -> bool
+Package::is_valid() const -> bool
 { return m_valid; }
 
 

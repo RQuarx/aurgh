@@ -48,9 +48,9 @@ namespace app
 
     /** @brief A write callback function for libCURL. */
     auto write_callback( void       *p_contents,
-                        size_t       p_size,
-                        size_t       p_nmemb,
-                        std::string &p_userp ) -> size_t;
+                         size_t       p_size,
+                         size_t       p_nmemb,
+                         std::string &p_userp ) -> size_t;
 
 
     /**

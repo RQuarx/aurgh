@@ -25,7 +25,7 @@ namespace app
 
 
         /* Runs the application. */
-        auto run( void ) -> int32_t;
+        auto run() -> int32_t;
 
     private:
         Glib::RefPtr<Gtk::Application> m_app;
@@ -64,11 +64,11 @@ namespace app
          *
          * @throw This function may throw an std::runtime_error with no messages.
          */
-        void load_css( void ) const;
+        void load_css() const;
 
         void on_tab_button_pressed( Gtk::ToggleButton *p_button );
-        void setup_tabs( void );
-        void setup_criteria( void );
+        void setup_tabs();
+        void setup_criteria();
         void on_criteria_change( CriteriaType p_type, TabType p_tab = TAB_NONE );
     };
 }
