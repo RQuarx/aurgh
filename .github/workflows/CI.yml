@@ -36,6 +36,7 @@ jobs:
             lld \
             gtkmm3-dev \
             glibmm-dev \
+            curl-dev \
             pkgconf \
             python3 \
             py3-pip \
@@ -67,6 +68,7 @@ jobs:
             lld \
             gtkmm3-dev \
             glibmm-dev \
+            curl-dev \
             pkgconf \
             python3 \
             py3-pip \
