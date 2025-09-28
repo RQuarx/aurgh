@@ -20,17 +20,29 @@ jobs:
     name: "Build AURGH - clang"
     runs-on: ubuntu-latest
     container:
-      image: archlinux
+      image: alpine:latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        shell: bash
+        shell: sh
         run: |
-          sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
-          pacman -Syyu --noconfirm --noprogressbar --needed - < .github/deps.txt
+          apk update
+          apk add --no-cache \
+            build-base \
+            cmake \
+            meson \
+            clang \
+            lld \
+            gtkmm3-dev \
+            glibmm-dev \
+            pkgconf \
+            python3 \
+            py3-pip \
+            git
 
       - name: compile
+        shell: sh
         run: |
           CXX=clang++ CXX_LD=lld meson setup target
           meson compile -C target
@@ -39,17 +51,29 @@ jobs:
     name: "Build AURGH - gcc"
     runs-on: ubuntu-latest
     container:
-      image: archlinux
+      image: alpine:latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        shell: bash
+        shell: sh
         run: |
-          sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
-          pacman -Syyu --noconfirm --noprogressbar --needed - < .github/deps.txt
+          apk update
+          apk add --no-cache \
+            build-base \
+            cmake \
+            meson \
+            clang \
+            lld \
+            gtkmm3-dev \
+            glibmm-dev \
+            pkgconf \
+            python3 \
+            py3-pip \
+            git
 
       - name: compile
+        shell: sh
         run: |
           CXX=g++ CXX_LD=bfd meson setup target
           meson compile -C target
