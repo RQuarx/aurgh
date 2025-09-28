@@ -21,7 +21,7 @@ main( int32_t p_argc, char **p_argv ) -> int
 
     if (getuid() == 0) {
         auto cli { cli::Cli::init(logger, p_argc, p_argv) };
-        return (*cli).run();
+        return cli->run();
     }
 
     /* Initializes version values in utils::VERSIONS */

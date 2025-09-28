@@ -1,9 +1,7 @@
-base
-base-devel
-cmake
+pkg-config
 meson
+curl
 clang
 lld
 gtkmm3
-glibmm
-pkg-config
+jsoncpp
