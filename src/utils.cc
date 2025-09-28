@@ -10,17 +10,6 @@
 #include "utils.hh"
 
 
-namespace
-{
-    template<typename... T_Args>
-    auto a_format( std::string_view fmt, T_Args &&...args ) -> std::string
-    {
-        std::string str { std::vformat(fmt, std::make_format_args(args...)) };
-        return str;
-    }
-}
-
-
 namespace utils
 {
     auto

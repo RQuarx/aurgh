@@ -13,8 +13,7 @@ static constexpr std::string_view
 
 
 /* A list of where the program should search for data dir */
-/* Doesnt support environment variables */
-static constexpr std::array<std::string_view, 2> DATA_SEARCH_PATHS {{
-    ".",
-    "/usr/share/aurgh"
-}};
+/* doesn't support environment variables */
+static constexpr std::array<std::string_view, 2> DATA_SEARCH_PATHS {
+    ".", "/usr/share/aurgh"
+};

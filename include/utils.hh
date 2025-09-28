@@ -18,10 +18,11 @@ namespace utils
 
 
     template<typename... T_Args>
-    auto unexpected( std::string_view fmt,
-                     T_Args      &&...args ) -> std::unexpected<std::string>
+    auto unexpected( std::string_view p_fmt,
+                     T_Args      &&...p_args ) -> std::unexpected<std::string>
     {
-        std::string msg { std::vformat(fmt, std::make_format_args(args...)) };
+        std::string msg {
+            std::vformat(p_fmt, std::make_format_args(p_args...)) };
         return std::unexpected<std::string>(msg);
     }
 

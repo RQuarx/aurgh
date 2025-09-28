@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="3.0"/>
+  <requires lib="gtk" version="3.0" />
 
   <object class="GtkWindow" id="aurgh_window">
 
@@ -16,80 +16,53 @@
         <property name="orientation">vertical</property>
         <child>
 
-          <object class="GtkBox">
+          <object class="GtkFrame">
 
-            <property name="name">aurgh-top-container</property>
-            <property name="hexpand">true</property>
-            <property name="visible">true</property>
-            <property name="valign">start</property>
-            <property name="halign">fill</property>
             <child>
 
               <object class="GtkBox">
 
-                <property name="name">aurgh-tabs-container</property>
+                <property name="name">aurgh-top-container</property>
                 <property name="hexpand">true</property>
-                <property name="halign">start</property>
-                <child>
-
-                  <object class="GtkToggleButton" id="aur_tab_button">
-
-                    <property name="label">AUR</property>
-                    <property name="name">aurgh-tab-buttons</property>
-                  </object>
-
-                </child>
-
-                <child>
-                  <object class="GtkToggleButton" id="main_tab_button">
-
-                    <property name="label">Main</property>
-                    <property name="name">aurgh-tab-buttons</property>
-                  </object>
-                </child>
-
-                <child>
-                  <object class="GtkToggleButton" id="installed_tab_button">
-
-                    <property name="label">Installed</property>
-                    <property name="name">aurgh-tab-buttons</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-
-            <child>
-
-              <object class="GtkBox">
-
-                <property name="halign">end</property>
-                <property name="spacing">10</property>
+                <property name="visible">true</property>
+                <property name="valign">start</property>
+                <property name="halign">fill</property>
                 <child>
 
                   <object class="GtkBox">
 
-                    <property name="halign">end</property>
+                    <property name="name">aurgh-tabs-container</property>
+                    <property name="hexpand">true</property>
+                    <property name="halign">start</property>
+
+                    <property name="margin-bottom">10</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-end">10</property>
+                    <property name="margin-top">10</property>
+                    <property name="spacing">5</property>
                     <child>
 
-                      <object class="GtkLabel">
+                      <object class="GtkToggleButton" id="aur_tab_button">
 
-                        <property name="name">aurgh-criteria-labels</property>
-                        <property name="label">search by</property>
+                        <property name="label">AUR</property>
+                        <property name="name">aurgh-tab-buttons</property>
+                      </object>
+
+                    </child>
+
+                    <child>
+                      <object class="GtkToggleButton" id="main_tab_button">
+
+                        <property name="label">Main</property>
+                        <property name="name">aurgh-tab-buttons</property>
                       </object>
                     </child>
+
                     <child>
+                      <object class="GtkToggleButton" id="installed_tab_button">
 
-                      <object class="GtkComboBoxText"
-                        id="aurgh_search_by_combo">
-
-                        <property name="name">aurgh-criteria-combos</property>
-                        <items>
-
-                          <item id="name">Name</item>
-                          <item id="name-desc">Name &#38; Description</item>
-                          <item id="maintainer">Maintainer</item>
-                          <item id="keywords">Keywords</item>
-                        </items>
+                        <property name="label">Installed</property>
+                        <property name="name">aurgh-tab-buttons</property>
                       </object>
                     </child>
                   </object>
@@ -100,25 +73,95 @@
                   <object class="GtkBox">
 
                     <property name="halign">end</property>
+
+                    <property name="margin-bottom">10</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-end">10</property>
+                    <property name="margin-top">10</property>
+                    <property name="spacing">10</property>
                     <child>
 
-                      <object class="GtkLabel">
+                      <object class="GtkBox">
 
-                        <property name="name">aurgh-criteria-labels</property>
-                        <property name="label">sort by</property>
+                        <property name="halign">end</property>
+                        <property name="spacing">10</property>
+                        <child>
+
+                          <object class="GtkLabel">
+
+                            <property name="name">aurgh-criteria-labels</property>
+                            <property name="label">search by:</property>
+                          </object>
+                        </child>
+                        <child>
+
+                          <object class="GtkComboBoxText"
+                            id="aurgh_search_by_combo">
+
+                            <property name="name">aurgh-criteria-combos</property>
+                            <items>
+
+                              <item id="name">Name</item>
+                              <item id="name-desc">Name &#38; Description</item>
+                              <item id="maintainer">Maintainer</item>
+                              <item id="keywords">Keywords</item>
+                            </items>
+                          </object>
+                        </child>
                       </object>
                     </child>
+
                     <child>
 
-                      <object class="GtkComboBoxText" id="aurgh_sort_by_combo">
+                      <object class="GtkBox">
 
-                        <property name="name">aurgh-criteria-combos</property>
-                        <items>
+                        <property name="halign">end</property>
+                        <property name="spacing">10</property>
+                        <child>
 
-                          <item id="Name">Name</item>
-                          <item id="Popularity">Popularity</item>
-                          <item id="NumVotes">Votes</item>
-                        </items>
+                          <object class="GtkLabel">
+
+                            <property name="name">aurgh-criteria-labels</property>
+                            <property name="label">sort by:</property>
+                          </object>
+                        </child>
+                        <child>
+
+                          <object class="GtkComboBoxText" id="aurgh_sort_by_combo">
+
+                            <property name="name">aurgh-criteria-combos</property>
+                            <items>
+
+                              <item id="Name">Name</item>
+                              <item id="Popularity">Popularity</item>
+                              <item id="NumVotes">Votes</item>
+                            </items>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+
+                      <object class="GtkBox">
+
+                        <property name="halign">end</property>
+                        <property name="spacing">10</property>
+                        <child>
+
+                          <object class="GtkLabel">
+
+                            <property name="name">aurgh-criteria-labels</property>
+                            <property name="label">reverse:</property>
+                          </object>
+                        </child>
+                        <child>
+
+                          <object class="GtkCheckButton" id="aurgh_reverse_check">
+
+                            <property name="name">aurgh-reverse-check</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
@@ -128,39 +171,21 @@
 
                   <object class="GtkBox">
 
+                    <property name="name">aurgh-search-container</property>
                     <property name="halign">end</property>
+
+                    <property name="margin-bottom">10</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-end">10</property>
+                    <property name="margin-top">10</property>
                     <child>
 
-                      <object class="GtkLabel">
+                      <object class="GtkSearchEntry" id="aurgh_search_entry">
 
-                        <property name="name">aurgh-criteria-labels</property>
-                        <property name="label">reverse</property>
+                        <property name="placeholder-text">Search package</property>
+                        <property name="name">aurgh-search-entry</property>
                       </object>
                     </child>
-                    <child>
-
-                      <object class="GtkCheckButton" id="aurgh_reverse_check">
-
-                        <property name="name">aurgh-reverse-check</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-
-            <child>
-
-              <object class="GtkBox">
-
-                <property name="name">aurgh-search-container</property>
-                <property name="halign">end</property>
-                <child>
-
-                  <object class="GtkSearchEntry" id="aurgh_search_entry">
-
-                    <property name="placeholder-text">Search package</property>
-                    <property name="name">aurgh-search-entry</property>
                   </object>
                 </child>
               </object>

@@ -1,9 +1,9 @@
 #pragma once
 #include <expected>
-#include <cstdint>
 #include <string>
 #include <sigc++/signal.h>
 #include <json/value.h>
+#include "aliases.hh"
 
 namespace Gtk
 {

@@ -10,6 +10,7 @@
 namespace Gtk
 {
     class ToggleButton;
+    class Frame;
     class Box;
 }
 class Logger;
@@ -39,7 +40,7 @@ namespace app
 
 
         [[nodiscard]]
-        auto get_widget() -> Gtk::Box *;
+        auto get_widget() -> Gtk::Frame *;
 
         [[nodiscard]]
         auto is_valid() -> bool;
@@ -58,7 +59,7 @@ namespace app
 
         Package m_pkg;
 
-        Gtk::Box *m_card;
+        Gtk::Frame *m_card;
 
         Gtk::ToggleButton *m_install;
         Gtk::ToggleButton *m_add_to_queue;

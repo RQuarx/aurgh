@@ -70,7 +70,7 @@ public:
         }
 
         if (T_Level < m_threshold_level) return;
-        std::println(std::cerr, "[{}]: \033[1m{}\033[0m\n", label, msg);
+        std::println(std::cerr, "[{}]: \033[1m{}\033[0m", label, msg);
     }
 
 private:

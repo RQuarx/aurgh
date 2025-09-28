@@ -51,7 +51,7 @@ Logger::Logger( const std::string &p_log_level, const std::string &p_log_file )
     }
 
     log<DEBUG>("Logger instance successfully created with a log-level of {}",
-                m_LABELS.at(m_threshold_level).second);
+                m_LABELS[m_threshold_level].second);
 }
 
 

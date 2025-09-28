@@ -12,7 +12,7 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
             const Type                    &p_card_type ) :
     m_logger(p_logger),
     m_pkg(m_logger, p_pkg),
-    m_card(Gtk::make_managed<Gtk::Box>()),
+    m_card(Gtk::make_managed<Gtk::Frame>()),
     m_install(Gtk::make_managed<Gtk::ToggleButton>()),
     m_add_to_queue(Gtk::make_managed<Gtk::ToggleButton>()),
     m_uninstall(Gtk::make_managed<Gtk::ToggleButton>())
@@ -41,12 +41,21 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
         auto *frame { Gtk::make_managed<Gtk::Frame>() };
         auto *label { Gtk::make_managed<Gtk::Label>(kw) };
 
+        label->set_margin_bottom(10);
+        label->set_margin_start(10);
+        label->set_margin_top(10);
+        label->set_margin_end(10);
+
         frame->set_hexpand(false);
         frame->set_halign(Gtk::ALIGN_START);
         frame->add(*label);
         keywords->pack_start(*frame);
     }
 
+    info_box->set_margin_bottom(10);
+    info_box->set_margin_start(10);
+    info_box->set_margin_top(10);
+    info_box->set_margin_end(10);
     info_box->set_spacing(10);
     info_box->pack_start(*name_ver);
     info_box->pack_start(*desc);
@@ -63,9 +72,12 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
     m_uninstall->set_image_from_icon_name("list-remove-symbolic");
 
     m_card->set_halign(Gtk::ALIGN_FILL);
-    m_card->set_spacing(10);
+    m_card->set_margin_bottom(10);
+    m_card->set_margin_start(10);
+    // m_card->set_margin_top(10);
+    m_card->set_margin_end(10);
     m_card->set_name("card-container");
-    m_card->pack_start(*info_box);
+    m_card->add(*info_box);
     m_card->show_all_children();
 
     if (p_card_type == Card::INSTALL)
@@ -85,5 +97,5 @@ Card::~Card()
 
 
 auto
-Card::get_widget() -> Gtk::Box *
+Card::get_widget() -> Gtk::Frame *
 { return m_card; }
