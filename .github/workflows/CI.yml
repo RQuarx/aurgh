@@ -16,68 +16,33 @@ permissions:
   contents: read
 
 jobs:
-  clang:
-    name: "Build AURGH - clang"
+  build:
+    name: "Build AURGH - ${{ matrix.compiler }}"
     runs-on: ubuntu-latest
     container:
-      image: alpine:latest
+      image: archlinux:latest
+
+    strategy:
+      matrix:
+        compiler: [clang, gcc]
+        include:
+          - compiler: clang
+            cxx: clang++
+            cxx_ld: lld
+          - compiler: gcc
+            cxx: g++
+            cxx_ld: bfd
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        shell: sh
+        shell: bash
         run: |
-          apk update
-          apk add --no-cache \
-            build-base \
-            cmake \
-            meson \
-            clang \
-            lld \
-            gtkmm3-dev \
-            glibmm-dev \
-            curl-dev \
-            jsoncpp-dev \
-            pkgconf \
-            python3 \
-            py3-pip \
-            git
+          sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
+          pacman -Syyu --noconfirm --noprogressbar --needed - < .github/deps.txt
 
-      - name: compile
-        shell: sh
+      - name: Compile with ${{ matrix.compiler }}
         run: |
-          CXX=clang++ CXX_LD=lld meson setup target
-          meson compile -C target
-
-  gcc:
-    name: "Build AURGH - gcc"
-    runs-on: ubuntu-latest
-    container:
-      image: alpine:latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        shell: sh
-        run: |
-          apk update
-          apk add --no-cache \
-            build-base \
-            cmake \
-            meson \
-            clang \
-            lld \
-            gtkmm3-dev \
-            glibmm-dev \
-            curl-dev \
-            jsoncpp-dev \
-            pkgconf \
-            python3 \
-            py3-pip \
-            git
-
-      - name: compile
-        shell: sh
-        run: |
-          CXX=g++ CXX_LD=bfd meson setup target
+          CXX=${{ matrix.cxx }} CXX_LD=${{ matrix.cxx_ld }} meson setup target
           meson compile -C target
