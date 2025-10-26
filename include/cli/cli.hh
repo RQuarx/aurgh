@@ -1,7 +1,6 @@
 #pragma once
-#include <optional>
 #include <memory>
-#include "aliases.hh"
+#include <optional>
 
 class Logger;
 
@@ -12,10 +11,9 @@ namespace cli
     {
     public:
         [[nodiscard]]
-        static auto init( const std::shared_ptr<Logger> &p_logger,
-                          const int32_t                 &p_argc,
-                          char                         **p_argv
-                        ) -> std::optional<Cli>;
+        static auto init(const std::shared_ptr<Logger> &p_logger,
+                         const int32_t                 &p_argc,
+                         char **p_argv) -> std::optional<Cli>;
 
 
         auto run() -> int;
@@ -23,9 +21,9 @@ namespace cli
     private:
         std::shared_ptr<Logger> m_logger;
 
-        Cli( const std::shared_ptr<Logger> &p_logger,
-             const int32_t                 &p_argc,
-             char                         **p_argv,
-             bool                          &p_err );
+        Cli(const std::shared_ptr<Logger> &p_logger,
+            const int32_t                 &p_argc,
+            char                         **p_argv,
+            bool                          &p_err);
     };
 }

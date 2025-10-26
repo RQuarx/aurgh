@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
+
 #include <gtkmm.h>
+
 #include "app/tabs/aur.hh"
 #include "app/types.hh"
 
@@ -21,7 +23,7 @@ namespace app
     class App
     {
     public:
-        App( const std::shared_ptr<Logger> &p_logger );
+        App(const std::shared_ptr<Logger> &p_logger);
 
 
         /* Runs the application. */
@@ -29,7 +31,7 @@ namespace app
 
     private:
         Glib::RefPtr<Gtk::Application> m_app;
-        std::shared_ptr<Logger>      m_logger;
+        std::shared_ptr<Logger>        m_logger;
 
         Gtk::Window *m_window;
 
@@ -48,15 +50,14 @@ namespace app
         signal_type m_signal;
 
     protected:
-
         /**
          * @brief Initialize libCURL.
          *
          * @param p_flags Initialization flag that will be passed to curl_global_init.
          * @return Expected nothing, and an error message on error.
          */
-        auto init_curl( int64_t p_flags
-                      ) const -> std::expected<void, std::string>;
+        auto init_curl(int64_t p_flags) const
+            -> std::expected<void, std::string>;
 
 
         /**
@@ -66,9 +67,9 @@ namespace app
          */
         void load_css() const;
 
-        void on_tab_button_pressed( Gtk::ToggleButton *p_button );
+        void on_tab_button_pressed(Gtk::ToggleButton *p_button);
         void setup_tabs();
         void setup_criteria();
-        void on_criteria_change( CriteriaType p_type, TabType p_tab = TAB_NONE );
+        void on_criteria_change(CriteriaType p_type, TabType p_tab = TAB_NONE);
     };
 }

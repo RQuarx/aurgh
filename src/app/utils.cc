@@ -10,13 +10,14 @@
 namespace app
 {
     auto
-    get_app_file( const std::string &p_file_path ) -> std::string
+    get_app_file(const std::string &p_file_path) -> std::string
     {
-        for (std::filesystem::path base : DATA_SEARCH_PATHS) {
-            if (std::filesystem::exists( base / p_file_path ))
+        for (std::filesystem::path base : DATA_SEARCH_PATHS)
+        {
+            if (std::filesystem::exists(base / p_file_path))
                 return (base / p_file_path);
 
-            if (std::filesystem::exists( base / "data" / p_file_path ))
+            if (std::filesystem::exists(base / "data" / p_file_path))
                 return (base / "data" / p_file_path);
         }
 
@@ -25,18 +26,22 @@ namespace app
 
 
     auto
-    get_builder( const std::string &p_file_path
-                ) -> std::expected<builder, std::string>
+    get_builder(const std::string &p_file_path)
+        -> std::expected<builder, std::string>
     {
         const std::string ui_file { get_app_file(p_file_path) };
-        if (ui_file.empty()) {
+        if (ui_file.empty())
+        {
             return utils::unexpected("App file {} does not exist", p_file_path);
         }
 
         Glib::RefPtr<Gtk::Builder> builder;
-        try {
+        try
+        {
             builder = Gtk::Builder::create_from_file(ui_file);
-        } catch (const Glib::Error &e) {
+        }
+        catch (const Glib::Error &e)
+        {
             return utils::unexpected(e.what().raw());
         }
 
@@ -45,10 +50,10 @@ namespace app
 
 
     auto
-    write_callback( void        *p_contents,
-                    size_t       p_size,
-                    size_t       p_nmemb,
-                    std::string &p_userp ) -> size_t
+    write_callback(void        *p_contents,
+                   size_t       p_size,
+                   size_t       p_nmemb,
+                   std::string &p_userp) -> size_t
     {
         size_t total_size { p_size * p_nmemb };
         p_userp.append(static_cast<char *>(p_contents), total_size);
@@ -57,7 +62,7 @@ namespace app
 
 
     auto
-    perform_curl( const char *p_url ) -> std::expected<std::string, CURLcode>
+    perform_curl(const char *p_url) -> std::expected<std::string, CURLcode>
     {
         CURL *curl { curl_easy_init() };
 

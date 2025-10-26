@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+
 #include "log.hh"
 
 namespace Json { class Value; }
@@ -21,21 +22,25 @@ namespace app
     struct Pkg
     {
         std::array<std::string, 6> info;
-        std::vector<std::string> keywords;
-        bool installed;
+        std::vector<std::string>   keywords;
+        bool                       installed { false };
 
-        Pkg( void ) : installed(false)
-        { keywords.reserve(10); }
+        Pkg() { keywords.reserve(10); }
 
 
         void
-        add_keyword( const std::string &p_keyword )
-        { keywords.emplace_back(p_keyword); }
+        add_keyword(const std::string &p_keyword)
+        {
+            keywords.emplace_back(p_keyword);
+        }
 
 
         [[nodiscard]]
-        auto operator[]( PkgInfo p_type ) -> std::string &
-        { return info.at(p_type); }
+        auto
+        operator[](PkgInfo p_type) -> std::string &
+        {
+            return info.at(p_type);
+        }
     };
 
 
@@ -50,19 +55,19 @@ namespace app
          * @param p_pkg_name The name of the package.
          * @param p_system   Whether to use the AUR or libalpm.
          */
-        Package( const std::shared_ptr<Logger> &p_logger,
-                 const std::string             &p_pkg_name,
-                 bool                           p_system = false );
+        Package(const std::shared_ptr<Logger> &p_logger,
+                const std::string             &p_pkg_name,
+                bool                           p_system = false);
 
         /**
          * @brief This ctor will accept a Json::Value object instead of creating
          *        a GET request to find the information about a package.
          */
-        Package( const std::shared_ptr<Logger> &p_logger,
-                 const Json::Value             &p_pkg_info );
+        Package(const std::shared_ptr<Logger> &p_logger,
+                const Json::Value             &p_pkg_info);
 
         [[nodiscard]]
-        auto operator[]( PkgInfo p_info ) -> std::string &;
+        auto operator[](PkgInfo p_info) -> std::string &;
 
         [[nodiscard]]
         auto get_keywords() const -> const std::vector<std::string> &;
@@ -72,10 +77,10 @@ namespace app
 
     private:
         std::shared_ptr<Logger> m_logger;
-        bool m_valid;
-        Pkg  m_pkg;
+        bool                    m_valid;
+        Pkg                     m_pkg;
 
         [[nodiscard]]
-        auto json_to_pkg( const Json::Value &p_json ) -> bool;
+        auto json_to_pkg(const Json::Value &p_json) -> bool;
     };
 }

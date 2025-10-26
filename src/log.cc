@@ -1,57 +1,65 @@
-#include <cstring>
 #include <chrono>
+#include <cstring>
+
 #include "log.hh"
 
 
 namespace
 {
     auto
-    string_to_loglevel( const std::string &p_str ) -> LogLevel
+    string_to_loglevel(const std::string &p_str) -> LogLevel
     {
         if (p_str.contains("debug")) return DEBUG;
-        if (p_str.contains("info" )) return INFO;
-        if (p_str.contains("warn" )) return WARN;
+        if (p_str.contains("info")) return INFO;
+        if (p_str.contains("warn")) return WARN;
         if (p_str.contains("error")) return ERROR;
         return MAX;
     }
 }
 
 
-Logger::Logger( const std::string &p_log_level, const std::string &p_log_file )
+Logger::Logger(const std::string &p_log_level, const std::string &p_log_file)
 {
-    if (p_log_level.empty()) {
-        m_threshold_level = WARN;
-    } else {
-        try {
+    if (p_log_level.empty()) { m_threshold_level = WARN; }
+    else
+        try
+        {
             int32_t level { std::stoi(p_log_level) };
-            if (level >= MAX) {
+            if (level >= MAX)
+            {
                 log<WARN>("Log level too large, using default 'warn' level.");
                 throw std::exception(); /* Trigger the catch */
             }
 
             m_threshold_level = static_cast<LogLevel>(level);
-        } catch (...) {
+        }
+        catch (...)
+        {
             LogLevel level { string_to_loglevel(p_log_level) };
 
-            if (level == MAX) {
+            if (level == MAX)
+            {
                 log<WARN>("Invalid log level {}, using default 'warn' level",
-                           p_log_level);
+                          p_log_level);
                 m_threshold_level = WARN;
-            } else m_threshold_level = level;
+            }
+            else
+                m_threshold_level = level;
         }
-    }
 
-    if (!p_log_file.empty()) {
+    if (!p_log_file.empty())
+    {
         m_log_file.open(p_log_file, std::ios_base::app);
-        if (m_log_file.fail() && !m_log_file.eof()) {
-            log<ERROR>("Failed to open {}: {}",
-                        p_log_file, std::strerror(errno));
+        if (m_log_file.fail() && !m_log_file.eof())
+        {
+            log<ERROR>("Failed to open {}: {}", p_log_file,
+                       std::strerror(errno));
             throw std::exception();
         }
     }
 
     log<DEBUG>("Logger instance successfully created with a log-level of {}",
-                m_LABELS[m_threshold_level].second);
+               m_LABELS[m_threshold_level].second);
 }
 
 
@@ -64,10 +72,10 @@ Logger::get_time() -> std::string
     using s  = std::chrono::seconds;
 
     duration now { std::chrono::system_clock::now().time_since_epoch() };
-    ms millis    { std::chrono::duration_cast<ms>(now) % 1000 };
-    m  minutes   { std::chrono::duration_cast<m >(now) % 60 };
-    s  seconds   { std::chrono::duration_cast<s >(now) % 60 };
+    ms       millis { std::chrono::duration_cast<ms>(now) % 1000 };
+    m        minutes { std::chrono::duration_cast<m>(now) % 60 };
+    s        seconds { std::chrono::duration_cast<s>(now) % 60 };
 
-    return std::format("{:02}:{:02}.{:03}",
-                        minutes.count(), seconds.count(), millis.count());
+    return std::format("{:02}:{:02}.{:03}", minutes.count(), seconds.count(),
+                       millis.count());
 }

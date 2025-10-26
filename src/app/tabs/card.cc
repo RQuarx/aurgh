@@ -1,32 +1,31 @@
 #include <gtkmm.h>
 
-#include "app/tabs/card.hh"
 #include "app/package.hh"
+#include "app/tabs/card.hh"
 #include "log.hh"
 
 using app::Card;
 
 
-Card::Card( const std::shared_ptr<Logger> &p_logger,
-            const Json::Value             &p_pkg,
-            const Type                    &p_card_type ) :
-    m_logger(p_logger),
-    m_pkg(m_logger, p_pkg),
-    m_card(Gtk::make_managed<Gtk::Frame>()),
-    m_install(Gtk::make_managed<Gtk::ToggleButton>()),
-    m_add_to_queue(Gtk::make_managed<Gtk::ToggleButton>()),
-    m_uninstall(Gtk::make_managed<Gtk::ToggleButton>())
+Card::Card(const std::shared_ptr<Logger> &p_logger,
+           const Json::Value             &p_pkg,
+           const Type                    &p_card_type)
+    : m_logger(p_logger), m_pkg(m_logger, p_pkg),
+      m_card(Gtk::make_managed<Gtk::Frame>()),
+      m_install(Gtk::make_managed<Gtk::ToggleButton>()),
+      m_add_to_queue(Gtk::make_managed<Gtk::ToggleButton>()),
+      m_uninstall(Gtk::make_managed<Gtk::ToggleButton>())
 {
-    auto *info_box   { Gtk::make_managed<Gtk::VBox>() };
+    auto *info_box { Gtk::make_managed<Gtk::VBox>() };
     auto *button_box { Gtk::make_managed<Gtk::VBox>() };
 
     auto *name_ver { Gtk::make_managed<Gtk::Label>() };
-    auto *desc     { Gtk::make_managed<Gtk::Label>() };
-    auto *keywords { Gtk::make_managed<Gtk::Box>()   };
+    auto *desc { Gtk::make_managed<Gtk::Label>() };
+    auto *keywords { Gtk::make_managed<Gtk::Box>() };
 
-    name_ver->set_markup(std::format(
-                        "<span size='xx-large'><b>{}</b></span>    {}",
-                         m_pkg[PKG_NAME], m_pkg[PKG_VERSION]));
+    name_ver->set_markup(
+        std::format("<span size='xx-large'><b>{}</b></span>    {}",
+                    m_pkg[PKG_NAME], m_pkg[PKG_VERSION]));
     name_ver->set_halign(Gtk::ALIGN_START);
 
     desc->set_markup(std::format("<big>{}</big>", m_pkg[PKG_DESC]));
@@ -37,7 +36,8 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
     keywords->set_spacing(10);
     keywords->set_halign(Gtk::ALIGN_START);
 
-    for (const std::string &kw : m_pkg.get_keywords()) {
+    for (const std::string &kw : m_pkg.get_keywords())
+    {
         auto *frame { Gtk::make_managed<Gtk::Frame>() };
         auto *label { Gtk::make_managed<Gtk::Label>(kw) };
 
@@ -89,13 +89,16 @@ Card::Card( const std::shared_ptr<Logger> &p_logger,
 
 auto
 Card::is_valid() -> bool
-{ return m_pkg.is_valid(); }
+{
+    return m_pkg.is_valid();
+}
 
 
-Card::~Card()
-{}
+Card::~Card() {}
 
 
 auto
 Card::get_widget() -> Gtk::Frame *
-{ return m_card; }
+{
+    return m_card;
+}

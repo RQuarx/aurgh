@@ -1,13 +1,10 @@
 #pragma once
 #include <expected>
 #include <string>
+
 #include <curl/curl.h>
 
-namespace Glib
-{
-    template<typename T_CppObject>
-    class RefPtr;
-}
+namespace Glib { template <typename T_CppObject> class RefPtr; }
 namespace Gtk { class Builder; }
 
 using builder = Glib::RefPtr<Gtk::Builder>;
@@ -29,7 +26,7 @@ namespace app
      * If none of the check paths exist,
      * then the function will return an empty string.
      */
-    auto get_app_file( const std::string &p_file_path ) -> std::string;
+    auto get_app_file(const std::string &p_file_path) -> std::string;
 
 
     /**
@@ -42,15 +39,15 @@ namespace app
      *
      * @note This function is a wrapper for get_app_file.
      */
-    auto get_builder( const std::string &p_file_path
-                    ) -> std::expected<builder, std::string>;
+    auto get_builder(const std::string &p_file_path)
+        -> std::expected<builder, std::string>;
 
 
     /** @brief A write callback function for libCURL. */
-    auto write_callback( void       *p_contents,
-                         size_t       p_size,
-                         size_t       p_nmemb,
-                         std::string &p_userp ) -> size_t;
+    auto write_callback(void        *p_contents,
+                        size_t       p_size,
+                        size_t       p_nmemb,
+                        std::string &p_userp) -> size_t;
 
 
     /**
@@ -60,6 +57,6 @@ namespace app
      * @return An std::expected<std::string, CURLcode> object, where the expected
      *         std::string object would contain the result of the GET request.
      */
-    auto perform_curl( const char *p_url
-                     ) -> std::expected<std::string, CURLcode>;
+    auto perform_curl(const char *p_url)
+        -> std::expected<std::string, CURLcode>;
 }

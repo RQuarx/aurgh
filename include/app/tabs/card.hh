@@ -2,8 +2,8 @@
 #include <memory>
 
 #include <glibmm/signalproxy.h>
-#include <sigc++/signal.h>
 #include <json/value.h>
+#include <sigc++/signal.h>
 
 #include "app/package.hh"
 
@@ -28,15 +28,15 @@ namespace app
         };
 
 
-        Card( const std::shared_ptr<Logger> &p_logger,
-              const std::string             &p_pkg_name,
-              const Type                    &p_card_type );
+        Card(const std::shared_ptr<Logger> &p_logger,
+             const std::string             &p_pkg_name,
+             const Type                    &p_card_type);
 
-        Card( const std::shared_ptr<Logger> &p_logger,
-              const Json::Value             &p_pkg,
-              const Type                    &p_card_type );
+        Card(const std::shared_ptr<Logger> &p_logger,
+             const Json::Value             &p_pkg,
+             const Type                    &p_card_type);
 
-        ~Card( void );
+        ~Card(void);
 
 
         [[nodiscard]]

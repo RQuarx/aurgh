@@ -1,8 +1,8 @@
 #pragma once
-#include <string_view>
 #include <array>
+#include <string_view>
 
-
+/* clang-format off */
 static constexpr std::string_view
     AUR_URL     { "https://aur.archlinux.org/rpc/v5" },
     SOCK_PATH   { "/tmp/aur_graphical_helper.sock" },
@@ -17,3 +17,4 @@ static constexpr std::string_view
 static constexpr std::array<std::string_view, 2> DATA_SEARCH_PATHS {
     ".", "/usr/share/aurgh"
 };
+/* clang-format on */

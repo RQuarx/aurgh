@@ -1,10 +1,10 @@
 #include <format>
 
+#include <alpm.h>
+#include <curl/curl.h>
 #include <gtkmmconfig.h>
 #include <json/reader.h>
 #include <json/value.h>
-#include <curl/curl.h>
-#include <alpm.h>
 
 #include "config.hh"
 #include "utils.hh"
@@ -13,7 +13,7 @@
 namespace utils
 {
     auto
-    get_env( const std::string &p_key ) -> std::string
+    get_env(const std::string &p_key) -> std::string
     {
         const char *res { std::getenv(p_key.c_str()) };
         return res == nullptr ? "" : res;
@@ -25,8 +25,10 @@ namespace utils
     {
         std::string result;
 
-        for (size_t i { 0 }; i < PREFIX_PATH.length(); i++) {
-            if (PREFIX_PATH.at(i) == '$' && PREFIX_PATH.at(i + 1) == '{') {
+        for (size_t i { 0 }; i < PREFIX_PATH.length(); i++)
+        {
+            if (PREFIX_PATH.at(i) == '$' && PREFIX_PATH.at(i + 1) == '{')
+            {
                 size_t end_idx { i + 2 };
                 while (PREFIX_PATH.at(end_idx) != '}') end_idx++;
                 std::string var { PREFIX_PATH.substr(i + 2, end_idx - 2) };
@@ -45,11 +47,11 @@ namespace utils
 
 
     void
-    init_versions( void )
+    init_versions(void)
     {
-        VERSIONS["gtkmm"] = std::format("{}.{}.{}", GTKMM_MAJOR_VERSION,
-                                                    GTKMM_MINOR_VERSION,
-                                                    GTKMM_MICRO_VERSION);
+        VERSIONS["gtkmm"]
+            = std::format("{}.{}.{}", GTKMM_MAJOR_VERSION, GTKMM_MINOR_VERSION,
+                          GTKMM_MICRO_VERSION);
         VERSIONS["libcurl"] = curl_version_info(CURLVERSION_NOW)->version;
         VERSIONS["jsoncpp"] = JSONCPP_VERSION_STRING;
         VERSIONS["libalpm"] = alpm_version();
@@ -59,14 +61,17 @@ namespace utils
 namespace Json
 {
     auto
-    from_string( const std::string &p_str ) -> Json::Value
+    from_string(const std::string &p_str) -> Json::Value
     {
         std::istringstream iss { p_str };
-        Json::Value root;
+        Json::Value        root;
 
-        try {
+        try
+        {
             iss >> root;
-        } catch (const std::exception &e) {
+        }
+        catch (const std::exception &e)
+        {
             throw std::runtime_error(e.what());
         }
         return root;
