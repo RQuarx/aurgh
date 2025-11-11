@@ -5,6 +5,8 @@
 #include <iostream>
 #include <source_location>
 
+#include <glib.h>
+
 
 enum LogLevel : unsigned char
 {
@@ -14,6 +16,10 @@ enum LogLevel : unsigned char
     ERROR = 3,
     MAX   = 4
 };
+
+
+[[nodiscard]]
+auto GLogLevel_to_LogLevel(GLogLevelFlags p_level) -> LogLevel;
 
 
 class Logger
@@ -51,8 +57,6 @@ public:
                                        std::make_format_args(p_args...)) };
 
         std::string_view func { p_fmt.source.function_name() };
-        std::string_view file { p_fmt.source.file_name() };
-        uint_least32_t   line { p_fmt.source.line() };
 
         func = func.substr(0, func.find('('));
 
@@ -63,20 +67,47 @@ public:
             func = func.substr(pos + 1);
 
         std::string label { std::format(
-            "{} {} at \033[1m{}\033[0m( \033[1;30m{}:{}\033[0;0m )", get_time(),
-            LABELS[T_Level].first, func, file, line) };
+            "{} {} at \033[38;2;70;172;173m{}\033[0m", get_time(),
+            LABELS[T_Level].first, func) };
 
         if (self.log_file.is_open())
         {
             std::string file_label { std::format(
-                "{} at {}( {}:{} )", get_time(), LABELS[T_Level].second, func,
-                file, line) };
+                "{} at {}", get_time(), LABELS[T_Level].second, func) };
 
             self.log_file << std::format("[{}]: {}", file_label, msg) << '\n';
             self.log_file.flush();
         }
 
         if (T_Level < self.threshold_level) return;
+        std::println(std::cerr, "[{}]: \033[1m{}\033[0m", label, msg);
+    }
+
+
+    template <typename... T_Args>
+    void
+    glog(this Logger                  &self,
+         LogLevel                      p_level,
+         std::string_view              p_domain,
+         std::format_string<T_Args...> p_fmt,
+         T_Args &&...p_args)
+    {
+        std::string msg { std::format(p_fmt, std::forward<T_Args>(p_args)...) };
+
+        std::string label { std::format(
+            "{} {} at \033[38;2;70;172;173m{}\033[0;0m", get_time(),
+            LABELS[p_level].first, p_domain) };
+
+        if (self.log_file.is_open())
+        {
+            std::string file_label { std::format(
+                "{} at {}", get_time(), LABELS[p_level].second, p_domain) };
+
+            self.log_file << std::format("[{}]: {}", file_label, msg) << '\n';
+            self.log_file.flush();
+        }
+
+        if (p_level < self.threshold_level) return;
         std::println(std::cerr, "[{}]: \033[1m{}\033[0m", label, msg);
     }
 

@@ -8,11 +8,51 @@
 #include "utils.hh"
 
 
+namespace
+{
+    void
+    glib_logger(const gchar   *log_domain,
+                GLogLevelFlags log_level,
+                const gchar   *message,
+                gpointer /* unused */)
+    {
+        std::string_view domain { log_domain == nullptr ? "GLib" : log_domain };
+
+        logger.glog(GLogLevel_to_LogLevel(log_level), domain, "{}", message);
+        if ((log_level & G_LOG_LEVEL_ERROR) != 0) std::terminate();
+    }
+
+
+    void
+    glib_print(const gchar *message)
+    {
+        logger.glog(INFO, "stdio", "{}", message);
+    }
+
+    void
+    glib_printerr(const gchar *message)
+    {
+        logger.glog(INFO, "stderr", "{}", message);
+    }
+
+
+    void
+    set_glib_logger()
+    {
+        g_log_set_default_handler(glib_logger, nullptr);
+        g_set_print_handler(glib_print);
+        g_set_printerr_handler(glib_printerr);
+    }
+}
+
+
 auto
 main(int p_argc, char **p_argv) -> int
 {
     logger.set_log_level(utils::get_env("LOG_LEVEL"))
         .set_log_file(utils::get_env("LOG_FILE"));
+
+    set_glib_logger();
 
 #ifndef NDEBUG
     logger.log<INFO>("Running application in debug mode.");

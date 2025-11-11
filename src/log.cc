@@ -98,3 +98,16 @@ Logger::get_time() -> std::string
     return std::format("{:02}:{:02}.{:03}", minutes.count(), seconds.count(),
                        millis.count());
 }
+
+
+auto
+GLogLevel_to_LogLevel(GLogLevelFlags p_level) -> LogLevel
+{
+    if ((p_level & (G_LOG_LEVEL_ERROR | G_LOG_LEVEL_CRITICAL)) != 0)
+        return ERROR;
+    if ((p_level & G_LOG_LEVEL_WARNING) != 0) return WARN;
+    if ((p_level & (G_LOG_LEVEL_MESSAGE | G_LOG_LEVEL_INFO)) != 0) return INFO;
+    if ((p_level & G_LOG_LEVEL_DEBUG) != 0) return DEBUG;
+
+    return INFO;
+}

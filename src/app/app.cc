@@ -26,8 +26,7 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
                 [](std::string_view err) -> std::expected<void, std::string>
                 {
                     logger.log<ERROR>("Failed to initialize CURL: {}", err);
-                    exit(1);
-                    return {};
+                    std::terminate();
                 })
     };
 
@@ -39,8 +38,7 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
                  {
                      logger.log<ERROR>("Failed to create a Gtk::Builder: {}",
                                        err);
-                     exit(1);
-                     return {};
+                     std::terminate();
                  })
     };
 
