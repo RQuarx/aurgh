@@ -1,6 +1,6 @@
 project('aurgh', 'cpp',
         default_options: [ 'cpp_std=c++23', 'warning_level=3' ],
-        version: '1.8.0-alpha',
+        version: '1.9.0-alpha',
         license: 'GPL-3.0-or-later',
         license_files: [ 'COPYING' ])
 
@@ -9,10 +9,6 @@ cxx_args = [
     '-DAPP_VERSION="' + meson.project_version() + '"'
 ]
 
-if get_option('buildtype').contains('debug')
-    cxx_args += '-DAPP_DEBUG'
-endif
-
 add_project_dependencies([
     dependency('fontconfig'),
     dependency('gtkmm-3.0'),
@@ -20,7 +16,6 @@ add_project_dependencies([
     dependency('jsoncpp'),
     dependency('libalpm')
 ], language: 'cpp')
-
 
 app = files(
     'src/app/tabs/aur.cc',

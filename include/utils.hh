@@ -34,6 +34,20 @@ namespace utils
     auto get_env(const std::string &p_key) -> std::string;
 
 
+    template <typename T_IntType>
+    [[nodiscard]]
+    auto
+    to_int(std::string_view p_string) -> std::optional<T_IntType>
+    {
+        T_IntType val;
+        if (std::from_chars(p_string.begin(), p_string.end(), val).ec
+            == std::errc {})
+            return val;
+
+        return std::nullopt;
+    }
+
+
     /**
      * @brief Returns the PREFIX_PATH from config.hh
      */

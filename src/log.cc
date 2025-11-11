@@ -2,12 +2,13 @@
 #include <cstring>
 
 #include "log.hh"
+#include "utils.hh"
 
 
 namespace
 {
     auto
-    string_to_loglevel(const std::string &p_str) -> LogLevel
+    string_to_loglevel(std::string_view p_str) -> LogLevel
     {
         if (p_str.contains("debug")) return DEBUG;
         if (p_str.contains("info")) return INFO;
@@ -18,48 +19,66 @@ namespace
 }
 
 
-Logger::Logger(const std::string &p_log_level, const std::string &p_log_file)
+auto
+Logger::set_log_level(this Logger &self, std::string_view p_log_level)
+    -> Logger &
 {
-    if (p_log_level.empty()) { m_threshold_level = WARN; }
-    else
-        try
-        {
-            int32_t level { std::stoi(p_log_level) };
-            if (level >= MAX)
-            {
-                log<WARN>("Log level too large, using default 'warn' level.");
-                throw std::exception(); /* Trigger the catch */
-            }
+    if (p_log_level.empty()) goto err;
 
-            m_threshold_level = static_cast<LogLevel>(level);
-        }
-        catch (...)
-        {
-            LogLevel level { string_to_loglevel(p_log_level) };
-
-            if (level == MAX)
-            {
-                log<WARN>("Invalid log level {}, using default 'warn' level",
-                          p_log_level);
-                m_threshold_level = WARN;
-            }
-            else
-                m_threshold_level = level;
-        }
-
-    if (!p_log_file.empty())
+    try
     {
-        m_log_file.open(p_log_file, std::ios_base::app);
-        if (m_log_file.fail() && !m_log_file.eof())
+        auto level { utils::to_int<uint32_t>(p_log_level) };
+
+        /* `level` is not an integer */
+        if (!level) throw std::exception {};
+
+        if (level >= LogLevel::MAX)
         {
-            log<ERROR>("Failed to open {}: {}", p_log_file,
-                       std::strerror(errno));
-            throw std::exception();
+            self.log<WARN>("Log level too large, using default level.");
+            goto err;
         }
+
+        self.threshold_level = static_cast<LogLevel>(*level);
+    }
+    catch (...)
+    {
+        LogLevel level { string_to_loglevel(p_log_level) };
+
+        if (level == MAX)
+        {
+            self.log<WARN>("Invalid log level {}, using default level",
+                           p_log_level);
+            goto err;
+        }
+
+        self.threshold_level = level;
     }
 
-    log<DEBUG>("Logger instance successfully created with a log-level of {}",
-               m_LABELS[m_threshold_level].second);
+    return self;
+
+err:
+    self.threshold_level = LogLevel::WARN;
+    return self;
+}
+
+
+auto
+Logger::set_log_file(this Logger &self, const std::string &p_log_file)
+    -> Logger &
+{
+    if (p_log_file.empty()) return self;
+
+    self.log_file.open(p_log_file, std::ios_base::app);
+
+    if (self.log_file.fail() && !self.log_file.eof())
+    {
+        self.log<ERROR>("Failed to open {}: {}", p_log_file,
+                        std::strerror(errno));
+
+        throw std::exception {};
+    }
+
+    return self;
 }
 
 

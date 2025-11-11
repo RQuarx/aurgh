@@ -10,7 +10,7 @@
 namespace app
 {
     auto
-    get_app_file(const std::string &p_file_path) -> std::string
+    get_app_file(std::string_view p_file_path) -> std::string
     {
         for (std::filesystem::path base : DATA_SEARCH_PATHS)
         {
@@ -26,8 +26,8 @@ namespace app
 
 
     auto
-    get_builder(const std::string &p_file_path)
-        -> std::expected<builder, std::string>
+    get_builder(std::string_view p_file_path)
+        -> std::expected<Glib::RefPtr<Gtk::Builder>, std::string>
     {
         const std::string ui_file { get_app_file(p_file_path) };
         if (ui_file.empty())

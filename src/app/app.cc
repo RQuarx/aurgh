@@ -11,35 +11,34 @@
 using app::App;
 
 
-App::App(const std::shared_ptr<Logger> &logger)
-    : m_app(Gtk::Application::create("org.kei.aurgh")), m_logger(logger)
+App::App() : app(Gtk::Application::create("org.kei.aurgh"))
 {
-    m_logger->log<INFO>("Starting application");
+    logger.log<INFO>("Starting application");
 
     /* Silent the 'Fontconfig warning: using without calling FcInit()'
        warning.
     */
     FcInit();
 
-    auto _ { init_curl(CURL_VERSION_THREADSAFE)
-                 .or_else(
-                     [this](const std::string &err)
-                         -> std::expected<void, std::string>
-                     {
-                         m_logger->log<ERROR>("Failed to initialize CURL: {}",
-                                              err);
-                         exit(1);
-                         return {};
-                     }) };
+    auto _ {
+        init_curl(CURL_VERSION_THREADSAFE)
+            .or_else(
+                [](std::string_view err) -> std::expected<void, std::string>
+                {
+                    logger.log<ERROR>("Failed to initialize CURL: {}", err);
+                    exit(1);
+                    return {};
+                })
+    };
 
     auto builder {
         *app::get_builder("window.xml")
              .or_else(
-                 [this](const std::string &err)
+                 [](std::string_view err)
                      -> std::expected<Glib::RefPtr<Gtk::Builder>, std::string>
                  {
-                     m_logger->log<ERROR>("Failed to create a Gtk::Builder: {}",
-                                          err);
+                     logger.log<ERROR>("Failed to create a Gtk::Builder: {}",
+                                       err);
                      exit(1);
                      return {};
                  })
@@ -47,41 +46,43 @@ App::App(const std::shared_ptr<Logger> &logger)
 
     load_css();
 
-    m_logger->log<DEBUG>("Creating widgets");
-    builder->get_widget("aurgh_window", m_window);
+    logger.log<DEBUG>("Creating widgets");
+    builder->get_widget("aurgh_window", window);
 
-    builder->get_widget("aur_tab_button", m_aur_button);
-    builder->get_widget("main_tab_button", m_main_button);
-    builder->get_widget("installed_tab_button", m_installed_button);
+    builder->get_widget("sidebar_button", sidebar_button);
+    builder->get_widget("aur_tab_button", aur_button);
+    builder->get_widget("main_tab_button", main_button);
+    builder->get_widget("installed_tab_button", installed_button);
 
-    builder->get_widget("aurgh_search_by_combo", m_criteria.search_by);
-    builder->get_widget("aurgh_sort_by_combo", m_criteria.sort_by);
-    builder->get_widget("aurgh_reverse_check", m_criteria.reverse);
+    builder->get_widget("aurgh_search_by_combo", criteria.search_by);
+    builder->get_widget("aurgh_sort_by_combo", criteria.sort_by);
+    builder->get_widget("aurgh_reverse_check", criteria.reverse);
 
-    builder->get_widget("aurgh_search_entry", m_criteria.search_entry);
+    builder->get_widget("aurgh_search_entry", criteria.search_entry);
 
-    builder->get_widget("aurgh_content_box", m_content_box);
+    builder->get_widget("aurgh_content_box", content_box);
 
-    m_aur_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &App::on_tab_button_pressed), m_aur_button));
-    m_main_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &App::on_tab_button_pressed), m_main_button));
-    m_installed_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &App::on_tab_button_pressed), m_installed_button));
+    aur_button->signal_clicked().connect(sigc::bind(
+        sigc::mem_fun(*this, &App::on_tab_button_pressed), aur_button));
+    main_button->signal_clicked().connect(sigc::bind(
+        sigc::mem_fun(*this, &App::on_tab_button_pressed), main_button));
+    installed_button->signal_clicked().connect(sigc::bind(
+        sigc::mem_fun(*this, &App::on_tab_button_pressed), installed_button));
 
     setup_criteria();
     setup_tabs();
 
-    m_content_box->foreach ([this](Gtk::Widget &w)
-                            { m_content_box->remove(w); });
-    m_window->show_all_children();
+    content_box->foreach([this](Gtk::Widget &w) -> void
+                         { content_box->remove(w); });
+    window->show_all_children();
+    sidebar_button->set_visible(false);
 }
 
 
 auto
-App::init_curl(int64_t flags) const -> std::expected<void, std::string>
+App::init_curl(int64_t flags) -> std::expected<void, std::string>
 {
-    m_logger->log<INFO>("Initializing CURL.");
+    logger.log<INFO>("Initializing CURL.");
     CURLcode retval { curl_global_init(flags) };
 
     if (retval != CURLE_OK) return std::unexpected(curl_easy_strerror(retval));
@@ -91,25 +92,25 @@ App::init_curl(int64_t flags) const -> std::expected<void, std::string>
 
 
 void
-App::load_css() const
+App::load_css()
 {
-    m_logger->log<INFO>("Loading CSS file.");
+    logger.log<INFO>("Loading CSS file.");
     auto css_provider { Gtk::CssProvider::create() };
 
     css_provider->signal_parsing_error().connect(
-        [this](const Glib::RefPtr<const Gtk::CssSection> &section,
-               const Glib::Error                         &error) -> void
+        [](const Glib::RefPtr<const Gtk::CssSection> &section,
+           const Glib::Error                         &error) -> void
         {
             if (!section)
             {
-                m_logger->log<ERROR>("Failed to parse CSS file");
+                logger.log<ERROR>("Failed to parse CSS file");
                 throw std::runtime_error("");
             }
             std::string file_name { section->get_file()->get_path() };
             uint32_t    start_line { section->get_start_line() + 1 };
 
-            m_logger->log<ERROR>("Failed to parse {} at line {}: {}", file_name,
-                                 start_line, error.what().raw());
+            logger.log<ERROR>("Failed to parse {} at line {}: {}", file_name,
+                              start_line, error.what().raw());
             throw std::runtime_error("");
         });
 
@@ -122,79 +123,80 @@ App::load_css() const
 
 
 auto
-App::run() -> int32_t
+App::run(this App &self) -> int
 {
-    return m_app->run(*m_window);
+    return self.app->run(*self.window);
 }
 
 
 void
-App::setup_tabs()
+App::setup_tabs(this App &self)
 {
-    m_logger->log<DEBUG>("Creating tabs");
+    logger.log<DEBUG>("Creating tabs");
     auto aur { Gtk::Builder::create_from_file(
         app::get_app_file("tabs/aur.xml")) };
-    aur->get_widget_derived<aur::Tab>("aur_tab", m_aur_tab, m_logger, m_signal);
-    m_content_box->pack_start(*m_aur_tab);
+    aur->get_widget_derived<aur::Tab>("aur_tab", self.aur_tab, self.signal);
+    self.content_box->pack_start(*self.aur_tab);
 }
 
 
 void
 App::setup_criteria()
 {
-    m_criteria.search_by->signal_changed().connect(
+    this->criteria.search_by->signal_changed().connect(
         sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change), SEARCH_COMBO,
                    TAB_NONE));
-    m_criteria.sort_by->signal_changed().connect(sigc::bind(
+    this->criteria.sort_by->signal_changed().connect(sigc::bind(
         sigc::mem_fun(*this, &App::on_criteria_change), SORT_COMBO, TAB_NONE));
-    m_criteria.search_entry->signal_activate().connect(
+    this->criteria.search_entry->signal_activate().connect(
         sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change), SEARCH_ENTRY,
                    TAB_NONE));
-    m_criteria.reverse->signal_clicked().connect(
-        sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change),
-                   REVERSE_CHECK, TAB_NONE));
+    this->criteria.reverse->signal_clicked().connect(
+        sigc::bind(sigc::mem_fun(this, &App::on_criteria_change), REVERSE_CHECK,
+                   TAB_NONE));
 
-    m_criteria.search_by->set_active_id("name");
-    m_criteria.sort_by->set_active_id("NumVotes");
+    this->criteria.search_by->set_active_id("name");
+    this->criteria.sort_by->set_active_id("NumVotes");
 }
 
 
 void
 App::on_tab_button_pressed(Gtk::ToggleButton *button)
 {
-    auto rm_child { [this](Gtk::Widget &w) { m_content_box->remove(w); } };
+    auto rm_child { [*this](Gtk::Widget &w) -> void
+                    { content_box->remove(w); } };
 
     if (button->get_active())
     {
-        if (button == m_aur_button)
+        if (button == this->aur_button)
         {
-            m_main_button->set_active(false);
-            m_installed_button->set_active(false);
+            this->main_button->set_active(false);
+            this->installed_button->set_active(false);
 
-            m_content_box->foreach (rm_child);
-            m_content_box->pack_start(*m_aur_tab);
-            m_content_box->show_all_children();
-            on_criteria_change(CRITERIA_NONE, AUR);
+            this->content_box->foreach(rm_child);
+            this->content_box->pack_start(*this->aur_tab);
+            this->content_box->show_all_children();
+            this->on_criteria_change(CRITERIA_NONE, AUR);
         }
-        else if (button == m_main_button)
+        else if (button == this->main_button)
         {
-            m_aur_button->set_active(false);
-            m_installed_button->set_active(false);
+            this->aur_button->set_active(false);
+            this->installed_button->set_active(false);
 
-            m_content_box->foreach (rm_child);
-            // m_content_box->pack_start(*m_main_tab);
-            m_content_box->show_all_children();
-            on_criteria_change(CRITERIA_NONE, MAIN);
+            this->content_box->foreach(rm_child);
+            // this->content_box->pack_start(*this->main_tab);
+            this->content_box->show_all_children();
+            this->on_criteria_change(CRITERIA_NONE, MAIN);
         }
-        else if (button == m_installed_button)
+        else if (button == this->installed_button)
         {
-            m_main_button->set_active(false);
-            m_aur_button->set_active(false);
+            this->main_button->set_active(false);
+            this->aur_button->set_active(false);
 
-            m_content_box->foreach (rm_child);
-            // m_content_box->pack_start(*m_installed_tab);
-            m_content_box->show_all_children();
-            on_criteria_change(CRITERIA_NONE, INSTALLED);
+            this->content_box->foreach(rm_child);
+            // this->content_box->pack_start(*this->installed_tab);
+            this->content_box->show_all_children();
+            this->on_criteria_change(CRITERIA_NONE, INSTALLED);
         }
     }
 }
@@ -205,14 +207,14 @@ App::on_criteria_change(CriteriaType type, TabType tab)
 {
     if (tab != TAB_NONE)
     {
-        m_signal.emit(tab, m_criteria, type);
+        this->signal.emit(tab, this->criteria, type);
         return;
     }
 
-    if (m_aur_button->get_active())
-        m_signal.emit(AUR, m_criteria, type);
-    else if (m_main_button->get_active())
-        m_signal.emit(MAIN, m_criteria, type);
-    else if (m_installed_button->get_active())
-        m_signal.emit(INSTALLED, m_criteria, type);
+    if (this->aur_button->get_active())
+        this->signal.emit(AUR, this->criteria, type);
+    else if (this->main_button->get_active())
+        this->signal.emit(MAIN, this->criteria, type);
+    else if (this->installed_button->get_active())
+        this->signal.emit(INSTALLED, this->criteria, type);
 }

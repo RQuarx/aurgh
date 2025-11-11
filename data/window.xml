@@ -42,6 +42,22 @@
                     <property name="spacing">5</property>
                     <child>
 
+                      <object class="GtkToggleButton" id="sidebar_button">
+
+                        <property name="visible">false</property>
+                        <property name="name">aurgh-tab-buttons</property>
+                        <child>
+
+                          <object class="GtkImage">
+                            <property name="icon-name">pan-end-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+
+                    </child>
+
+                    <child>
+
                       <object class="GtkToggleButton" id="aur_tab_button">
 
                         <property name="label">AUR</property>

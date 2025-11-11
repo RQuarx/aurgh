@@ -9,26 +9,20 @@ using cli::Cli;
 
 
 auto
-Cli::init(const std::shared_ptr<Logger> &p_logger,
-          const int32_t                 &p_argc,
-          char                         **p_argv) -> std::optional<Cli>
+Cli::init(const int32_t &p_argc, char **p_argv) -> std::optional<Cli>
 {
     bool err { false };
-    Cli  cli { p_logger, p_argc, p_argv, err };
+    Cli  cli { p_argc, p_argv, err };
     if (err) return std::nullopt;
     return cli;
 }
 
 
-Cli::Cli(const std::shared_ptr<Logger> &p_logger,
-         const int32_t                 &p_argc,
-         char                         **p_argv,
-         bool                          &p_err)
-    : m_logger(p_logger)
+Cli::Cli(const int32_t &p_argc, char **p_argv, bool &p_err)
 {
     if (p_argc < 3)
     {
-        m_logger->log<ERROR>("Not enough information passed.");
+        logger.log<ERROR>("Not enough information passed.");
         p_err = true;
         return;
     }

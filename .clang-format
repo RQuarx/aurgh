@@ -120,9 +120,6 @@ DisableFormat:                    false
 ExperimentalAutoDetectBinPacking: false
 FixNamespaceComments:             false
 ForEachMacros:
-  - foreach
-  - Q_FOREACH
-  - BOOST_FOREACH
   - wl_list_for_each
 IfMacros:
   - KJ_IF_MAYBE

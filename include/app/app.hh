@@ -1,6 +1,4 @@
 #pragma once
-#include <memory>
-
 #include <gtkmm.h>
 
 #include "app/tabs/aur.hh"
@@ -12,8 +10,6 @@ namespace Gtk
     class Box;
 }
 
-class Logger;
-
 
 namespace app
 {
@@ -23,31 +19,31 @@ namespace app
     class App
     {
     public:
-        App(const std::shared_ptr<Logger> &p_logger);
+        App();
 
 
         /* Runs the application. */
-        auto run() -> int32_t;
+        auto run(this App &self) -> int;
 
     private:
-        Glib::RefPtr<Gtk::Application> m_app;
-        std::shared_ptr<Logger>        m_logger;
+        Glib::RefPtr<Gtk::Application> app;
 
-        Gtk::Window *m_window;
+        Gtk::Window *window;
 
-        Gtk::ToggleButton *m_aur_button;
-        Gtk::ToggleButton *m_main_button;
-        Gtk::ToggleButton *m_installed_button;
+        Gtk::ToggleButton *sidebar_button;
+        Gtk::ToggleButton *aur_button;
+        Gtk::ToggleButton *main_button;
+        Gtk::ToggleButton *installed_button;
 
-        CriteriaWidgets m_criteria;
+        CriteriaWidgets criteria;
 
-        Gtk::Box *m_content_box;
+        Gtk::Box *content_box;
 
-        aur::Tab *m_aur_tab;
-        Gtk::Box *m_main_tab;
-        Gtk::Box *m_installed_tab;
+        aur::Tab *aur_tab;
+        Gtk::Box *main_tab;
+        Gtk::Box *installed_tab;
 
-        signal_type m_signal;
+        signal_type signal;
 
     protected:
         /**
@@ -56,7 +52,7 @@ namespace app
          * @param p_flags Initialization flag that will be passed to curl_global_init.
          * @return Expected nothing, and an error message on error.
          */
-        auto init_curl(int64_t p_flags) const
+        static auto init_curl(int64_t p_flags)
             -> std::expected<void, std::string>;
 
 
@@ -65,10 +61,10 @@ namespace app
          *
          * @throw This function may throw an std::runtime_error with no messages.
          */
-        void load_css() const;
+        static void load_css();
 
         void on_tab_button_pressed(Gtk::ToggleButton *p_button);
-        void setup_tabs();
+        void setup_tabs(this App &self);
         void setup_criteria();
         void on_criteria_change(CriteriaType p_type, TabType p_tab = TAB_NONE);
     };

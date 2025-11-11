@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 #include <queue>
 
 #include <glibmm/dispatcher.h>
@@ -15,7 +14,6 @@ namespace Gtk
     class FlowBox;
 }
 namespace Json { class Value; }
-class Logger;
 
 
 namespace app::aur
@@ -25,12 +23,9 @@ namespace app::aur
     public:
         Tab(BaseObjectType                   *p_cobject,
             const Glib::RefPtr<Gtk::Builder> &p_builder,
-            const std::shared_ptr<Logger>    &p_logger,
             signal_type                       p_signal);
 
     private:
-        std::shared_ptr<Logger> m_logger;
-
         Gtk::Box *m_content;
 
         std::vector<Card>        m_cards;
@@ -45,10 +40,10 @@ namespace app::aur
                        CriteriaWidgets &p_widgets,
                        CriteriaType     p_type);
 
-        auto search_pkg(const std::string &p_pkg,
-                        const std::string &p_search_by) -> Json::Value;
+        static auto search_pkg(const std::string &p_pkg,
+                               const std::string &p_search_by) -> Json::Value;
 
-        auto get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value;
+        static auto get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value;
 
 
         void add_cards_to_box();

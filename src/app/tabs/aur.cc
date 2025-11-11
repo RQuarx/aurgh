@@ -41,9 +41,8 @@ namespace
 
 Tab::Tab(BaseObjectType                   *p_cobject,
          const Glib::RefPtr<Gtk::Builder> &p_builder,
-         const std::shared_ptr<Logger>    &p_logger,
          signal_type                       p_signal)
-    : Gtk::Box(p_cobject), m_logger(p_logger)
+    : Gtk::Box(p_cobject)
 {
     p_builder->get_widget("content", m_content);
 
@@ -79,7 +78,7 @@ Tab::on_active(TabType p_tab, CriteriaWidgets &p_widgets, CriteriaType p_type)
 
         /* Search the package and sort the json */
         std::jthread(
-            [=, this]()
+            [=, this]() -> void
             {
                 Json::Value result { search_pkg(pkg_name, search_by) };
                 Json::Value infos { get_pkgs_info(result["results"]) };
@@ -105,13 +104,13 @@ auto
 Tab::search_pkg(const std::string &p_pkg, const std::string &p_search_by)
     -> Json::Value
 {
-    m_logger->log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
+    logger.log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
     std::string url { std::format("{}/search/{}?by={}", AUR_URL, p_pkg,
                                   p_search_by) };
     auto        retval { perform_curl(url.c_str()) };
     if (!retval)
     {
-        m_logger->log<ERROR>("Failed to search for {} by {}: {}", p_pkg,
+        logger.log<ERROR>("Failed to search for {} by {}: {}", p_pkg,
                              p_search_by, curl_easy_strerror(retval.error()));
         return Json::nullValue;
     }
@@ -122,7 +121,7 @@ Tab::search_pkg(const std::string &p_pkg, const std::string &p_search_by)
     }
     catch (const std::exception &e)
     {
-        m_logger->log<ERROR>("Malformed value returned from the "
+        logger.log<ERROR>("Malformed value returned from the "
                              "AUR: {}, output: {}",
                              e.what(), *retval);
         return Json::nullValue;
@@ -133,7 +132,7 @@ Tab::search_pkg(const std::string &p_pkg, const std::string &p_search_by)
 auto
 Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
 {
-    m_logger->log<INFO>("Fetching information for {} packages.", p_pkgs.size());
+    logger.log<INFO>("Fetching information for {} packages.", p_pkgs.size());
     std::string url { std::format("{}/info?", AUR_URL) };
 
     for (Json::ArrayIndex i { 0 }; i < p_pkgs.size(); i++)
@@ -143,7 +142,7 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
     auto retval { perform_curl(url.c_str()) };
     if (!retval)
     {
-        m_logger->log<ERROR>("Failed to get informations for {} packages: {}",
+        logger.log<ERROR>("Failed to get informations for {} packages: {}",
                              p_pkgs.size(), curl_easy_strerror(retval.error()));
         return Json::nullValue;
     }
@@ -159,7 +158,7 @@ Tab::add_cards_to_box()
 {
     for (const auto &pkg : m_pkgs)
     {
-        m_cards.emplace_back(m_logger, pkg, Card::INSTALL);
+        m_cards.emplace_back(pkg, Card::INSTALL);
 
         if (m_cards.back().is_valid())
         {
@@ -167,7 +166,7 @@ Tab::add_cards_to_box()
             continue;
         }
 
-        m_logger->log<WARN>("Invalid card for {}", pkg["Name"].asString());
+        logger.log<WARN>("Invalid card for {}", pkg["Name"].asString());
     }
     m_content->show_all_children();
 }

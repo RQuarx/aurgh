@@ -3,6 +3,7 @@
 #include "app/package.hh"
 #include "app/utils.hh"
 #include "config.hh"
+#include "log.hh"
 #include "utils.hh"
 
 using app::Package;
@@ -29,10 +30,7 @@ namespace
 }
 
 
-Package::Package(const std::shared_ptr<Logger> &p_logger,
-                 const std::string             &p_pkg_name,
-                 bool                           p_system)
-    : m_logger(p_logger)
+Package::Package(const std::string &p_pkg_name, bool p_system)
 {
     if (p_system) { return; }
 
@@ -41,79 +39,75 @@ Package::Package(const std::shared_ptr<Logger> &p_logger,
     auto retval { perform_curl(url.c_str()) };
     if (!retval)
     {
-        m_logger->log<ERROR>("Failed to get the info of {}: {}", p_pkg_name,
-                             curl_easy_strerror(retval.error()));
-        m_valid = false;
+        logger.log<ERROR>("Failed to get the info of {}: {}", p_pkg_name,
+                          curl_easy_strerror(retval.error()));
+        valid = false;
         return;
     }
 
     try
     {
         Json::Value result { Json::from_string(*retval) };
-        m_valid = json_to_pkg(result["results"][Json::ArrayIndex(0)]);
+        valid = json_to_pkg(result["results"][Json::ArrayIndex(0)]);
     }
     catch (const std::exception &e)
     {
-        m_logger->log<ERROR>("Failed to parse package {}: {}", p_pkg_name,
-                             e.what());
-        m_valid = false;
+        logger.log<ERROR>("Failed to parse package {}: {}", p_pkg_name,
+                          e.what());
+        valid = false;
     }
 }
 
 
-Package::Package(const std::shared_ptr<Logger> &p_logger,
-                 const Json::Value             &p_pkg)
-    : m_logger(p_logger)
+Package::Package(const Json::Value &p_pkg) { valid = json_to_pkg(p_pkg); }
+
+
+auto
+Package::operator[](this Package &self, PkgInfo p_info) -> std::string &
 {
-    m_valid = json_to_pkg(p_pkg);
+    return self.pkg[p_info];
 }
 
 
 auto
-Package::operator[](PkgInfo p_info) -> std::string &
+Package::get_keywords(this const Package &self)
+    -> const std::vector<std::string> &
 {
-    return m_pkg[p_info];
+    return self.pkg.keywords;
 }
 
 
 auto
-Package::get_keywords() const -> const std::vector<std::string> &
+Package::is_valid(this const Package &self) -> bool
 {
-    return m_pkg.keywords;
+    return self.valid;
 }
 
 
 auto
-Package::is_valid() const -> bool
-{
-    return m_valid;
-}
-
-
-auto
-Package::json_to_pkg(const Json::Value &p_json) -> bool
+Package::json_to_pkg(this Package &self, const Json::Value &p_json) -> bool
 {
     if (!p_json.isObject())
     {
-        m_logger->log<ERROR>("Retrieved JSON is not an object: {}",
-                             p_json.toStyledString());
+        logger.log<ERROR>("Retrieved JSON is not an object: {}",
+                          p_json.toStyledString());
         return false;
     }
 
-    m_pkg[PKG_NAME]    = escape_pango_markup(p_json["Name"].asString());
-    m_pkg[PKG_VERSION] = escape_pango_markup(p_json["Version"].asString());
-    m_pkg[PKG_MAINTAINER]
+    self.pkg[PKG_NAME]    = escape_pango_markup(p_json["Name"].asString());
+    self.pkg[PKG_VERSION] = escape_pango_markup(p_json["Version"].asString());
+    self.pkg[PKG_MAINTAINER]
         = escape_pango_markup(p_json["Maintainer"].asString());
-    m_pkg[PKG_DESC]     = escape_pango_markup(p_json["Description"].asString());
-    m_pkg[PKG_NUMVOTES] = escape_pango_markup(p_json["NumVotes"].asString());
+    self.pkg[PKG_DESC] = escape_pango_markup(p_json["Description"].asString());
+    self.pkg[PKG_NUMVOTES] = escape_pango_markup(p_json["NumVotes"].asString());
 
     if (!p_json["URL"].isNull())
-        m_pkg[PKG_URL] = p_json["URL"].asString();
+        self.pkg[PKG_URL] = p_json["URL"].asString();
     else
-        m_pkg[PKG_URL] = "";
+        self.pkg[PKG_URL] = "";
 
     for (Json::ArrayIndex i { 0 }; i < p_json["Keywords"].size(); i++)
-        m_pkg.add_keyword(p_json["Keywords"][i].asString());
+        self.pkg.add_keyword(p_json["Keywords"][i].asString());
 
     return true;
 }

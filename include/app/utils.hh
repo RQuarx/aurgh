@@ -7,8 +7,6 @@
 namespace Glib { template <typename T_CppObject> class RefPtr; }
 namespace Gtk { class Builder; }
 
-using builder = Glib::RefPtr<Gtk::Builder>;
-
 
 namespace app
 {
@@ -26,7 +24,7 @@ namespace app
      * If none of the check paths exist,
      * then the function will return an empty string.
      */
-    auto get_app_file(const std::string &p_file_path) -> std::string;
+    auto get_app_file(std::string_view p_file_path) -> std::string;
 
 
     /**
@@ -39,8 +37,8 @@ namespace app
      *
      * @note This function is a wrapper for get_app_file.
      */
-    auto get_builder(const std::string &p_file_path)
-        -> std::expected<builder, std::string>;
+    auto get_builder(std::string_view p_file_path)
+        -> std::expected<Glib::RefPtr<Gtk::Builder>, std::string>;
 
 
     /** @brief A write callback function for libCURL. */

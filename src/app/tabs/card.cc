@@ -2,15 +2,14 @@
 
 #include "app/package.hh"
 #include "app/tabs/card.hh"
-#include "log.hh"
 
 using app::Card;
 
 
-Card::Card(const std::shared_ptr<Logger> &p_logger,
+Card::Card(
            const Json::Value             &p_pkg,
            const Type                    &p_card_type)
-    : m_logger(p_logger), m_pkg(m_logger, p_pkg),
+    : m_pkg(p_pkg),
       m_card(Gtk::make_managed<Gtk::Frame>()),
       m_install(Gtk::make_managed<Gtk::ToggleButton>()),
       m_add_to_queue(Gtk::make_managed<Gtk::ToggleButton>()),
