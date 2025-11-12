@@ -6,6 +6,7 @@
 #include "cli/cli.hh"
 #include "log.hh"
 #include "utils.hh"
+#include "versions.hh"
 
 
 namespace
@@ -54,8 +55,11 @@ main(int p_argc, char **p_argv) -> int
 
     set_glib_logger();
 
+    logger.log<INFO>("Running {} version {}", APP_NAME,
+                      versions::get(APP_NAME));
+
 #ifndef NDEBUG
-    logger.log<INFO>("Running application in debug mode.");
+    logger.log<DEBUG>("Running application in debug mode.");
 #endif
 
     if (getuid() == 0)
@@ -64,8 +68,6 @@ main(int p_argc, char **p_argv) -> int
         return cli->run();
     }
 
-    /* Initializes version values in utils::VERSIONS */
-    utils::init_versions();
     app::App app {};
     return app.run();
 }

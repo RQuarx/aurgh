@@ -27,7 +27,7 @@ namespace utils
 
         for (size_t i { 0 }; i < PREFIX_PATH.length(); i++)
         {
-            if (PREFIX_PATH.at(i) == '$' && PREFIX_PATH.at(i + 1) == '{')
+            if (PREFIX_PATH[i] == '$' && PREFIX_PATH.at(i + 1) == '{')
             {
                 size_t end_idx { i + 2 };
                 while (PREFIX_PATH.at(end_idx) != '}') end_idx++;
@@ -43,18 +43,6 @@ namespace utils
         }
 
         return result;
-    }
-
-
-    void
-    init_versions(void)
-    {
-        VERSIONS["gtkmm"]
-            = std::format("{}.{}.{}", GTKMM_MAJOR_VERSION, GTKMM_MINOR_VERSION,
-                          GTKMM_MICRO_VERSION);
-        VERSIONS["libcurl"] = curl_version_info(CURLVERSION_NOW)->version;
-        VERSIONS["jsoncpp"] = JSONCPP_VERSION_STRING;
-        VERSIONS["libalpm"] = alpm_version();
     }
 }
 

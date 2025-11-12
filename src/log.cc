@@ -82,6 +82,35 @@ Logger::set_log_file(this Logger &self, const std::string &p_log_file)
 }
 
 
+void
+Logger::write(this Logger       &self,
+              LogLevel           p_level,
+              std::string_view   p_domain,
+              const std::string &p_msg)
+{
+    std::string label { std::format("{} {} at \033[38;2;70;172;173m{}\033[0;0m",
+                                    get_time(), LABELS[p_level].first,
+                                    p_domain) };
+
+    if (self.log_file.is_open())
+    {
+        std::string file_label { std::format(
+            "{} at {}", get_time(), LABELS[p_level].second, p_domain) };
+
+        self.log_file << std::format("[{}]: {}", file_label, p_msg) << '\n';
+        self.log_file.flush();
+    }
+
+    if (p_level < self.threshold_level) return;
+
+    size_t label_len { label.length() };
+    self.longest_label = std::max(self.longest_label, label_len);
+
+    std::println(std::cerr, "[{}]: {}\033[1m{}\033[0m", label,
+                 std::string(self.longest_label - label_len, ' '), p_msg);
+}
+
+
 auto
 Logger::get_time() -> std::string
 {
