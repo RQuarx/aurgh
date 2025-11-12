@@ -1,8 +1,3 @@
-#include <format>
-
-#include <alpm.h>
-#include <curl/curl.h>
-#include <gtkmmconfig.h>
 #include <json/reader.h>
 #include <json/value.h>
 

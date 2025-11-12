@@ -1,6 +1,6 @@
 project('aurgh', 'cpp',
         default_options: [ 'cpp_std=c++23', 'warning_level=3' ],
-        version: '1.9.2-alpha',
+        version: '1.9.3-alpha',
         license: 'GPL-3.0-or-later',
         license_files: [ 'COPYING' ])
 

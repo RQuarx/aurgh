@@ -2,7 +2,6 @@
 #include <array>
 #include <format>
 #include <fstream>
-#include <iostream>
 #include <source_location>
 
 #include <glib.h>
@@ -27,12 +26,12 @@ class Logger
     template <typename T> using tpair = std::pair<T, T>;
 
 public:
-    struct StringSource
+    template <typename... T_Args> struct StringSource
     {
-        std::string_view     fmt;
-        std::source_location source;
+        std::format_string<T_Args...> fmt;
+        std::source_location          source;
 
-        consteval StringSource(const char          *p_fmt,
+        constexpr StringSource(const char          *p_fmt,
                                std::source_location p_source
                                = std::source_location::current())
             : fmt(p_fmt), source(p_source)
@@ -51,7 +50,9 @@ public:
 
     template <LogLevel T_Level, typename... T_Args>
     void
-    log(this Logger &self, StringSource p_fmt, T_Args &&...p_args)
+    log(this Logger                                  &self,
+        std::type_identity_t<StringSource<T_Args...>> p_fmt,
+        T_Args &&...p_args)
     {
         std::string_view func { p_fmt.source.function_name() };
 
@@ -62,7 +63,7 @@ public:
                 func = func.substr(pos + 1);
 
         self.write(T_Level, func,
-                   std::vformat(p_fmt.fmt, std::make_format_args(p_args...)));
+                   std::format(p_fmt.fmt, std::forward<T_Args>(p_args)...));
     }
 
 
