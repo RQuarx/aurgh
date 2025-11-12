@@ -29,12 +29,12 @@ public:
     template <typename... T_Args> struct StringSource
     {
         std::format_string<T_Args...> fmt;
-        std::source_location          source;
+        std::string_view              func;
 
-        constexpr StringSource(const char          *p_fmt,
-                               std::source_location p_source
+        constexpr StringSource(const char                 *p_fmt,
+                               const std::source_location &p_source
                                = std::source_location::current())
-            : fmt(p_fmt), source(p_source)
+            : fmt(p_fmt), func(p_source.function_name())
         {
         }
     };
@@ -54,9 +54,7 @@ public:
         std::type_identity_t<StringSource<T_Args...>> p_fmt,
         T_Args &&...p_args)
     {
-        std::string_view func { p_fmt.source.function_name() };
-
-        func = func.substr(0, func.find('('));
+        std::string_view func { p_fmt.func.substr(0, p_fmt.func.find('(')) };
 
         for (char delim : "> ")
             if (auto pos { func.find(delim) }; pos != std::string_view::npos)
