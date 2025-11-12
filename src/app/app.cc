@@ -58,6 +58,7 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
 
     builder->get_widget("aurgh_search_entry", criteria.search_entry);
 
+    builder->get_widget("aurgh_sidebar_box", sidebar_box);
     builder->get_widget("aurgh_content_box", content_box);
 
     aur_button->signal_clicked().connect(sigc::bind(
@@ -73,7 +74,11 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
     content_box->foreach([this](Gtk::Widget &w) -> void
                          { content_box->remove(w); });
     window->show_all_children();
-    sidebar_button->set_visible(false);
+
+    // sidebar_button->set_visible(false);
+    sidebar_box->set_visible(false);
+
+    sidebar = std::make_unique<app::Sidebar>(sidebar_button, sidebar_box);
 }
 
 
@@ -161,7 +166,7 @@ App::setup_criteria()
 void
 App::on_tab_button_pressed(Gtk::ToggleButton *button)
 {
-    auto rm_child { [*this](Gtk::Widget &w) -> void
+    auto rm_child { [this](Gtk::Widget &w) -> void
                     { content_box->remove(w); } };
 
     if (button->get_active())

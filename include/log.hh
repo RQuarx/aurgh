@@ -39,6 +39,9 @@ public:
         }
     };
 
+    template <typename... T_Args>
+    using StringSource_t = std::type_identity_t<StringSource<T_Args...>>;
+
 
     auto set_log_level(this Logger &self, std::string_view p_log_level)
         -> Logger &;
@@ -50,9 +53,7 @@ public:
 
     template <LogLevel T_Level, typename... T_Args>
     void
-    log(this Logger                                  &self,
-        std::type_identity_t<StringSource<T_Args...>> p_fmt,
-        T_Args &&...p_args)
+    log(this Logger &self, StringSource_t<T_Args...> p_fmt, T_Args &&...p_args)
     {
         std::string_view func { p_fmt.func.substr(0, p_fmt.func.find('(')) };
 

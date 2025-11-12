@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cstring>
+#include <iostream>
 
 #include "log.hh"
 #include "utils.hh"

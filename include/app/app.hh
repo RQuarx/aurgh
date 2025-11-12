@@ -1,6 +1,7 @@
 #pragma once
 #include <gtkmm.h>
 
+#include "app/sidebar.hh"
 #include "app/tabs/aur.hh"
 #include "app/types.hh"
 
@@ -42,6 +43,9 @@ namespace app
         aur::Tab *aur_tab;
         Gtk::Box *main_tab;
         Gtk::Box *installed_tab;
+
+        std::unique_ptr<app::Sidebar> sidebar;
+        Gtk::Box                     *sidebar_box;
 
         signal_type signal;
 

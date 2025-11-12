@@ -211,13 +211,30 @@
 
         <child>
 
-          <object class="GtkBox" id="aurgh_content_box">
+          <object class="GtkBox">
 
-            <property name="hexpand">true</property>
-            <property name="vexpand">true</property>
-            <property name="halign">fill</property>
-            <property name="valign">fill</property>
+
+            <child>
+              <object class="GtkBox" id="aurgh_sidebar_box">
+
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="halign">fill</property>
+                <property name="valign">fill</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkBox" id="aurgh_content_box">
+
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="halign">fill</property>
+                <property name="valign">fill</property>
+              </object>
+            </child>
           </object>
+
         </child>
       </object>
     </child>
