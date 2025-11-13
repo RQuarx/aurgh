@@ -20,15 +20,7 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
     */
     FcInit();
 
-    auto _ {
-        init_curl(CURL_VERSION_THREADSAFE)
-            .or_else(
-                [](std::string_view err) -> std::expected<void, std::string>
-                {
-                    logger.log<ERROR>("Failed to initialize CURL: {}", err);
-                    std::terminate();
-                })
-    };
+    init_curl(CURL_VERSION_THREADSAFE);
 
     auto builder { app::get_builder("/org/kei/aurgh/data/window.xml") };
 
@@ -72,15 +64,17 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
 }
 
 
-auto
-App::init_curl(int64_t flags) -> std::expected<void, std::string>
+void
+App::init_curl(int64_t flags)
 {
     logger.log<INFO>("Initializing CURL.");
     CURLcode retval { curl_global_init(flags) };
 
-    if (retval != CURLE_OK) return std::unexpected(curl_easy_strerror(retval));
+    if (retval == CURLE_OK) return;
 
-    return {};
+    logger.log<ERROR>("CURL failed to initialize: {}",
+                      curl_easy_strerror(retval));
+    std::terminate();
 }
 
 
@@ -167,6 +161,8 @@ App::on_tab_button_pressed(Gtk::ToggleButton *button)
         {
             this->main_button->set_active(false);
             this->installed_button->set_active(false);
+            // this->main_tab->close();
+            // this->installed_tab->close();
 
             this->content_box->foreach(rm_child);
             this->content_box->pack_start(*this->aur_tab);
@@ -177,6 +173,8 @@ App::on_tab_button_pressed(Gtk::ToggleButton *button)
         {
             this->aur_button->set_active(false);
             this->installed_button->set_active(false);
+            this->aur_tab->close();
+            // this->installed_tab->close();
 
             this->content_box->foreach(rm_child);
             // this->content_box->pack_start(*this->main_tab);
@@ -187,6 +185,8 @@ App::on_tab_button_pressed(Gtk::ToggleButton *button)
         {
             this->main_button->set_active(false);
             this->aur_button->set_active(false);
+            // this->main_tab->close();
+            this->aur_tab->close();
 
             this->content_box->foreach(rm_child);
             // this->content_box->pack_start(*this->installed_tab);

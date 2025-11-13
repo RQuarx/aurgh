@@ -37,7 +37,7 @@ namespace
 
 
 Tab::Tab(BaseObjectType *p_object, const Glib::RefPtr<Gtk::Builder> &p_builder)
-    : BaseTab(p_object, p_builder)
+    : BaseTab(p_object, p_builder), closed_counter(0)
 {
     this->on_search_dispatcher.connect(
         sigc::mem_fun(*this, &Tab::add_cards_to_box));
@@ -56,7 +56,7 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
         this->cards.clear();
         this->pkgs.clear();
         content_box->foreach(
-            [content_box](Gtk::Widget &p_child)
+            [content_box](Gtk::Widget &p_child) -> void
             {
                 content_box->remove(p_child);
                 delete &p_child;
@@ -69,7 +69,7 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
         if (search_text.empty()) return;
         if (search_by.empty()) return;
 
-        std::jthread(
+        std::jthread _ {
             [=, this]() -> void
             {
                 Json::Value result { Tab::search_package(search_text,
@@ -89,14 +89,68 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
                           reverse);
 
                 this->on_search_dispatcher.emit();
-            });
+            }
+        };
+
+        return;
     }
+
+    if (p_type == CriteriaType::NONE)
+        if (!this->pkgs.empty() && this->cards.empty())
+        {
+            this->add_cards_to_box();
+            return;
+        }
+
+    this->cards.clear();
+    content_box->foreach(
+        [content_box](Gtk::Widget &p_child) -> void
+        {
+            content_box->remove(p_child);
+            delete &p_child;
+        });
+
+    const auto [search_by, sort_by, search_text,
+                reverse] { p_criteria.get_string() };
+
+    /* TODO: implement a way to tell the user regarding these */
+    if (search_text.empty()) return;
+    if (search_by.empty()) return;
+
+    std::jthread _ {
+        [=, this]() -> void
+        {
+            sort_json(this->pkgs, sort_by.empty() ? "NumVotes" : sort_by,
+                      reverse);
+
+            this->on_search_dispatcher.emit();
+        }
+    };
 }
 
 
 void
 Tab::close()
 {
+    if (closed_counter >= 2)
+    {
+        if (this->cards.empty()) return;
+
+        logger.log<DEBUG>("Clearing cards from tab {}", this->get_name());
+
+        this->cards.clear();
+        this->get_content_box()->foreach(
+            [this](Gtk::Widget &p_child) -> void
+            {
+                this->get_content_box()->remove(p_child);
+                delete &p_child;
+            });
+
+        closed_counter = 0;
+        return;
+    }
+
+    closed_counter++;
 }
 
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <expected>
+
 #include <gtkmm.h>
 
 #include "app/sidebar.hh"
@@ -48,14 +49,7 @@ namespace app
         Gtk::Box                     *sidebar_box;
 
     protected:
-        /**
-         * @brief Initialize libCURL.
-         *
-         * @param p_flags Initialization flag that will be passed to curl_global_init.
-         * @return Expected nothing, and an error message on error.
-         */
-        static auto init_curl(int64_t p_flags)
-            -> std::expected<void, std::string>;
+        static void init_curl(int64_t p_flags);
 
 
         /**

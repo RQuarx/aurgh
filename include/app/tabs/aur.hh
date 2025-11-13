@@ -24,6 +24,8 @@ namespace app::aur
 
         Glib::Dispatcher on_search_dispatcher;
 
+        int closed_counter;
+
     protected:
         static auto search_package(const std::string &p_pkg,
                                    const std::string &p_search_by)

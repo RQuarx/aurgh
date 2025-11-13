@@ -1,6 +1,4 @@
-#include <alpm.h>
-#include <curl/curl.h>
-#include <unistd.h>
+#include <print>
 
 #include "app/app.hh"
 #include "cli/cli.hh"
@@ -50,13 +48,20 @@ namespace
 auto
 main(int p_argc, char **p_argv) -> int
 {
+    for (int i { 1 }; i < p_argc; i++)
+        if (std::strcmp(p_argv[i], "version") == 0)
+        {
+            std::println("{} {}", APP_NAME, APP_VERSION);
+            std::exit(0);
+        }
+
     logger.set_log_level(utils::get_env("LOG_LEVEL"))
         .set_log_file(utils::get_env("LOG_FILE"));
 
     set_glib_logger();
 
     logger.log<INFO>("Running {} version {}", APP_NAME,
-                      versions::get(APP_NAME));
+                     versions::get(APP_NAME));
 
 #ifndef NDEBUG
     logger.log<DEBUG>("Running application in debug mode.");
