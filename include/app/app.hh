@@ -1,6 +1,4 @@
 #pragma once
-#include <expected>
-
 #include <gtkmm.h>
 
 #include "app/sidebar.hh"
@@ -15,16 +13,12 @@ namespace Gtk
 
 namespace app
 {
-    /**
-     * @brief A class that manages the app's backend and frontend.
-     */
     class App
     {
     public:
         App();
 
 
-        /* Runs the application. */
         auto run(this App &self) -> int;
 
     private:
@@ -49,19 +43,13 @@ namespace app
         Gtk::Box                     *sidebar_box;
 
     protected:
-        static void init_curl(int64_t p_flags);
-
-
-        /**
-         * @brief Loads custom CSS theme from {app-dir}/ui/style.css
-         *
-         * @throw This function may throw an std::runtime_error with no messages.
-         */
+        static void init_curl(std::int64_t p_flags);
         static void load_css();
 
-        void on_tab_button_pressed(Gtk::ToggleButton *p_button);
         void setup_tabs(this App &self);
         void setup_criteria();
+
+        void on_tab_button_pressed(Gtk::ToggleButton *p_button);
         void on_criteria_change(CriteriaType p_type,
                                 TabType      p_tab = TabType::NONE);
     };

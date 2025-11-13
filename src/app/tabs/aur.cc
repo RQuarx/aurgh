@@ -26,8 +26,8 @@ namespace
 
                 if (a_val.isInt())
                 {
-                    return p_reverse ? a_val.asInt() > b_val.asInt()
-                                     : a_val.asInt() < b_val.asInt();
+                    return p_reverse ? a_val.asInt() < b_val.asInt()
+                                     : a_val.asInt() > b_val.asInt();
                 }
                 return p_reverse ? a_val.asString() > b_val.asString()
                                  : a_val.asString() < b_val.asString();
@@ -37,7 +37,7 @@ namespace
 
 
 Tab::Tab(BaseObjectType *p_object, const Glib::RefPtr<Gtk::Builder> &p_builder)
-    : BaseTab(p_object, p_builder), closed_counter(0)
+    : BaseTab(p_object, p_builder)
 {
     this->on_search_dispatcher.connect(
         sigc::mem_fun(*this, &Tab::add_cards_to_box));
@@ -47,20 +47,12 @@ Tab::Tab(BaseObjectType *p_object, const Glib::RefPtr<Gtk::Builder> &p_builder)
 void
 Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 {
-    Gtk::Box *content_box { get_content_box() };
-
     logger.log<DEBUG>("AUR tab activated");
 
     if (p_type == CriteriaType::SEARCH_TEXT)
     {
-        this->cards.clear();
         this->pkgs.clear();
-        content_box->foreach(
-            [content_box](Gtk::Widget &p_child) -> void
-            {
-                content_box->remove(p_child);
-                delete &p_child;
-            });
+        clear_content_box();
 
         const auto [search_by, sort_by, search_text,
                     reverse] { p_criteria.get_string() };
@@ -69,93 +61,43 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
         if (search_text.empty()) return;
         if (search_by.empty()) return;
 
-        std::jthread _ {
-            [=, this]() -> void
-            {
-                Json::Value result { Tab::search_package(search_text,
-                                                         search_by) };
-                Json::Value infos { Tab::get_pkgs_info(result["results"]) };
-
-                {
-                    std::scoped_lock lock { this->pkgs_mutex };
-
-                    this->pkgs.clear();
-                    this->pkgs.reserve(infos.size());
-                    for (const Json::Value &pkg : infos)
-                        this->pkgs.emplace_back(pkg);
-                }
-
-                sort_json(this->pkgs, sort_by.empty() ? "NumVotes" : sort_by,
-                          reverse);
-
-                this->on_search_dispatcher.emit();
-            }
-        };
+        std::jthread _ { [=, this]() -> void
+                         {
+                             search_and_fill(search_text, search_by);
+                             reload_content(sort_by, reverse);
+                         } };
 
         return;
     }
 
     if (p_type == CriteriaType::NONE)
+    {
         if (!this->pkgs.empty() && this->cards.empty())
-        {
             this->add_cards_to_box();
-            return;
-        }
+        return;
+    }
 
-    this->cards.clear();
-    content_box->foreach(
-        [content_box](Gtk::Widget &p_child) -> void
-        {
-            content_box->remove(p_child);
-            delete &p_child;
-        });
+    clear_content_box();
 
-    const auto [search_by, sort_by, search_text,
-                reverse] { p_criteria.get_string() };
+    const auto [_, sort_by, _0, reverse] { p_criteria.get_string() };
 
-    /* TODO: implement a way to tell the user regarding these */
-    if (search_text.empty()) return;
-    if (search_by.empty()) return;
-
-    std::jthread _ {
-        [=, this]() -> void
-        {
-            sort_json(this->pkgs, sort_by.empty() ? "NumVotes" : sort_by,
-                      reverse);
-
-            this->on_search_dispatcher.emit();
-        }
-    };
+    std::jthread { &Tab::reload_content, this, sort_by, reverse };
 }
 
 
 void
 Tab::close()
 {
-    if (closed_counter >= 2)
-    {
-        if (this->cards.empty()) return;
+    if (this->cards.empty()) return;
 
-        logger.log<DEBUG>("Clearing cards from tab {}", this->get_name());
+    logger.log<DEBUG>("Clearing cards from tab {}", this->get_name());
 
-        this->cards.clear();
-        this->get_content_box()->foreach(
-            [this](Gtk::Widget &p_child) -> void
-            {
-                this->get_content_box()->remove(p_child);
-                delete &p_child;
-            });
-
-        closed_counter = 0;
-        return;
-    }
-
-    closed_counter++;
+    clear_content_box();
 }
 
 
 auto
-Tab::search_package(const std::string &p_pkg, const std::string &p_search_by)
+Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
     -> Json::Value
 {
     logger.log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
@@ -219,7 +161,7 @@ Tab::add_cards_to_box()
 
     for (const auto &pkg : pkgs_copy)
     {
-        this->cards.emplace_back(pkg, Card::INSTALL);
+        this->cards.emplace_back(pkg, Card::Type::INSTALL);
 
         if (this->cards.back().is_valid())
         {
@@ -230,5 +172,45 @@ Tab::add_cards_to_box()
 
         logger.log<WARN>("Invalid card for {}", pkg["Name"].asString());
     }
-    this->get_content_box()->show_all_children();
+}
+
+
+void
+Tab::clear_content_box()
+{
+    Gtk::Box *content_box { this->get_content_box() };
+
+    this->cards.clear();
+    content_box->foreach(
+        [content_box](Gtk::Widget &p_child) -> void
+        {
+            content_box->remove(p_child);
+            delete &p_child;
+        });
+}
+
+
+void
+Tab::search_and_fill(std::string_view p_search_text,
+                     std::string_view p_search_by)
+{
+    Json::Value result { Tab::search_package(p_search_text, p_search_by) };
+    Json::Value infos { Tab::get_pkgs_info(result["results"]) };
+
+    {
+        std::scoped_lock lock { this->pkgs_mutex };
+
+        this->pkgs.clear();
+        this->pkgs.reserve(infos.size());
+        for (const Json::Value &pkg : infos) this->pkgs.emplace_back(pkg);
+    }
+}
+
+
+void
+Tab::reload_content(const std::string &p_sort_by, bool p_reverse)
+{
+    sort_json(this->pkgs, p_sort_by.empty() ? "NumVotes" : p_sort_by,
+              p_reverse);
+    this->on_search_dispatcher.emit();
 }

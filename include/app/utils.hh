@@ -15,9 +15,9 @@ namespace app
 
 
     auto write_callback(void        *p_contents,
-                        size_t       p_size,
-                        size_t       p_nmemb,
-                        std::string &p_userp) -> size_t;
+                        std::size_t  p_size,
+                        std::size_t  p_nmemb,
+                        std::string &p_userp) -> std::size_t;
 
 
     auto perform_curl(const char *p_url)

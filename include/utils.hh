@@ -44,19 +44,11 @@ namespace utils
     }
 
 
-    /**
-     * @brief Returns the PREFIX_PATH from config.hh
-     */
     auto get_prefix_path() -> std::string;
 }
 
 
 namespace Json
 {
-    /**
-     * @brief A wrapper for converting std::string object to a Json::Value object.
-     *
-     * @return A Json::Value object.
-     */
     auto from_string(const std::string &p_str) -> Json::Value;
 }

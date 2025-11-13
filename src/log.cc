@@ -28,7 +28,7 @@ Logger::set_log_level(this Logger &self, std::string_view p_log_level)
 
     try
     {
-        auto level { utils::to_int<uint32_t>(p_log_level) };
+        auto level { utils::to_int<std::uint32_t>(p_log_level) };
 
         /* `level` is not an integer */
         if (!level) throw std::exception {};
@@ -104,7 +104,7 @@ Logger::write(this Logger       &self,
 
     if (p_level < self.threshold_level) return;
 
-    size_t label_len { label.length() };
+    std::size_t label_len { label.length() };
     self.longest_label = std::max(self.longest_label, label_len);
 
     std::println(std::cerr, "[{}]: {}\033[1m{}\033[0m", label,

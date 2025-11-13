@@ -51,7 +51,13 @@ main(int p_argc, char **p_argv) -> int
     for (int i { 1 }; i < p_argc; i++)
         if (std::strcmp(p_argv[i], "version") == 0)
         {
-            std::println("{} {}", APP_NAME, APP_VERSION);
+            std::println("{} {}", APP_NAME, versions::get(APP_NAME));
+
+            for (const auto &[name, ver] : versions::get())
+            {
+                if (name == APP_NAME) continue;
+                std::println("  {} {}", name, ver);
+            }
             std::exit(0);
         }
 

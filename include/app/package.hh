@@ -9,7 +9,7 @@ namespace Json { class Value; }
 
 namespace app
 {
-    enum PkgInfo : uint8_t
+    enum PkgInfo : std::uint8_t
     {
         PKG_NAME       = 0,
         PKG_VERSION    = 1,
@@ -48,11 +48,12 @@ namespace app
     {
     public:
         /**
-         * The ctor will get information of the package @p pkg_name from the AUR,
-         * if @p system is false, or from libalpm if @p system is true.
-         *
          * @param p_pkg_name The name of the package.
          * @param p_system   Whether to use the AUR or libalpm.
+         *
+         * The ctor will get information of the package @param pkg_name
+         * from the AUR, if @param system is false, or from
+         * libalpm if @param system is true.
          */
         Package(const std::string &p_pkg_name, bool p_system = false);
 

@@ -89,7 +89,7 @@ private:
 
     std::ofstream log_file;
     LogLevel      threshold_level { WARN };
-    size_t        longest_label { 0 };
+    std::size_t   longest_label { 0 };
 
 
     void write(this Logger       &self,

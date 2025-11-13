@@ -9,7 +9,7 @@ using cli::Cli;
 
 
 auto
-Cli::init(const int32_t &p_argc, char **p_argv) -> std::optional<Cli>
+Cli::init(const int &p_argc, char **p_argv) -> std::optional<Cli>
 {
     bool err { false };
     Cli  cli { p_argc, p_argv, err };
@@ -18,7 +18,7 @@ Cli::init(const int32_t &p_argc, char **p_argv) -> std::optional<Cli>
 }
 
 
-Cli::Cli(const int32_t &p_argc, char **p_argv, bool &p_err)
+Cli::Cli(const int &p_argc, char **p_argv, bool &p_err)
 {
     if (p_argc < 3)
     {

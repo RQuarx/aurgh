@@ -16,8 +16,8 @@ namespace app
         }
         catch (const Glib::Error &e)
         {
-            logger.log<ERROR>("Failed to get builder file {}: {}",
-                              p_file_path, e.what().raw());
+            logger.log<ERROR>("Failed to get builder file {}: {}", p_file_path,
+                              e.what().raw());
             std::terminate();
         }
     }
@@ -25,11 +25,11 @@ namespace app
 
     auto
     write_callback(void        *p_contents,
-                   size_t       p_size,
-                   size_t       p_nmemb,
-                   std::string &p_userp) -> size_t
+                   std::size_t  p_size,
+                   std::size_t  p_nmemb,
+                   std::string &p_userp) -> std::size_t
     {
-        size_t total_size { p_size * p_nmemb };
+        std::size_t total_size { p_size * p_nmemb };
         p_userp.append(static_cast<char *>(p_contents), total_size);
         return total_size;
     }

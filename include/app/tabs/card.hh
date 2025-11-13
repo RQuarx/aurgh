@@ -18,7 +18,7 @@ namespace app
     class Card
     {
     public:
-        enum Type : uint8_t
+        enum class Type : std::uint8_t
         {
             INSTALL,
             UNINSTALL
@@ -48,12 +48,12 @@ namespace app
 
 
     private:
-        Package m_pkg;
+        Package pkg;
 
-        Gtk::Frame *m_card;
+        Gtk::Frame *card;
 
-        Gtk::ToggleButton *m_install;
-        Gtk::ToggleButton *m_add_to_queue;
-        Gtk::ToggleButton *m_uninstall;
+        Gtk::ToggleButton *install;
+        Gtk::ToggleButton *add_to_queue;
+        Gtk::ToggleButton *uninstall;
     };
 }

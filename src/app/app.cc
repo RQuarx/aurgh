@@ -57,7 +57,7 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
                          { content_box->remove(w); });
     window->show_all_children();
 
-    // sidebar_button->set_visible(false);
+    sidebar_button->set_visible(false);
     sidebar_box->set_visible(false);
 
     sidebar = std::make_unique<app::Sidebar>(sidebar_button, sidebar_box);
@@ -65,7 +65,7 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
 
 
 void
-App::init_curl(int64_t flags)
+App::init_curl(std::int64_t flags)
 {
     logger.log<INFO>("Initializing CURL.");
     CURLcode retval { curl_global_init(flags) };
@@ -93,8 +93,8 @@ App::load_css()
                 logger.log<ERROR>("Failed to parse CSS file");
                 throw std::runtime_error("");
             }
-            std::string file_name { section->get_file()->get_path() };
-            uint32_t    start_line { section->get_start_line() + 1 };
+            std::string   file_name { section->get_file()->get_path() };
+            std::uint32_t start_line { section->get_start_line() + 1 };
 
             logger.log<ERROR>("Failed to parse {} at line {}: {}", file_name,
                               start_line, error.what().raw());

@@ -37,7 +37,7 @@ namespace app
             -> std::tuple<std::string, std::string, std::string, bool>;
     };
 
-    enum class CriteriaType : uint8_t
+    enum class CriteriaType : std::uint8_t
     {
         SEARCH_BY,
         SORT_BY,
@@ -46,7 +46,7 @@ namespace app
         NONE
     };
 
-    enum class TabType : uint8_t
+    enum class TabType : std::uint8_t
     {
         AUR,
         MAIN,

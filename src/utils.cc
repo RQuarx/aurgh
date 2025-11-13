@@ -20,11 +20,11 @@ namespace utils
     {
         std::string result;
 
-        for (size_t i { 0 }; i < PREFIX_PATH.length(); i++)
+        for (std::size_t i { 0 }; i < PREFIX_PATH.length(); i++)
         {
             if (PREFIX_PATH[i] == '$' && PREFIX_PATH.at(i + 1) == '{')
             {
-                size_t end_idx { i + 2 };
+                std::size_t end_idx { i + 2 };
                 while (PREFIX_PATH.at(end_idx) != '}') end_idx++;
                 std::string var { PREFIX_PATH.substr(i + 2, end_idx - 2) };
 
