@@ -138,7 +138,7 @@ App::setup_tabs(this App &self)
     logger.log<DEBUG>("Creating tabs");
     auto aur { Gtk::Builder::create_from_file(
         app::get_app_file("tabs/aur.xml")) };
-    aur->get_widget_derived<aur::Tab>("aur_tab", self.aur_tab, self.signal);
+    aur->get_widget_derived<aur::Tab>("aur_tab", self.aur_tab);
     self.content_box->pack_start(*self.aur_tab);
 }
 
@@ -147,16 +147,19 @@ void
 App::setup_criteria()
 {
     this->criteria.search_by->signal_changed().connect(
-        sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change), SEARCH_COMBO,
-                   TAB_NONE));
-    this->criteria.sort_by->signal_changed().connect(sigc::bind(
-        sigc::mem_fun(*this, &App::on_criteria_change), SORT_COMBO, TAB_NONE));
+        sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change),
+                   CriteriaType::SEARCH_BY, TabType::NONE));
+
+    this->criteria.sort_by->signal_changed().connect(
+        sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change),
+                   CriteriaType::SORT_BY, TabType::NONE));
+
     this->criteria.search_entry->signal_activate().connect(
-        sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change), SEARCH_ENTRY,
-                   TAB_NONE));
+        sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change),
+                   CriteriaType::SEARCH_TEXT, TabType::NONE));
     this->criteria.reverse->signal_clicked().connect(
-        sigc::bind(sigc::mem_fun(this, &App::on_criteria_change), REVERSE_CHECK,
-                   TAB_NONE));
+        sigc::bind(sigc::mem_fun(this, &App::on_criteria_change),
+                   CriteriaType::REVERSE, TabType::NONE));
 
     this->criteria.search_by->set_active_id("name");
     this->criteria.sort_by->set_active_id("NumVotes");
@@ -179,7 +182,7 @@ App::on_tab_button_pressed(Gtk::ToggleButton *button)
             this->content_box->foreach(rm_child);
             this->content_box->pack_start(*this->aur_tab);
             this->content_box->show_all_children();
-            this->on_criteria_change(CRITERIA_NONE, AUR);
+            this->on_criteria_change(CriteriaType::NONE, TabType::AUR);
         }
         else if (button == this->main_button)
         {
@@ -189,7 +192,7 @@ App::on_tab_button_pressed(Gtk::ToggleButton *button)
             this->content_box->foreach(rm_child);
             // this->content_box->pack_start(*this->main_tab);
             this->content_box->show_all_children();
-            this->on_criteria_change(CRITERIA_NONE, MAIN);
+            this->on_criteria_change(CriteriaType::NONE, TabType::MAIN);
         }
         else if (button == this->installed_button)
         {
@@ -199,7 +202,7 @@ App::on_tab_button_pressed(Gtk::ToggleButton *button)
             this->content_box->foreach(rm_child);
             // this->content_box->pack_start(*this->installed_tab);
             this->content_box->show_all_children();
-            this->on_criteria_change(CRITERIA_NONE, INSTALLED);
+            this->on_criteria_change(CriteriaType::NONE, TabType::INSTALLED);
         }
     }
 }
@@ -208,16 +211,15 @@ App::on_tab_button_pressed(Gtk::ToggleButton *button)
 void
 App::on_criteria_change(CriteriaType type, TabType tab)
 {
-    if (tab != TAB_NONE)
-    {
-        this->signal.emit(tab, this->criteria, type);
-        return;
-    }
+#define CONDITION(p_tab_type, p_button) \
+     tab == (p_tab_type) || (tab == TabType::NONE && (p_button)->get_active())
 
-    if (this->aur_button->get_active())
-        this->signal.emit(AUR, this->criteria, type);
-    else if (this->main_button->get_active())
-        this->signal.emit(MAIN, this->criteria, type);
-    else if (this->installed_button->get_active())
-        this->signal.emit(INSTALLED, this->criteria, type);
+    if (CONDITION(TabType::AUR, this->aur_button))
+        aur_tab->activate(this->criteria, type);
+    else if (CONDITION(TabType::MAIN, this->main_button))
+        return; /* NOLINT */
+    else if (CONDITION(TabType::INSTALLED, this->installed_button))
+        return;
+
+#undef CONDITION
 }

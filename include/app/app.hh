@@ -1,9 +1,9 @@
 #pragma once
+#include <expected>
 #include <gtkmm.h>
 
 #include "app/sidebar.hh"
 #include "app/tabs/aur.hh"
-#include "app/types.hh"
 
 namespace Gtk
 {
@@ -47,8 +47,6 @@ namespace app
         std::unique_ptr<app::Sidebar> sidebar;
         Gtk::Box                     *sidebar_box;
 
-        signal_type signal;
-
     protected:
         /**
          * @brief Initialize libCURL.
@@ -70,6 +68,7 @@ namespace app
         void on_tab_button_pressed(Gtk::ToggleButton *p_button);
         void setup_tabs(this App &self);
         void setup_criteria();
-        void on_criteria_change(CriteriaType p_type, TabType p_tab = TAB_NONE);
+        void on_criteria_change(CriteriaType p_type,
+                                TabType      p_tab = TabType::NONE);
     };
 }

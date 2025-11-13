@@ -1,8 +1,6 @@
 #include <thread>
 
-#include <curl/curl.h>
 #include <gtkmm.h>
-#include <json/json.h>
 
 #include "app/tabs/aur.hh"
 #include "app/utils.hh"
@@ -11,7 +9,6 @@
 #include "utils.hh"
 
 using app::aur::Tab;
-
 
 namespace
 {
@@ -29,79 +26,82 @@ namespace
 
                 if (a_val.isInt())
                 {
-                    return p_reverse ? a_val.asInt() < b_val.asInt()
-                                     : a_val.asInt() > b_val.asInt();
+                    return p_reverse ? a_val.asInt() > b_val.asInt()
+                                     : a_val.asInt() < b_val.asInt();
                 }
-                return p_reverse ? a_val.asString() < b_val.asString()
-                                 : a_val.asString() > b_val.asString();
+                return p_reverse ? a_val.asString() > b_val.asString()
+                                 : a_val.asString() < b_val.asString();
             });
     }
 }
 
 
-Tab::Tab(BaseObjectType                   *p_cobject,
-         const Glib::RefPtr<Gtk::Builder> &p_builder,
-         signal_type                       p_signal)
-    : Gtk::Box(p_cobject)
+Tab::Tab(BaseObjectType *p_object, const Glib::RefPtr<Gtk::Builder> &p_builder)
+    : BaseTab(p_object, p_builder)
 {
-    p_builder->get_widget("content", m_content);
-
-    p_signal.connect(sigc::mem_fun(*this, &aur::Tab::on_active));
-    m_on_search_dispatch.connect(sigc::mem_fun(*this, &Tab::add_cards_to_box));
+    this->on_search_dispatcher.connect(
+        sigc::mem_fun(*this, &Tab::add_cards_to_box));
 }
 
 
 void
-Tab::on_active(TabType p_tab, CriteriaWidgets &p_widgets, CriteriaType p_type)
+Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 {
-    if (p_tab != AUR) return;
+    Gtk::Box *content_box { get_content_box() };
 
-    /* Its a search signal. */
-    if (p_type == SEARCH_ENTRY)
+    logger.log<DEBUG>("AUR tab activated");
+
+    if (p_type == CriteriaType::SEARCH_TEXT)
     {
-        m_cards.clear();
-        m_pkgs.clear();
-        m_content->foreach (
-            [this](Gtk::Widget &p_child)
+        this->cards.clear();
+        this->pkgs.clear();
+        content_box->foreach(
+            [content_box](Gtk::Widget &p_child)
             {
-                m_content->remove(p_child);
+                content_box->remove(p_child);
                 delete &p_child;
             });
 
-        const std::string pkg_name { p_widgets.search_entry->get_text() };
-        const std::string search_by { p_widgets.search_by->get_active_id() };
-        const std::string sort_by { p_widgets.sort_by->get_active_id() };
-        const bool        reverse { p_widgets.reverse->get_active() };
+        const auto [search_by, sort_by, search_text,
+                    reverse] { p_criteria.get_string() };
 
-        if (pkg_name.empty()) return;
+        /* TODO: implement a way to tell the user regarding these */
+        if (search_text.empty()) return;
         if (search_by.empty()) return;
 
-        /* Search the package and sort the json */
         std::jthread(
             [=, this]() -> void
             {
-                Json::Value result { search_pkg(pkg_name, search_by) };
-                Json::Value infos { get_pkgs_info(result["results"]) };
+                Json::Value result { Tab::search_package(search_text,
+                                                         search_by) };
+                Json::Value infos { Tab::get_pkgs_info(result["results"]) };
 
-                m_pkgs.reserve(infos.size());
-                for (const Json::Value &pkg : infos) m_pkgs.emplace_back(pkg);
+                {
+                    std::scoped_lock lock { this->pkgs_mutex };
 
-                sort_json(m_pkgs, sort_by.empty() ? "NumVotes" : sort_by,
+                    this->pkgs.clear();
+                    this->pkgs.reserve(infos.size());
+                    for (const Json::Value &pkg : infos)
+                        this->pkgs.emplace_back(pkg);
+                }
+
+                sort_json(this->pkgs, sort_by.empty() ? "NumVotes" : sort_by,
                           reverse);
 
-                m_on_search_dispatch.emit();
-            })
-            .detach();
-    }
-    else
-    {
-        /* We just need to show the previous cards generated. */
+                this->on_search_dispatcher.emit();
+            });
     }
 }
 
 
+void
+Tab::close()
+{
+}
+
+
 auto
-Tab::search_pkg(const std::string &p_pkg, const std::string &p_search_by)
+Tab::search_package(const std::string &p_pkg, const std::string &p_search_by)
     -> Json::Value
 {
     logger.log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
@@ -111,7 +111,7 @@ Tab::search_pkg(const std::string &p_pkg, const std::string &p_search_by)
     if (!retval)
     {
         logger.log<ERROR>("Failed to search for {} by {}: {}", p_pkg,
-                             p_search_by, curl_easy_strerror(retval.error()));
+                          p_search_by, curl_easy_strerror(retval.error()));
         return Json::nullValue;
     }
 
@@ -122,8 +122,8 @@ Tab::search_pkg(const std::string &p_pkg, const std::string &p_search_by)
     catch (const std::exception &e)
     {
         logger.log<ERROR>("Malformed value returned from the "
-                             "AUR: {}, output: {}",
-                             e.what(), *retval);
+                          "AUR: {}, output: {}",
+                          e.what(), *retval);
         return Json::nullValue;
     }
 }
@@ -143,7 +143,7 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
     if (!retval)
     {
         logger.log<ERROR>("Failed to get informations for {} packages: {}",
-                             p_pkgs.size(), curl_easy_strerror(retval.error()));
+                          p_pkgs.size(), curl_easy_strerror(retval.error()));
         return Json::nullValue;
     }
 
@@ -156,17 +156,25 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
 void
 Tab::add_cards_to_box()
 {
-    for (const auto &pkg : m_pkgs)
-    {
-        m_cards.emplace_back(pkg, Card::INSTALL);
+    std::vector<Json::Value> pkgs_copy;
 
-        if (m_cards.back().is_valid())
+    {
+        std::scoped_lock lock { this->pkgs_mutex };
+        pkgs_copy = this->pkgs;
+    }
+
+    for (const auto &pkg : pkgs_copy)
+    {
+        this->cards.emplace_back(pkg, Card::INSTALL);
+
+        if (this->cards.back().is_valid())
         {
-            m_content->pack_start(*m_cards.back().get_widget());
+            this->get_content_box()->pack_start(
+                *this->cards.back().get_widget());
             continue;
         }
 
         logger.log<WARN>("Invalid card for {}", pkg["Name"].asString());
     }
-    m_content->show_all_children();
+    this->get_content_box()->show_all_children();
 }
