@@ -1,0 +1,11 @@
+<gresources>
+    <gresource prefix="/org/kei/aurgh">
+        <file>data/icons/check.svg</file>
+        <file>data/icons/package.svg</file>
+
+        <file>data/tabs/aur.xml</file>
+
+        <file>data/style.css</file>
+        <file>data/window.xml</file>
+    </gresource>
+</gresources>

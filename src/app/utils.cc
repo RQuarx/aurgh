@@ -1,51 +1,25 @@
-#include <filesystem>
-
 #include <gtkmm/builder.h>
 
 #include "app/utils.hh"
-#include "config.hh"
+#include "log.hh"
 #include "utils.hh"
 
 
 namespace app
 {
     auto
-    get_app_file(std::string_view p_file_path) -> std::string
+    get_builder(const std::string &p_file_path) -> Glib::RefPtr<Gtk::Builder>
     {
-        for (std::filesystem::path base : DATA_SEARCH_PATHS)
-        {
-            if (std::filesystem::exists(base / p_file_path))
-                return (base / p_file_path);
-
-            if (std::filesystem::exists(base / "data" / p_file_path))
-                return (base / "data" / p_file_path);
-        }
-
-        return "";
-    }
-
-
-    auto
-    get_builder(std::string_view p_file_path)
-        -> std::expected<Glib::RefPtr<Gtk::Builder>, std::string>
-    {
-        const std::string ui_file { get_app_file(p_file_path) };
-        if (ui_file.empty())
-        {
-            return utils::unexpected("App file {} does not exist", p_file_path);
-        }
-
-        Glib::RefPtr<Gtk::Builder> builder;
         try
         {
-            builder = Gtk::Builder::create_from_file(ui_file);
+            return Gtk::Builder::create_from_resource(p_file_path);
         }
         catch (const Glib::Error &e)
         {
-            return utils::unexpected(e.what().raw());
+            logger.log<ERROR>("Failed to get builder file {}: {}",
+                              p_file_path, e.what().raw());
+            std::terminate();
         }
-
-        return builder;
     }
 
 

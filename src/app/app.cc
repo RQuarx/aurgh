@@ -30,17 +30,7 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
                 })
     };
 
-    auto builder {
-        *app::get_builder("window.xml")
-             .or_else(
-                 [](std::string_view err)
-                     -> std::expected<Glib::RefPtr<Gtk::Builder>, std::string>
-                 {
-                     logger.log<ERROR>("Failed to create a Gtk::Builder: {}",
-                                       err);
-                     std::terminate();
-                 })
-    };
+    auto builder { app::get_builder("/org/kei/aurgh/data/window.xml") };
 
     load_css();
 
@@ -117,7 +107,7 @@ App::load_css()
             throw std::runtime_error("");
         });
 
-    css_provider->load_from_path(app::get_app_file("style.css"));
+    css_provider->load_from_resource("/org/kei/aurgh/data/style.css");
 
     auto screen { Gdk::Screen::get_default() };
     Gtk::StyleContext::add_provider_for_screen(
@@ -136,8 +126,7 @@ void
 App::setup_tabs(this App &self)
 {
     logger.log<DEBUG>("Creating tabs");
-    auto aur { Gtk::Builder::create_from_file(
-        app::get_app_file("tabs/aur.xml")) };
+    auto aur { get_builder("/org/kei/aurgh/data/tabs/aur.xml") };
     aur->get_widget_derived<aur::Tab>("aur_tab", self.aur_tab);
     self.content_box->pack_start(*self.aur_tab);
 }

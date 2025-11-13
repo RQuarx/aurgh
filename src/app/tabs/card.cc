@@ -6,11 +6,8 @@
 using app::Card;
 
 
-Card::Card(
-           const Json::Value             &p_pkg,
-           const Type                    &p_card_type)
-    : m_pkg(p_pkg),
-      m_card(Gtk::make_managed<Gtk::Frame>()),
+Card::Card(const Json::Value &p_pkg, const Type &p_card_type)
+    : m_pkg(p_pkg), m_card(Gtk::make_managed<Gtk::Frame>()),
       m_install(Gtk::make_managed<Gtk::ToggleButton>()),
       m_add_to_queue(Gtk::make_managed<Gtk::ToggleButton>()),
       m_uninstall(Gtk::make_managed<Gtk::ToggleButton>())
