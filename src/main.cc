@@ -1,3 +1,4 @@
+#include <cstring>
 #include <print>
 
 #include "app/app.hh"

@@ -1,8 +1,10 @@
 #include <thread>
 
 #include <gtkmm.h>
+#include <json/value.h>
 
 #include "app/tabs/aur.hh"
+#include "app/tabs/card.hh"
 #include "app/utils.hh"
 #include "config.hh"
 #include "log.hh"

@@ -1,4 +1,6 @@
+#include <gtkmm/box.h>
 #include <gtkmm/image.h>
+#include <gtkmm/togglebutton.h>
 
 #include "app/sidebar.hh"
 #include "log.hh"

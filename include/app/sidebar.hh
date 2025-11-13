@@ -1,6 +1,11 @@
 #pragma once
-#include <gtkmm/box.h>
-#include <gtkmm/togglebutton.h>
+
+namespace Gtk
+{
+    class ToggleButton;
+    class Image;
+    class Box;
+}
 
 
 namespace app

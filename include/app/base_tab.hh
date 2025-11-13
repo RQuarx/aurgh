@@ -1,11 +1,9 @@
 #pragma once
 #include <queue>
 
-#include <glibmm/dispatcher.h>
 #include <gtkmm/box.h>
 
 #include "app/package.hh"
-#include "app/tabs/card.hh"
 
 namespace Gtk
 {

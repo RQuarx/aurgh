@@ -1,7 +1,5 @@
 #pragma once
 #include <glibmm/signalproxy.h>
-#include <json/value.h>
-#include <sigc++/signal.h>
 
 #include "app/package.hh"
 

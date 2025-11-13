@@ -1,5 +1,5 @@
 #pragma once
-#include <gtkmm.h>
+#include <gtkmm/application.h>
 
 #include "app/sidebar.hh"
 #include "app/tabs/aur.hh"

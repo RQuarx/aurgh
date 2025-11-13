@@ -1,6 +1,10 @@
 #pragma once
 #include "app/base_tab.hh"
 
+#include <glibmm/dispatcher.h>
+
+
+namespace app { class Card; }
 
 namespace app::aur
 {
