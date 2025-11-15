@@ -46,22 +46,7 @@ struct Pkg
 class Package
 {
 public:
-    /**
-     * @param p_pkg_name The name of the package.
-     * @param p_system   Whether to use the AUR or libalpm.
-     *
-     * The ctor will get information of the package @param pkg_name
-     * from the AUR, if @param system is false, or from
-     * libalpm if @param system is true.
-     */
-    Package(const std::string &p_pkg_name, bool p_system = false);
-
-
-    /**
-     * @brief This ctor will accept a Json::Value object instead of creating
-     *        a GET request to find the information about a package.
-     */
-    Package(const Json::Value &p_pkg_info);
+    Package(const Json::Value &p_pkg_info, bool p_from_aur = true);
 
 
     [[nodiscard]]
@@ -82,6 +67,10 @@ public:
 
 
     [[nodiscard]]
+    auto get_error_message(this const Package &self) -> std::string;
+
+
+    [[nodiscard]]
     static auto get_installed()
         -> std::expected<std::vector<Package>, std::string>;
 
@@ -89,6 +78,8 @@ private:
     bool valid;
     Pkg  pkg;
     bool from_aur;
+
+    std::string error_message;
 
 
     [[nodiscard]]

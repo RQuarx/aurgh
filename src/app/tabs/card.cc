@@ -88,7 +88,6 @@ Card::Card(const Json::Value &p_pkg, const Type &p_card_type)
     card->set_halign(Gtk::ALIGN_FILL);
     card->set_margin_bottom(10);
     card->set_margin_start(10);
-    // card->set_margin_top(10);
     card->set_margin_end(10);
     card->set_name("card-container");
     card->add(*main_box);
@@ -111,7 +110,14 @@ Card::Card(const Json::Value &p_pkg, const Type &p_card_type)
 auto
 Card::is_valid() -> bool
 {
-    return pkg.is_valid();
+    return this->pkg.is_valid();
+}
+
+
+auto
+Card::get_package() -> Package &
+{
+    return this->pkg;
 }
 
 
@@ -121,5 +127,5 @@ Card::~Card() {}
 auto
 Card::get_widget() -> Gtk::Frame *
 {
-    return card;
+    return this->card;
 }

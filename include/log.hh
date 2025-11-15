@@ -66,6 +66,24 @@ public:
     }
 
 
+    template <LogLevel T_Level>
+    void
+    log(this Logger                &self,
+        std::string_view            p_string,
+        const std::source_location &p_source = std::source_location::current())
+    {
+        std::string_view func { p_source.function_name() };
+
+        func = func.substr(0, func.find('('));
+
+        for (char delim : " > ")
+            if (auto pos { func.find(delim) }; pos != std::string_view::npos)
+                func = func.substr(pos + 1);
+
+        self.write(T_Level, func, std::format("{}", p_string));
+    }
+
+
     template <typename... T_Args>
     void
     glog(this Logger                  &self,

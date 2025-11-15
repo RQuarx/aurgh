@@ -9,7 +9,6 @@ using app::ChoiceDialog;
 
 ChoiceDialog::ChoiceDialog(Gtk::Window *p_parent) : parent(p_parent)
 {
-    // dispatcher.connect();
 }
 
 

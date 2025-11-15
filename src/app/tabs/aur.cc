@@ -29,10 +29,9 @@ namespace
                 const Json::Value &b_val { b[p_sort_by] };
 
                 if (a_val.isInt())
-                {
                     return p_reverse ? a_val.asInt() < b_val.asInt()
                                      : a_val.asInt() > b_val.asInt();
-                }
+
                 return p_reverse ? a_val.asString() > b_val.asString()
                                  : a_val.asString() < b_val.asString();
             });
@@ -74,12 +73,13 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
         this->pkgs.clear();
         clear_content_box();
 
-        std::jthread _ { [=, this]() -> void
-                         {
-                             search_and_fill(search_text, search_by);
-                             reload_content(sort_by, reverse);
-                         } };
-
+        std::jthread {
+            [=, this]() -> void
+            {
+                search_and_fill(search_text, search_by);
+                reload_content(sort_by, reverse);
+            }
+        }.detach();
         return;
     }
 
@@ -94,7 +94,7 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 
     const auto [_, sort_by, _0, reverse] { p_criteria.get_string() };
 
-    std::jthread { &Tab::reload_content, this, sort_by, reverse };
+    std::jthread { &Tab::reload_content, this, sort_by, reverse }.detach();
 }
 
 
@@ -124,7 +124,7 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
         std::string message { std::format("Failed to search for {} by {}: {}",
                                           p_pkg, p_search_by,
                                           curl_easy_strerror(retval.error())) };
-        logger.log<ERROR>("{}", message);
+        logger.log<ERROR>(message);
 
         ChoiceDialog dialog { app::get_toplevel(this) };
 
@@ -134,7 +134,7 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
 
         std::string result { dialog.show_dialog() };
 
-        if (result == "Quit") std::terminate();
+        if (result == "Quit") std::exit(retval.error());
 
         return Json::nullValue;
     }
@@ -166,8 +166,22 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
     auto retval { utils::perform_curl(url.c_str()) };
     if (!retval)
     {
-        logger.log<ERROR>("Failed to get informations for {} packages: {}",
-                          p_pkgs.size(), curl_easy_strerror(retval.error()));
+        std::string message { std::format(
+            "Failed to get informations for {} packages: {}", p_pkgs.size(),
+            curl_easy_strerror(retval.error())) };
+
+        logger.log<ERROR>(message);
+
+        ChoiceDialog dialog { app::get_toplevel(this) };
+
+        dialog.set_message(std::move(message))
+            .add_response("Quit")
+            .add_response("Continue");
+
+        std::string result { dialog.show_dialog() };
+
+        if (result == "Quit") std::exit(retval.error());
+
         return Json::nullValue;
     }
 
@@ -198,7 +212,22 @@ Tab::add_cards_to_box()
             continue;
         }
 
-        logger.log<WARN>("Invalid card for {}", pkg["Name"].asString());
+        Package    &package { this->cards.back().get_package() };
+        std::string message { std::format("Failed to load package {}: {}",
+                                          package[PKG_NAME],
+                                          package.get_error_message()) };
+
+        logger.log<ERROR>(message);
+
+        ChoiceDialog dialog { app::get_toplevel(this) };
+
+        dialog.set_message(std::move(message))
+            .add_response("Quit")
+            .add_response("Continue");
+
+        std::string result { dialog.show_dialog() };
+
+        if (result == "Quit") std::exit(1);
     }
 }
 
@@ -223,7 +252,10 @@ Tab::search_and_fill(std::string_view p_search_text,
                      std::string_view p_search_by)
 {
     Json::Value result { Tab::search_package(p_search_text, p_search_by) };
+    if (result == Json::nullValue) return;
+
     Json::Value infos { Tab::get_pkgs_info(result["results"]) };
+    if (infos == Json::nullValue) return;
 
     {
         std::scoped_lock lock { this->pkgs_mutex };

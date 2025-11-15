@@ -40,12 +40,13 @@ namespace
             auto *pkgs { alpm_db_get_pkgcache(
                 static_cast<alpm_db_t *>(i->data)) };
 
-            std::println("{}", alpm_db_get_name(static_cast<alpm_db_t *>(i->data)));
+            std::println("{}",
+                         alpm_db_get_name(static_cast<alpm_db_t *>(i->data)));
 
             for (alpm_list_t *j { pkgs }; j != nullptr; j = alpm_list_next(j))
             {
                 std::println("  {}", alpm_pkg_get_name(
-                                       static_cast<alpm_pkg_t *>(j->data)));
+                                         static_cast<alpm_pkg_t *>(j->data)));
             }
         }
 
@@ -64,38 +65,8 @@ namespace
 }
 
 
-Package::Package(const std::string &p_pkg_name, bool p_system)
-{
-    from_aur = !p_system;
-
-    if (p_system) { return; }
-
-    const std::string url { std::format("{}/info/{}", AUR_URL, p_pkg_name) };
-
-    auto retval { utils::perform_curl(url.c_str()) };
-    if (!retval)
-    {
-        logger.log<ERROR>("Failed to get the info of {}: {}", p_pkg_name,
-                          curl_easy_strerror(retval.error()));
-        valid = false;
-        return;
-    }
-
-    try
-    {
-        Json::Value result { Json::from_string(*retval) };
-        valid = json_to_pkg(result["results"][Json::ArrayIndex(0)]);
-    }
-    catch (const std::exception &e)
-    {
-        logger.log<ERROR>("Failed to parse package {}: {}", p_pkg_name,
-                          e.what());
-        valid = false;
-    }
-}
-
-
-Package::Package(const Json::Value &p_pkg) : from_aur(true)
+Package::Package(const Json::Value &p_pkg, bool p_from_aur)
+    : from_aur(p_from_aur)
 {
     valid = json_to_pkg(p_pkg);
 }
@@ -127,6 +98,13 @@ auto
 Package::is_external(this const Package &self) -> bool
 {
     return self.from_aur;
+}
+
+
+auto
+Package::get_error_message(this const Package &self) -> std::string
+{
+    return self.error_message;
 }
 
 
@@ -181,8 +159,9 @@ Package::json_to_pkg(this Package &self, const Json::Value &p_json) -> bool
 {
     if (!p_json.isObject())
     {
-        logger.log<ERROR>("Retrieved JSON is not an object: {}",
-                          p_json.toStyledString());
+        self.error_message = "Retrieved JSON is not a Json::objectValue.";
+
+        logger.log<ERROR>(self.error_message);
         return false;
     }
 
@@ -201,13 +180,14 @@ Package::json_to_pkg(this Package &self, const Json::Value &p_json) -> bool
         self.pkg[PKG_NUMVOTES]
             = escape_pango_markup(p_json["NumVotes"].asString());
 
-    if (!p_json["URL"].isNull())
+    if (p_json.isMember("URL") && !p_json["URL"].isNull())
         self.pkg[PKG_URL] = p_json["URL"].asString();
     else
         self.pkg[PKG_URL] = "";
 
-    for (Json::ArrayIndex i { 0 }; i < p_json["Keywords"].size(); i++)
-        self.pkg.add_keyword(p_json["Keywords"][i].asString());
+    if (p_json.isMember("Keywords"))
+        for (Json::ArrayIndex i { 0 }; i < p_json["Keywords"].size(); i++)
+            self.pkg.add_keyword(p_json["Keywords"][i].asString());
 
     return true;
 }

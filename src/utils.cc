@@ -59,7 +59,6 @@ namespace utils
     auto
     perform_curl(const char *p_url) -> std::expected<std::string, CURLcode>
     {
-        return utils::unexpected(CURLE_HTTP_NOT_FOUND);
         CURL *curl { curl_easy_init() };
 
         std::string buff;
