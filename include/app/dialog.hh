@@ -5,7 +5,11 @@
 
 #include <glibmm/dispatcher.h>
 
-namespace Gtk { class Window; }
+namespace Gtk
+{
+    class Window;
+    class Widget;
+}
 
 
 namespace app
@@ -26,7 +30,15 @@ namespace app
 
 
         auto show_dialog() -> std::string;
+
+
         auto show_dialog_async() -> std::future<std::string>;
+
+
+        static auto show_error(Gtk::Widget             *p_widget,
+                               std::string              p_message,
+                               std::vector<std::string> p_responses,
+                               bool p_async = false) -> std::string;
 
     private:
         Gtk::Window *parent;

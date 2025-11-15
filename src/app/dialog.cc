@@ -3,13 +3,12 @@
 #include <gtkmm.h>
 
 #include "app/dialog.hh"
+#include "app/utils.hh"
 
 using app::ChoiceDialog;
 
 
-ChoiceDialog::ChoiceDialog(Gtk::Window *p_parent) : parent(p_parent)
-{
-}
+ChoiceDialog::ChoiceDialog(Gtk::Window *p_parent) : parent(p_parent) {}
 
 
 auto
@@ -109,4 +108,19 @@ ChoiceDialog::show_dialog_async() -> std::future<std::string>
         });
 
     return fut;
+}
+
+
+auto
+ChoiceDialog::show_error(Gtk::Widget             *p_widget,
+                         std::string              p_message,
+                         std::vector<std::string> p_responses,
+                         bool                     p_async) -> std::string
+{
+    ChoiceDialog dialog { app::get_toplevel(p_widget) };
+
+    dialog.set_message(std::move(p_message));
+    for (auto &response : p_responses) dialog.add_response(std::move(response));
+
+    return p_async ? dialog.show_dialog_async().get() : dialog.show_dialog();
 }

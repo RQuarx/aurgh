@@ -126,13 +126,8 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
                                           curl_easy_strerror(retval.error())) };
         logger.log<ERROR>(message);
 
-        ChoiceDialog dialog { app::get_toplevel(this) };
-
-        dialog.set_message(std::move(message))
-            .add_response("Quit")
-            .add_response("Continue");
-
-        std::string result { dialog.show_dialog() };
+        std::string result { ChoiceDialog::show_error(this, message,
+                                                      { "Quit", "Continue" }) };
 
         if (result == "Quit") std::exit(retval.error());
 
@@ -172,13 +167,8 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
 
         logger.log<ERROR>(message);
 
-        ChoiceDialog dialog { app::get_toplevel(this) };
-
-        dialog.set_message(std::move(message))
-            .add_response("Quit")
-            .add_response("Continue");
-
-        std::string result { dialog.show_dialog() };
+        std::string result { ChoiceDialog::show_error(this, message,
+                                                      { "Quit", "Continue" }) };
 
         if (result == "Quit") std::exit(retval.error());
 
@@ -219,13 +209,8 @@ Tab::add_cards_to_box()
 
         logger.log<ERROR>(message);
 
-        ChoiceDialog dialog { app::get_toplevel(this) };
-
-        dialog.set_message(std::move(message))
-            .add_response("Quit")
-            .add_response("Continue");
-
-        std::string result { dialog.show_dialog() };
+        std::string result { ChoiceDialog::show_error(this, message,
+                                                      { "Quit", "Continue" }) };
 
         if (result == "Quit") std::exit(1);
     }
