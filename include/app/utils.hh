@@ -1,11 +1,15 @@
 #pragma once
-#include <expected>
 #include <string>
 
 #include <curl/curl.h>
 
 namespace Glib { template <typename T_CppObject> class RefPtr; }
-namespace Gtk { class Builder; }
+namespace Gtk
+{
+    class Builder;
+    class Window;
+    class Widget;
+}
 
 
 namespace app
@@ -14,12 +18,6 @@ namespace app
         -> Glib::RefPtr<Gtk::Builder>;
 
 
-    auto write_callback(void        *p_contents,
-                        std::size_t  p_size,
-                        std::size_t  p_nmemb,
-                        std::string &p_userp) -> std::size_t;
-
-
-    auto perform_curl(const char *p_url)
-        -> std::expected<std::string, CURLcode>;
+    [[nodiscard]]
+    auto get_toplevel(Gtk::Widget *p_obj) -> Gtk::Window *;
 }

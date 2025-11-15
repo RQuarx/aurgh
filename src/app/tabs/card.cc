@@ -1,6 +1,5 @@
 #include <gtkmm.h>
 
-#include "app/package.hh"
 #include "app/tabs/card.hh"
 
 using app::Card;

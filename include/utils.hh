@@ -3,6 +3,9 @@
 #include <format>
 #include <string>
 
+#include <curl/curl.h>
+
+
 namespace Json { class Value; }
 
 
@@ -45,10 +48,11 @@ namespace utils
 
 
     auto get_prefix_path() -> std::string;
+
+
+    auto perform_curl(const char *p_url)
+        -> std::expected<std::string, CURLcode>;
 }
 
 
-namespace Json
-{
-    auto from_string(const std::string &p_str) -> Json::Value;
-}
+namespace Json { auto from_string(const std::string &p_str) -> Json::Value; }

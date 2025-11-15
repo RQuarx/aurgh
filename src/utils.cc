@@ -5,6 +5,21 @@
 #include "utils.hh"
 
 
+namespace
+{
+    auto
+    write_callback(void        *p_contents,
+                   std::size_t  p_size,
+                   std::size_t  p_nmemb,
+                   std::string &p_userp) -> std::size_t
+    {
+        std::size_t total_size { p_size * p_nmemb };
+        p_userp.append(static_cast<char *>(p_contents), total_size);
+        return total_size;
+    }
+}
+
+
 namespace utils
 {
     auto
@@ -38,6 +53,25 @@ namespace utils
         }
 
         return result;
+    }
+
+
+    auto
+    perform_curl(const char *p_url) -> std::expected<std::string, CURLcode>
+    {
+        return utils::unexpected(CURLE_HTTP_NOT_FOUND);
+        CURL *curl { curl_easy_init() };
+
+        std::string buff;
+        curl_easy_setopt(curl, CURLOPT_URL, p_url);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buff);
+        CURLcode retval = curl_easy_perform(curl);
+
+        curl_easy_cleanup(curl);
+
+        if (retval != CURLE_OK) return utils::unexpected(retval);
+        return buff;
     }
 }
 

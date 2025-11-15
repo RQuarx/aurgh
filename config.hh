@@ -23,4 +23,3 @@ GLOBAL(PKEXEC_BIN, "/usr/bin/pkexec");
 GLOBAL(ROOT, "/");
 
 #undef GLOBAL
-

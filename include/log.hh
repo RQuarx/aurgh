@@ -57,7 +57,7 @@ public:
     {
         std::string_view func { p_fmt.func.substr(0, p_fmt.func.find('(')) };
 
-        for (char delim : "> ")
+        for (char delim : " > ")
             if (auto pos { func.find(delim) }; pos != std::string_view::npos)
                 func = func.substr(pos + 1);
 

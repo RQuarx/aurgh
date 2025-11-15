@@ -1,18 +1,23 @@
 #pragma once
+#include <glibmm/dispatcher.h>
+#include <json/value.h>
+
 #include "app/base_tab.hh"
 
-#include <glibmm/dispatcher.h>
 
-
-namespace app { class Card; }
+namespace app
+{
+    class ChoiceDialog;
+    class Card;
+}
 
 namespace app::aur
 {
     class Tab : public BaseTab
     {
     public:
-        Tab(BaseObjectType                   *p_object,
-            const Glib::RefPtr<Gtk::Builder> &p_builder);
+        Tab(BaseObjectType                      *p_object,
+            const Glib::RefPtr<Gtk::Builder>    &p_builder);
 
 
         /**
@@ -40,11 +45,11 @@ namespace app::aur
         Glib::Dispatcher on_search_dispatcher;
 
     protected:
-        static auto search_package(std::string_view p_pkg,
-                                   std::string_view p_search_by) -> Json::Value;
+        auto search_package(std::string_view p_pkg,
+                            std::string_view p_search_by) -> Json::Value;
 
 
-        static auto get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value;
+        auto get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value;
 
 
         void add_cards_to_box();

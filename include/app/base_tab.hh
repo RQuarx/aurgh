@@ -3,7 +3,7 @@
 
 #include <gtkmm/box.h>
 
-#include "app/package.hh"
+#include "package.hh"
 
 namespace Gtk
 {

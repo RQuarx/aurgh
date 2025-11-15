@@ -57,7 +57,7 @@ main(int p_argc, char **p_argv) -> int
             for (const auto &[name, ver] : versions::get())
             {
                 if (name == APP_NAME) continue;
-                std::println("  {} {}", name, ver);
+                std::println("  {:<10} {}", name, ver);
             }
             std::exit(0);
         }

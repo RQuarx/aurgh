@@ -1,6 +1,7 @@
 #pragma once
 #include <gtkmm/application.h>
 
+#include "app/dialog.hh"
 #include "app/sidebar.hh"
 #include "app/tabs/aur.hh"
 
@@ -20,6 +21,9 @@ namespace app
 
 
         auto run(this App &self) -> int;
+
+
+        auto get_dialog() -> ChoiceDialog &;
 
     private:
         Glib::RefPtr<Gtk::Application> app;

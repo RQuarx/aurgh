@@ -1,8 +1,10 @@
 #include <thread>
+#include <utility>
 
 #include <gtkmm.h>
 #include <json/value.h>
 
+#include "app/dialog.hh"
 #include "app/tabs/aur.hh"
 #include "app/tabs/card.hh"
 #include "app/utils.hh"
@@ -53,15 +55,24 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 
     if (p_type == CriteriaType::SEARCH_TEXT)
     {
-        this->pkgs.clear();
-        clear_content_box();
-
         const auto [search_by, sort_by, search_text,
                     reverse] { p_criteria.get_string() };
 
-        /* TODO: implement a way to tell the user regarding these */
-        if (search_text.empty()) return;
-        if (search_by.empty()) return;
+        if (search_text.empty() || search_by.empty())
+        {
+            ChoiceDialog dialog { app::get_toplevel(this) };
+            dialog
+                .set_message("Required search criteria (search entry or search "
+                             "by) is empty.")
+                .add_response("OK");
+
+            dialog.show_dialog();
+
+            return;
+        }
+
+        this->pkgs.clear();
+        clear_content_box();
 
         std::jthread _ { [=, this]() -> void
                          {
@@ -105,11 +116,26 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
     logger.log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
     std::string url { std::format("{}/search/{}?by={}", AUR_URL, p_pkg,
                                   p_search_by) };
-    auto        retval { perform_curl(url.c_str()) };
+
+    auto retval { utils::perform_curl(url.c_str()) };
+
     if (!retval)
     {
-        logger.log<ERROR>("Failed to search for {} by {}: {}", p_pkg,
-                          p_search_by, curl_easy_strerror(retval.error()));
+        std::string message { std::format("Failed to search for {} by {}: {}",
+                                          p_pkg, p_search_by,
+                                          curl_easy_strerror(retval.error())) };
+        logger.log<ERROR>("{}", message);
+
+        ChoiceDialog dialog { app::get_toplevel(this) };
+
+        dialog.set_message(std::move(message))
+            .add_response("Quit")
+            .add_response("Continue");
+
+        std::string result { dialog.show_dialog() };
+
+        if (result == "Quit") std::terminate();
+
         return Json::nullValue;
     }
 
@@ -137,7 +163,7 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
         url.append(std::format("arg%5B%5D={}&", p_pkgs[i]["Name"].asString()));
     url.pop_back();
 
-    auto retval { perform_curl(url.c_str()) };
+    auto retval { utils::perform_curl(url.c_str()) };
     if (!retval)
     {
         logger.log<ERROR>("Failed to get informations for {} packages: {}",
