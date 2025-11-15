@@ -5,6 +5,7 @@
 #include "app/sidebar.hh"
 #include "log.hh"
 
+using enum LogLevel;
 using app::Sidebar;
 
 

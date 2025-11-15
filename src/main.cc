@@ -7,6 +7,8 @@
 #include "utils.hh"
 #include "versions.hh"
 
+using enum LogLevel;
+
 
 namespace
 {

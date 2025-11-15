@@ -4,7 +4,6 @@
 #include <json/value.h>
 
 #include "config.hh"
-#include "log.hh"
 #include "package.hh"
 #include "utils.hh"
 
@@ -160,8 +159,6 @@ Package::json_to_pkg(this Package &self, const Json::Value &p_json) -> bool
     if (!p_json.isObject())
     {
         self.error_message = "Retrieved JSON is not a Json::objectValue.";
-
-        logger.log<ERROR>(self.error_message);
         return false;
     }
 

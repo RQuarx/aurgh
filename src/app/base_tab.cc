@@ -5,13 +5,13 @@
 using app::BaseTab;
 using app::CriteriaWidgets;
 
+
 auto
-CriteriaWidgets::get_string(this CriteriaWidgets &self)
+CriteriaWidgets::get_values() const
     -> std::tuple<std::string, std::string, std::string, bool>
 {
-    return std::make_tuple(
-        self.search_by->get_active_id(), self.sort_by->get_active_id(),
-        self.search_entry->get_text(), self.reverse->get_active());
+    return std::make_tuple(search_by->get_active_id(), sort_by->get_active_id(),
+                           search_entry->get_text(), reverse->get_active());
 }
 
 
@@ -19,50 +19,50 @@ BaseTab::BaseTab(BaseObjectType                   *p_object,
                  const Glib::RefPtr<Gtk::Builder> &p_builder)
     : Gtk::Box(p_object)
 {
-    p_builder->get_widget("content", this->content_box);
+    p_builder->get_widget("content", m_content_box);
 }
 
 
 auto
-BaseTab::set_name(this BaseTab &self, std::string &&p_tab_name) -> BaseTab &
+BaseTab::set_name(std::string p_tab_name) -> BaseTab &
 {
-    self.tab_name = std::move(p_tab_name);
-    return self;
+    m_tab_name = std::move(p_tab_name);
+    return *this;
 }
 
 
 auto
 BaseTab::signal_queue_update() -> signal_signature_queue
 {
-    return this->queue_signal;
+    return m_queue_signal;
 }
 
 
 auto
-BaseTab::get_name(this const BaseTab &self) -> std::string
+BaseTab::get_name() const -> std::string
 {
-    return self.tab_name;
+    return m_tab_name;
 }
 
 
 void
 BaseTab::push_pkg(Package &&p_pkg)
 {
-    this->package_queue.push(std::move(p_pkg));
-    this->queue_signal.emit(this->package_queue);
+    m_package_queue.push(std::move(p_pkg));
+    m_queue_signal.emit(m_package_queue);
 }
 
 
 void
 BaseTab::pop_pkg()
 {
-    this->package_queue.pop();
-    this->queue_signal.emit(this->package_queue);
+    m_package_queue.pop();
+    m_queue_signal.emit(m_package_queue);
 }
 
 
 auto
-BaseTab::get_content_box(this BaseTab &self) -> Gtk::Box *
+BaseTab::get_content_box() -> Gtk::Box *
 {
-    return self.content_box;
+    return m_content_box;
 }

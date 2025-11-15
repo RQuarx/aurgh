@@ -5,6 +5,7 @@
 #include "cli/cli.hh"
 #include "log.hh"
 
+using enum LogLevel;
 using cli::Cli;
 
 

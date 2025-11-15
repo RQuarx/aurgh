@@ -12,7 +12,7 @@ ChoiceDialog::ChoiceDialog(Gtk::Window *p_parent) : parent(p_parent) {}
 
 
 auto
-ChoiceDialog::set_message(std::string &&p_message) -> ChoiceDialog &
+ChoiceDialog::set_message(std::string p_message) -> ChoiceDialog &
 {
     this->message = std::move(p_message);
     return *this;
@@ -20,7 +20,7 @@ ChoiceDialog::set_message(std::string &&p_message) -> ChoiceDialog &
 
 
 auto
-ChoiceDialog::add_response(std::string &&p_response) -> ChoiceDialog &
+ChoiceDialog::add_response(std::string p_response) -> ChoiceDialog &
 {
     this->responses.emplace_back(std::move(p_response));
     return *this;

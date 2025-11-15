@@ -6,10 +6,11 @@
 #include "app/utils.hh"
 #include "log.hh"
 
+using enum LogLevel;
 using app::App;
 
 
-App::App() : app(Gtk::Application::create("org.kei.aurgh"))
+App::App() : m_app(Gtk::Application::create("org.kei.aurgh"))
 {
     logger.log<INFO>("Starting application");
 
@@ -25,40 +26,40 @@ App::App() : app(Gtk::Application::create("org.kei.aurgh"))
     load_css();
 
     logger.log<DEBUG>("Creating widgets");
-    builder->get_widget("aurgh_window", window);
+    builder->get_widget("aurgh_window", m_window);
 
-    builder->get_widget("sidebar_button", sidebar_button);
-    builder->get_widget("aur_tab_button", aur_button);
-    builder->get_widget("main_tab_button", main_button);
-    builder->get_widget("installed_tab_button", installed_button);
+    builder->get_widget("sidebar_button", m_sidebar_button);
+    builder->get_widget("aur_tab_button", m_aur_button);
+    builder->get_widget("main_tab_button", m_main_button);
+    builder->get_widget("installed_tab_button", m_installed_button);
 
-    builder->get_widget("aurgh_search_by_combo", criteria.search_by);
-    builder->get_widget("aurgh_sort_by_combo", criteria.sort_by);
-    builder->get_widget("aurgh_reverse_check", criteria.reverse);
+    builder->get_widget("aurgh_search_by_combo", m_criteria.search_by);
+    builder->get_widget("aurgh_sort_by_combo", m_criteria.sort_by);
+    builder->get_widget("aurgh_reverse_check", m_criteria.reverse);
 
-    builder->get_widget("aurgh_search_entry", criteria.search_entry);
+    builder->get_widget("aurgh_search_entry", m_criteria.search_entry);
 
-    builder->get_widget("aurgh_sidebar_box", sidebar_box);
-    builder->get_widget("aurgh_content_box", content_box);
+    builder->get_widget("aurgh_sidebar_box", m_sidebar_box);
+    builder->get_widget("aurgh_content_box", m_content_box);
 
-    aur_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &App::on_tab_button_pressed), aur_button));
-    main_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &App::on_tab_button_pressed), main_button));
-    installed_button->signal_clicked().connect(sigc::bind(
-        sigc::mem_fun(*this, &App::on_tab_button_pressed), installed_button));
+    m_aur_button->signal_clicked().connect(sigc::bind(
+        sigc::mem_fun(*this, &App::on_tab_button_pressed), m_aur_button));
+    m_main_button->signal_clicked().connect(sigc::bind(
+        sigc::mem_fun(*this, &App::on_tab_button_pressed), m_main_button));
+    m_installed_button->signal_clicked().connect(sigc::bind(
+        sigc::mem_fun(*this, &App::on_tab_button_pressed), m_installed_button));
 
     setup_criteria();
     setup_tabs();
 
-    content_box->foreach([this](Gtk::Widget &w) -> void
-                         { content_box->remove(w); });
-    window->show_all_children();
+    m_content_box->foreach([this](Gtk::Widget &w) -> void
+                           { m_content_box->remove(w); });
+    m_window->show_all_children();
 
-    sidebar_button->set_visible(false);
-    sidebar_box->set_visible(false);
+    m_sidebar_button->set_visible(false);
+    m_sidebar_box->set_visible(false);
 
-    sidebar = std::make_unique<app::Sidebar>(sidebar_button, sidebar_box);
+    m_sidebar = std::make_unique<app::Sidebar>(m_sidebar_button, m_sidebar_box);
 }
 
 
@@ -108,42 +109,42 @@ App::load_css()
 
 
 auto
-App::run(this App &self) -> int
+App::run() -> int
 {
-    return self.app->run(*self.window);
+    return m_app->run(*m_window);
 }
 
 
 void
-App::setup_tabs(this App &self)
+App::setup_tabs()
 {
     logger.log<DEBUG>("Creating tabs");
     auto aur { get_builder("/org/kei/aurgh/data/tabs/aur.xml") };
-    aur->get_widget_derived<aur::Tab>("aur_tab", self.aur_tab);
-    self.content_box->pack_start(*self.aur_tab);
+    aur->get_widget_derived<aur::Tab>("aur_tab", m_aur_tab);
+    m_content_box->pack_start(*m_aur_tab);
 }
 
 
 void
 App::setup_criteria()
 {
-    this->criteria.search_by->signal_changed().connect(
+    m_criteria.search_by->signal_changed().connect(
         sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change),
                    CriteriaType::SEARCH_BY, TabType::NONE));
 
-    this->criteria.sort_by->signal_changed().connect(
+    m_criteria.sort_by->signal_changed().connect(
         sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change),
                    CriteriaType::SORT_BY, TabType::NONE));
 
-    this->criteria.search_entry->signal_activate().connect(
+    m_criteria.search_entry->signal_activate().connect(
         sigc::bind(sigc::mem_fun(*this, &App::on_criteria_change),
                    CriteriaType::SEARCH_TEXT, TabType::NONE));
-    this->criteria.reverse->signal_clicked().connect(
+    m_criteria.reverse->signal_clicked().connect(
         sigc::bind(sigc::mem_fun(this, &App::on_criteria_change),
                    CriteriaType::REVERSE, TabType::NONE));
 
-    this->criteria.search_by->set_active_id("name");
-    this->criteria.sort_by->set_active_id("NumVotes");
+    m_criteria.search_by->set_active_id("name");
+    m_criteria.sort_by->set_active_id("NumVotes");
 }
 
 
@@ -151,45 +152,45 @@ void
 App::on_tab_button_pressed(Gtk::ToggleButton *button)
 {
     auto rm_child { [this](Gtk::Widget &w) -> void
-                    { content_box->remove(w); } };
+                    { m_content_box->remove(w); } };
 
     if (button->get_active())
     {
-        if (button == this->aur_button)
+        if (button == m_aur_button)
         {
-            this->main_button->set_active(false);
-            this->installed_button->set_active(false);
-            // this->main_tab->close();
-            // this->installed_tab->close();
+            m_main_button->set_active(false);
+            m_installed_button->set_active(false);
+            // main_tab->close();
+            // installed_tab->close();
 
-            this->content_box->foreach(rm_child);
-            this->content_box->pack_start(*this->aur_tab);
-            this->content_box->show_all_children();
-            this->on_criteria_change(CriteriaType::NONE, TabType::AUR);
+            m_content_box->foreach(rm_child);
+            m_content_box->pack_start(*m_aur_tab);
+            m_content_box->show_all_children();
+            on_criteria_change(CriteriaType::NONE, TabType::AUR);
         }
-        else if (button == this->main_button)
+        else if (button == m_main_button)
         {
-            this->aur_button->set_active(false);
-            this->installed_button->set_active(false);
-            this->aur_tab->close();
-            // this->installed_tab->close();
+            m_aur_button->set_active(false);
+            m_installed_button->set_active(false);
+            m_aur_tab->close();
+            // installed_tab->close();
 
-            this->content_box->foreach(rm_child);
-            // this->content_box->pack_start(*this->main_tab);
-            this->content_box->show_all_children();
-            this->on_criteria_change(CriteriaType::NONE, TabType::MAIN);
+            m_content_box->foreach(rm_child);
+            // m_content_box->pack_start(*main_tab);
+            m_content_box->show_all_children();
+            on_criteria_change(CriteriaType::NONE, TabType::MAIN);
         }
-        else if (button == this->installed_button)
+        else if (button == m_installed_button)
         {
-            this->main_button->set_active(false);
-            this->aur_button->set_active(false);
-            // this->main_tab->close();
-            this->aur_tab->close();
+            m_main_button->set_active(false);
+            m_aur_button->set_active(false);
+            // main_tab->close();
+            m_aur_tab->close();
 
-            this->content_box->foreach(rm_child);
-            // this->content_box->pack_start(*this->installed_tab);
-            this->content_box->show_all_children();
-            this->on_criteria_change(CriteriaType::NONE, TabType::INSTALLED);
+            m_content_box->foreach(rm_child);
+            // m_content_box->pack_start(*installed_tab);
+            m_content_box->show_all_children();
+            on_criteria_change(CriteriaType::NONE, TabType::INSTALLED);
         }
     }
 }
@@ -201,11 +202,11 @@ App::on_criteria_change(CriteriaType type, TabType tab)
 #define CONDITION(p_tab_type, p_button) \
      tab == (p_tab_type) || (tab == TabType::NONE && (p_button)->get_active())
 
-    if (CONDITION(TabType::AUR, this->aur_button))
-        aur_tab->activate(this->criteria, type);
-    else if (CONDITION(TabType::MAIN, this->main_button))
+    if (CONDITION(TabType::AUR, m_aur_button))
+        m_aur_tab->activate(m_criteria, type);
+    else if (CONDITION(TabType::MAIN, m_main_button))
         return; /* NOLINT */
-    else if (CONDITION(TabType::INSTALLED, this->installed_button))
+    else if (CONDITION(TabType::INSTALLED, m_installed_button))
         return;
 
 #undef CONDITION

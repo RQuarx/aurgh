@@ -20,29 +20,38 @@ namespace app
     {
         Gtk::ComboBoxText *search_by;
         Gtk::ComboBoxText *sort_by;
-        Gtk::CheckButton  *reverse;
         Gtk::SearchEntry  *search_entry;
+        Gtk::CheckButton  *reverse;
 
 
         /**
-         * @brief Returns the widgets data in a form of strings and bool.
+         * Retrieve the current criteria values as simple types.
          *
-         * The tuple contains the search-by id text, sort-by id text,
-         * search-entry text and reverse check in order.
+         * [note]-----------------------------------------------
+         * Returns a tuple containing a
+         *   - search-by ID string
+         *   - sort-by ID string
+         *   - search text
+         *   - reverse flag
+         *
+         * Each value is extracted directly from the associated widget.
          */
         [[nodiscard]]
-        auto get_string(this CriteriaWidgets &self)
+        auto get_values() const
             -> std::tuple<std::string, std::string, std::string, bool>;
     };
 
+
+    /* An enum containing the types of search/sort criteria. */
     enum class CriteriaType : std::uint8_t
     {
-        SEARCH_BY,
-        SORT_BY,
-        SEARCH_TEXT,
-        REVERSE,
-        NONE
+        SEARCH_BY,   /* `CriteriaWidgets::search_by`    has changed. */
+        SORT_BY,     /* `CriteriaWidgets::sort_by`      has changed. */
+        SEARCH_TEXT, /* `CriteriaWidgets::search_entry` has changed. */
+        REVERSE,     /* `CriteriaWidgets::reverse`      has changed. */
+        NONE         /* Nothing has changed with the criteria.       */
     };
+
 
     enum class TabType : std::uint8_t
     {
@@ -53,6 +62,7 @@ namespace app
     };
 
 
+    /* A base class for tabs shown in the UI. */
     class BaseTab : public Gtk::Box
     {
     public:
@@ -64,37 +74,62 @@ namespace app
                 const Glib::RefPtr<Gtk::Builder> &p_builder);
 
 
+        /**
+         * Called when the tab is shown to the user, or if a criteria changed.
+         *
+         * [params]-----------------------------------------------------------
+         *
+         * `p_type`:
+         *   Contains the type of criteria that changed. If it is
+         *   `CriteriaType::NONE`, the tab is activated because it has been
+         *   shown to the user.
+         */
         virtual void activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
             = 0;
 
 
+        /* Called when the tab is closed. */
         virtual void close() = 0;
 
 
-        auto set_name(this BaseTab &self, std::string &&p_tab_name)
-            -> BaseTab &;
+        /* Sets the name of the tab. */
+        auto set_name(std::string p_tab_name) -> BaseTab &;
 
 
+        /* Get the name of the tab */
         [[nodiscard]]
-        auto get_name(this const BaseTab &self) -> std::string;
+        auto get_name() const -> std::string;
 
 
+        /**
+         * Get a `sigc::signal` connected to the internal package queue.
+         *
+         * [note]-------------------------------------------------------
+         *
+         * The signal is emitted when the queue is mutated (pushed/popped).
+        */
         [[nodiscard]]
         auto signal_queue_update() -> signal_signature_queue;
 
     private:
-        Gtk::Box           *content_box;
-        std::string         tab_name;
-        std::queue<Package> package_queue;
+        Gtk::Box *m_content_box;
 
-        signal_signature_queue queue_signal;
+        std::string         m_tab_name;
+        std::queue<Package> m_package_queue;
+
+        signal_signature_queue m_queue_signal;
 
     protected:
+        /* Push a package to the internal queue, and emit the queue signal. */
         virtual void push_pkg(Package &&p_pkg);
+
+
+        /* Pop a package from the internal queue, and emit the queue signal. */
         virtual void pop_pkg();
 
 
+        /* Get the tab's content box. */
         [[nodiscard]]
-        auto get_content_box(this BaseTab &self) -> Gtk::Box *;
+        auto get_content_box() -> Gtk::Box *;
     };
 }

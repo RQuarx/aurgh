@@ -10,6 +10,7 @@ namespace Gtk
 
 namespace app
 {
+    /* Provides a sidebar showing the queues that the tabs contain. */
     class Sidebar
     {
     public:

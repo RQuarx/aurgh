@@ -12,7 +12,9 @@
 #include "log.hh"
 #include "utils.hh"
 
+using enum LogLevel;
 using app::aur::Tab;
+
 
 namespace
 {
@@ -55,7 +57,7 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
     if (p_type == CriteriaType::SEARCH_TEXT)
     {
         const auto [search_by, sort_by, search_text,
-                    reverse] { p_criteria.get_string() };
+                    reverse] { p_criteria.get_values() };
 
         if (search_text.empty() || search_by.empty())
         {
@@ -92,7 +94,7 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 
     clear_content_box();
 
-    const auto [_, sort_by, _0, reverse] { p_criteria.get_string() };
+    const auto [_, sort_by, _0, reverse] { p_criteria.get_values() };
 
     std::jthread { &Tab::reload_content, this, sort_by, reverse }.detach();
 }

@@ -4,6 +4,8 @@
 #include "app/utils.hh"
 #include "log.hh"
 
+using enum LogLevel;
+
 
 namespace app
 {

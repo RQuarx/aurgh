@@ -8,21 +8,33 @@
 
 namespace
 {
+    template <typename T> using tpair = std::pair<T, T>;
+
+
     auto
     string_to_loglevel(std::string_view p_str) -> LogLevel
     {
-        if (p_str.contains("debug")) return DEBUG;
-        if (p_str.contains("info")) return INFO;
-        if (p_str.contains("warn")) return WARN;
-        if (p_str.contains("error")) return ERROR;
-        return MAX;
+        if (p_str.contains("debug")) return LogLevel::DEBUG;
+        if (p_str.contains("info")) return LogLevel::INFO;
+        if (p_str.contains("warn")) return LogLevel::WARN;
+        if (p_str.contains("error")) return LogLevel::ERROR;
+        return LogLevel::MAX;
     }
+
+
+    /* clang-format off */
+     constexpr std::array<tpair<std::string_view>, 4> LABELS {{
+         { "\033[1;36mdebug\033[0;0;0m", "debug" },
+         { "\033[1;32minfo\033[0;0;0m ", "info " },
+         { "\033[1;33mwarn\033[0;0;0m ", "warn " },
+         { "\033[1;31merror\033[0;0;0m", "error" },
+    }};
+    /* clang-format on */
 }
 
 
 auto
-Logger::set_log_level(this Logger &self, std::string_view p_log_level)
-    -> Logger &
+Logger::set_log_level(std::string_view p_log_level) -> Logger &
 {
     if (p_log_level.empty()) goto err;
 
@@ -33,82 +45,81 @@ Logger::set_log_level(this Logger &self, std::string_view p_log_level)
         /* `level` is not an integer */
         if (!level) throw std::exception {};
 
-        if (level >= LogLevel::MAX)
+        if (static_cast<LogLevel>(*level) >= LogLevel::MAX)
         {
-            self.log<WARN>("Log level too large, using default level.");
+            log<LogLevel::WARN>("Log level too large, using default level.");
             goto err;
         }
 
-        self.threshold_level = static_cast<LogLevel>(*level);
+        m_threshold_level = static_cast<LogLevel>(*level);
     }
     catch (...)
     {
         LogLevel level { string_to_loglevel(p_log_level) };
 
-        if (level == MAX)
+        if (level == LogLevel::MAX)
         {
-            self.log<WARN>("Invalid log level {}, using default level",
-                           p_log_level);
+            log<LogLevel::WARN>("Invalid log level {}, using default level",
+                                p_log_level);
             goto err;
         }
 
-        self.threshold_level = level;
+        m_threshold_level = level;
     }
 
-    return self;
+    return *this;
 
 err:
-    self.threshold_level = LogLevel::WARN;
-    return self;
+    m_threshold_level = LogLevel::WARN;
+    return *this;
 }
 
 
 auto
-Logger::set_log_file(this Logger &self, const std::string &p_log_file)
-    -> Logger &
+Logger::set_log_file(const std::string &p_log_file) -> Logger &
 {
-    if (p_log_file.empty()) return self;
+    if (p_log_file.empty()) return *this;
 
-    self.log_file.open(p_log_file, std::ios_base::app);
+    m_log_file.open(p_log_file, std::ios_base::app);
 
-    if (self.log_file.fail() && !self.log_file.eof())
+    if (m_log_file.fail() && !m_log_file.eof())
     {
-        self.log<ERROR>("Failed to open {}: {}", p_log_file,
-                        std::strerror(errno));
+        log<LogLevel::ERROR>("Failed to open {}: {}", p_log_file,
+                             std::strerror(errno));
 
         throw std::exception {};
     }
 
-    return self;
+    return *this;
 }
 
 
 void
-Logger::write(this Logger       &self,
-              LogLevel           p_level,
+Logger::write(LogLevel           p_level,
               std::string_view   p_domain,
               const std::string &p_msg)
 {
+    tpair<std::string_view> labels { LABELS[static_cast<size_t>(p_level)] };
+
     std::string label { std::format("{} {} at \033[38;2;70;172;173m{}\033[0;0m",
-                                    get_time(), LABELS[p_level].first,
-                                    p_domain) };
+                                    get_time(), labels.first, p_domain) };
 
-    if (self.log_file.is_open())
+    if (m_log_file.is_open())
     {
-        std::string file_label { std::format(
-            "{} at {}", get_time(), LABELS[p_level].second, p_domain) };
+        std::string file_label { std::format("{} at {}", get_time(),
+                                             labels.second, p_domain) };
 
-        self.log_file << std::format("[{}]: {}", file_label, p_msg) << '\n';
-        self.log_file.flush();
+        m_log_file << std::format("[{}]: {}", file_label, p_msg) << '\n';
+        m_log_file.flush();
     }
 
-    if (p_level < self.threshold_level) return;
+    if (p_level < m_threshold_level) return;
 
     std::size_t label_len { label.length() };
-    self.longest_label = std::max(self.longest_label, label_len);
+    m_longest_label = std::max(m_longest_label, label_len);
 
     std::println(std::cerr, "[{}]: {}\033[1m{}\033[0m", label,
-                 std::string(self.longest_label - label_len, ' '), p_msg);
+                 std::string(m_longest_label - label_len, ' '), p_msg);
 }
 
 
@@ -134,10 +145,11 @@ auto
 GLogLevel_to_LogLevel(GLogLevelFlags p_level) -> LogLevel
 {
     if ((p_level & (G_LOG_LEVEL_ERROR | G_LOG_LEVEL_CRITICAL)) != 0)
-        return ERROR;
-    if ((p_level & G_LOG_LEVEL_WARNING) != 0) return WARN;
-    if ((p_level & (G_LOG_LEVEL_MESSAGE | G_LOG_LEVEL_INFO)) != 0) return INFO;
-    if ((p_level & G_LOG_LEVEL_DEBUG) != 0) return DEBUG;
+        return LogLevel::ERROR;
+    if ((p_level & G_LOG_LEVEL_WARNING) != 0) return LogLevel::WARN;
+    if ((p_level & (G_LOG_LEVEL_MESSAGE | G_LOG_LEVEL_INFO)) != 0)
+        return LogLevel::INFO;
+    if ((p_level & G_LOG_LEVEL_DEBUG) != 0) return LogLevel::DEBUG;
 
-    return INFO;
+    return LogLevel::INFO;
 }
