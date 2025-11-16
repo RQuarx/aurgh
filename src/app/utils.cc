@@ -23,11 +23,4 @@ namespace app
             std::terminate();
         }
     }
-
-
-    auto
-    get_toplevel(Gtk::Widget *p_obj) -> Gtk::Window *
-    {
-        return reinterpret_cast<Gtk::Window *>(p_obj->get_toplevel());
-    }
 }

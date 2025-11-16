@@ -55,7 +55,7 @@ public:
      *
      * Messages below the passed level are not printed to console.
      *
-     * [params]-----------------------------------------------------------
+     * [params]-----------------------
      *
      * `p_log_level`:
      *   Either numeric or string log level ("debug", "info", etc.)
@@ -72,7 +72,8 @@ public:
      *
      * [params]--------------
      *
-     * `p_log_file` - Path to the log file.
+     * `p_log_file`:
+     *   Path to the log file.
      */
     auto set_log_file(const std::string &p_log_file) -> Logger &;
 
@@ -89,15 +90,6 @@ public:
 
         write(T_Level, func,
               std::format(p_fmt.fmt, std::forward<T_Args>(p_args)...));
-    }
-
-
-    template <LogLevel T_Level>
-    void
-    log(std::string_view            p_string,
-        const std::source_location &p_source = std::source_location::current())
-    {
-        log<T_Level>({ "{}", p_source }, p_string);
     }
 
 

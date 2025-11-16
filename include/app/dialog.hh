@@ -18,6 +18,11 @@ namespace app
     class ChoiceDialog
     {
     public:
+        inline static const std::vector<std::string> DEFAULT_RESPONSES {
+            "Quit", "Continue"
+        };
+
+
         ChoiceDialog(Gtk::Window *p_parent);
 
 
@@ -49,7 +54,7 @@ namespace app
 
 
         /**
-         * Wrapper function for `ChoiceDialog`.
+         * Show error message to the user.
          *
          * [params]----------------------------
          *
@@ -57,14 +62,38 @@ namespace app
          *   The provided widget's toplevel widget will be used
          *   as the parent window.
          *
-         * `p_async`:
-         *   If `true`, the function will use `ChoiceDialog::show_dialog_async`
-         *   instead of `ChoiceDialog::show_dialog`.
+         * `p_message`:
+         *   The message to be shown to the user.
+         *
+         * `p_responses` (Defaults to `{ "Quit", "Continue" }`):
+         *   The possible responses the user can pick.
          */
         static auto show_error(Gtk::Widget             *p_widget,
                                std::string              p_message,
-                               std::vector<std::string> p_responses,
-                               bool p_async = false) -> std::string;
+                               std::vector<std::string> p_responses
+                               = DEFAULT_RESPONSES) -> std::string;
+
+
+        /**
+         * Show error message to the user, asynchronously.
+         *
+         * [params]----------------------------
+         *
+         * `p_widget`:
+         *   The provided widget's toplevel widget will be used
+         *   as the parent window.
+         *
+         * `p_message`:
+         *   The message to be shown to the user.
+         *
+         * `p_responses` (Defaults to `{ "Quit", "Continue" }`):
+         *   The possible responses the user can pick.
+         */
+        static auto show_error_async(Gtk::Widget             *p_widget,
+                                     std::string              p_message,
+                                     std::vector<std::string> p_responses
+                                     = DEFAULT_RESPONSES)
+            -> std::future<std::string>;
 
     private:
         Gtk::Window *parent;

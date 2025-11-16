@@ -38,6 +38,23 @@ namespace
                                  : a_val.asString() < b_val.asString();
             });
     }
+
+
+    void
+    log_and_show(Gtk::Widget       *p_widget,
+                 const std::string &p_message,
+                 bool               p_async = false)
+    {
+        logger.log<ERROR>("{}", p_message);
+
+        std::string result {
+            p_async
+                ? app::ChoiceDialog::show_error_async(p_widget, p_message).get()
+                : app::ChoiceDialog::show_error(p_widget, p_message)
+        };
+
+        if (result == "Quit") std::exit(1);
+    }
 }
 
 
@@ -61,13 +78,11 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 
         if (search_text.empty() || search_by.empty())
         {
-            ChoiceDialog dialog { app::get_toplevel(this) };
-            dialog
-                .set_message("Required search criteria (search entry or search "
-                             "by) is empty.")
-                .add_response("OK");
-
-            dialog.show_dialog();
+            ChoiceDialog::show_error(
+                this,
+                "Required search criteria (search entry or search "
+                "by) is empty.",
+                { "OK" });
 
             return;
         }
@@ -126,12 +141,7 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
         std::string message { std::format("Failed to search for {} by {}: {}",
                                           p_pkg, p_search_by,
                                           curl_easy_strerror(retval.error())) };
-        logger.log<ERROR>(message);
-
-        std::string result { ChoiceDialog::show_error(this, message,
-                                                      { "Quit", "Continue" }) };
-
-        if (result == "Quit") std::exit(retval.error());
+        log_and_show(this, message);
 
         return Json::nullValue;
     }
@@ -145,6 +155,16 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
         logger.log<ERROR>("Malformed value returned from the "
                           "AUR: {}, output: {}",
                           e.what(), *retval);
+
+        std::string result {
+            ChoiceDialog::show_error_async(
+                this, "Malformed value returned from AUR API, see log for more "
+                      "information.")
+                .get()
+        };
+
+        if (result == "Quit") std::exit(retval.error());
+
         return Json::nullValue;
     }
 }
@@ -167,12 +187,7 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
             "Failed to get informations for {} packages: {}", p_pkgs.size(),
             curl_easy_strerror(retval.error())) };
 
-        logger.log<ERROR>(message);
-
-        std::string result { ChoiceDialog::show_error(this, message,
-                                                      { "Quit", "Continue" }) };
-
-        if (result == "Quit") std::exit(retval.error());
+        log_and_show(this, message);
 
         return Json::nullValue;
     }
@@ -208,13 +223,7 @@ Tab::add_cards_to_box()
         std::string message { std::format("Failed to load package {}: {}",
                                           package[PKG_NAME],
                                           package.get_error_message()) };
-
-        logger.log<ERROR>(message);
-
-        std::string result { ChoiceDialog::show_error(this, message,
-                                                      { "Quit", "Continue" }) };
-
-        if (result == "Quit") std::exit(1);
+        log_and_show(this, message);
     }
 }
 

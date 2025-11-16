@@ -1,4 +1,5 @@
 #include <future>
+#include <utility>
 
 #include <gtkmm.h>
 
@@ -6,6 +7,32 @@
 #include "app/utils.hh"
 
 using app::ChoiceDialog;
+
+
+namespace
+{
+    [[nodiscard]]
+    auto get_window(Gtk::Widget *p_obj) -> Gtk::Window *
+    {
+        return reinterpret_cast<Gtk::Window *>(p_obj->get_toplevel());
+    }
+
+
+    [[nodiscard]]
+    auto
+    show_error_impl(Gtk::Widget             *p_widget,
+                    std::string              p_message,
+                    std::vector<std::string> p_responses) -> ChoiceDialog
+    {
+        ChoiceDialog dialog { get_window(p_widget) };
+
+        dialog.set_message(std::move(p_message));
+        for (auto &response : p_responses)
+            dialog.add_response(std::move(response));
+
+        return dialog;
+    }
+}
 
 
 ChoiceDialog::ChoiceDialog(Gtk::Window *p_parent) : parent(p_parent) {}
@@ -114,13 +141,22 @@ ChoiceDialog::show_dialog_async() -> std::future<std::string>
 auto
 ChoiceDialog::show_error(Gtk::Widget             *p_widget,
                          std::string              p_message,
-                         std::vector<std::string> p_responses,
-                         bool                     p_async) -> std::string
+                         std::vector<std::string> p_responses) -> std::string
 {
-    ChoiceDialog dialog { app::get_toplevel(p_widget) };
-
-    dialog.set_message(std::move(p_message));
-    for (auto &response : p_responses) dialog.add_response(std::move(response));
-
-    return p_async ? dialog.show_dialog_async().get() : dialog.show_dialog();
+    return show_error_impl(p_widget, std::move(p_message),
+                           std::move(p_responses))
+        .show_dialog();
 }
+
+
+auto
+ChoiceDialog::show_error_async(Gtk::Widget             *p_widget,
+                               std::string              p_message,
+                               std::vector<std::string> p_responses)
+    -> std::future<std::string>
+{
+    return show_error_impl(p_widget, std::move(p_message),
+                           std::move(p_responses))
+        .show_dialog_async();
+}
+
