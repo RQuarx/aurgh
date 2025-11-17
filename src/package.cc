@@ -158,7 +158,7 @@ Package::json_to_pkg(const Json::Value &p_json) -> bool
 {
     if (!p_json.isObject())
     {
-        error_message = "Retrieved JSON is not a Json::objectValue.";
+        error_message = "Retrieved JSON is not a Json::objectValue";
         return false;
     }
 

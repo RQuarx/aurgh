@@ -93,7 +93,7 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
             ChoiceDialog::show_error(
                 this,
                 "Required search criteria (search entry or search "
-                "by) is empty.",
+                "by) is empty",
                 { "OK" });
 
             return;
@@ -170,7 +170,7 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
         std::string result {
             ChoiceDialog::show_error_async(
                 this, "Malformed value returned from AUR API, see log for more "
-                      "information.")
+                      "information")
                 .get()
         };
 
@@ -183,7 +183,7 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
 auto
 Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
 {
-    logger.log<INFO>("Fetching information for {} packages.", p_pkgs.size());
+    logger.log<INFO>("Fetching information for {} packages", p_pkgs.size());
     std::string url { std::format("{}/info?", AUR_URL) };
 
     for (Json::ArrayIndex i { 0 }; i < p_pkgs.size(); i++)

@@ -70,7 +70,7 @@ App::App() : m_app(Gtk::Application::create("org.kei.aurgh"))
 void
 App::init_curl(std::int64_t flags)
 {
-    logger.log<INFO>("Initializing CURL.");
+    logger.log<INFO>("Initializing CURL");
     CURLcode retval { curl_global_init(flags) };
 
     if (retval == CURLE_OK) return;
@@ -84,7 +84,7 @@ App::init_curl(std::int64_t flags)
 void
 App::load_css()
 {
-    logger.log<INFO>("Loading CSS file.");
+    logger.log<INFO>("Loading CSS file");
     auto css_provider { Gtk::CssProvider::create() };
 
     css_provider->signal_parsing_error().connect(

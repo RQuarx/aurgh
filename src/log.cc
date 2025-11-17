@@ -47,7 +47,7 @@ Logger::set_log_level(std::string_view p_log_level) -> Logger &
 
         if (static_cast<LogLevel>(*level) >= LogLevel::MAX)
         {
-            log<LogLevel::WARN>("Log level too large, using default level.");
+            log<LogLevel::WARN>("Log level too large, using default level");
             goto err;
         }
 

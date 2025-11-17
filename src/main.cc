@@ -73,7 +73,7 @@ main(int p_argc, char **p_argv) -> int
                      versions::get(APP_NAME));
 
 #ifndef NDEBUG
-    logger.log<DEBUG>("Running application in debug mode.");
+    logger.log<DEBUG>("Running application in debug mode");
 #endif
 
     if (getuid() == 0)
