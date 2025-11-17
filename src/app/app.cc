@@ -39,7 +39,6 @@ App::App() : m_app(Gtk::Application::create("org.kei.aurgh"))
 
     builder->get_widget("aurgh_search_entry", m_criteria.search_entry);
 
-    builder->get_widget("aurgh_sidebar_box", m_sidebar_box);
     builder->get_widget("aurgh_content_box", m_content_box);
 
     m_aur_button->signal_clicked().connect(sigc::bind(
@@ -57,9 +56,14 @@ App::App() : m_app(Gtk::Application::create("org.kei.aurgh"))
     m_window->show_all_children();
 
     m_sidebar_button->set_visible(false);
-    m_sidebar_box->set_visible(false);
 
-    m_sidebar = std::make_unique<app::Sidebar>(m_sidebar_button, m_sidebar_box);
+    builder->get_widget_derived<Sidebar>("aurgh_sidebar_box", m_sidebar,
+                                         m_sidebar_button);
+
+    m_sidebar->add_queue_signal(m_aur_tab->signal_queue_update());
+
+    m_sidebar->show_all_children();
+    m_sidebar->set_visible(false);
 }
 
 

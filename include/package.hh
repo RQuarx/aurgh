@@ -50,24 +50,23 @@ public:
 
 
     [[nodiscard]]
-    auto operator[](this Package &self, PkgInfo p_info) -> std::string &;
+    auto operator[](PkgInfo p_info) -> std::string &;
 
 
     [[nodiscard]]
-    auto get_keywords(this const Package &self)
-        -> const std::vector<std::string> &;
+    auto get_keywords() const -> const std::vector<std::string> &;
 
 
     [[nodiscard]]
-    auto is_valid(this const Package &self) -> bool;
+    auto is_valid() const -> bool;
 
 
     [[nodiscard]]
-    auto is_external(this const Package &self) -> bool;
+    auto is_external() const -> bool;
 
 
     [[nodiscard]]
-    auto get_error_message(this const Package &self) -> std::string;
+    auto get_error_message() const -> std::string;
 
 
     [[nodiscard]]
@@ -83,5 +82,5 @@ private:
 
 
     [[nodiscard]]
-    auto json_to_pkg(this Package &self, const Json::Value &p_json) -> bool;
+    auto json_to_pkg(const Json::Value &p_json) -> bool;
 };

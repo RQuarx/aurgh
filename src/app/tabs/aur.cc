@@ -55,12 +55,24 @@ namespace
 
         if (result == "Quit") std::exit(1);
     }
+
+
+    auto
+    handle_json_error(Gtk::Widget       *p_widget,
+                      const std::string &p_message,
+                      bool               p_async = false)
+    {
+        log_and_show(p_widget, p_message, p_async);
+        return Json::nullValue;
+    }
 }
 
 
 Tab::Tab(BaseObjectType *p_object, const Glib::RefPtr<Gtk::Builder> &p_builder)
-    : BaseTab(p_object, p_builder)
+    : app::Tab(p_object, p_builder)
 {
+    this->set_name("AUR");
+
     this->on_search_dispatcher.connect(
         sigc::mem_fun(*this, &Tab::add_cards_to_box));
 }
@@ -73,8 +85,8 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 
     if (p_type == CriteriaType::SEARCH_TEXT)
     {
-        const auto [search_by, sort_by, search_text,
-                    reverse] { p_criteria.get_values() };
+        const auto &[search_by, sort_by, search_text,
+                     reverse] { p_criteria.get_values() };
 
         if (search_text.empty() || search_by.empty())
         {
@@ -93,7 +105,7 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
         std::jthread {
             [=, this]() -> void
             {
-                search_and_fill(search_text, search_by);
+                search_and_fill_pkgs(search_text, search_by);
                 reload_content(sort_by, reverse);
             }
         }.detach();
@@ -109,7 +121,8 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 
     clear_content_box();
 
-    const auto [_, sort_by, _0, reverse] { p_criteria.get_values() };
+    const auto &[search_by, sort_by, search_text,
+                 reverse] { p_criteria.get_values() };
 
     std::jthread { &Tab::reload_content, this, sort_by, reverse }.detach();
 }
@@ -141,9 +154,7 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
         std::string message { std::format("Failed to search for {} by {}: {}",
                                           p_pkg, p_search_by,
                                           curl_easy_strerror(retval.error())) };
-        log_and_show(this, message);
-
-        return Json::nullValue;
+        return handle_json_error(this, message, true);
     }
 
     try
@@ -164,7 +175,6 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
         };
 
         if (result == "Quit") std::exit(retval.error());
-
         return Json::nullValue;
     }
 }
@@ -187,9 +197,7 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
             "Failed to get informations for {} packages: {}", p_pkgs.size(),
             curl_easy_strerror(retval.error())) };
 
-        log_and_show(this, message);
-
-        return Json::nullValue;
+        return handle_json_error(this, message);
     }
 
     auto json { Json::from_string(*retval) };
@@ -210,20 +218,33 @@ Tab::add_cards_to_box()
 
     for (const auto &pkg : pkgs_copy)
     {
-        this->cards.emplace_back(pkg, Card::Type::INSTALL);
+        bool in_queue { contains_pkg(pkg["Name"].asString()) };
 
-        if (this->cards.back().is_valid())
+        auto card { std::make_unique<Card>(pkg, Card::Type::INSTALL,
+                                           in_queue) };
+
+        if (!card->is_valid())
         {
-            this->get_content_box()->pack_start(
-                *this->cards.back().get_widget());
+            Package    &package { card->get_package() };
+            std::string message { std::format("Failed to load package {}: {}",
+                                              package[PKG_NAME],
+                                              package.get_error_message()) };
+            log_and_show(this, message);
             continue;
         }
 
-        Package    &package { this->cards.back().get_package() };
-        std::string message { std::format("Failed to load package {}: {}",
-                                          package[PKG_NAME],
-                                          package.get_error_message()) };
-        log_and_show(this, message);
+        Card *card_ptr { card.get() };
+        card->signal_on_add_to_queue().connect(
+            [this, card_ptr](bool p_active) -> void
+            {
+                if (!p_active)
+                    this->pop_pkg(card_ptr->get_package()[PKG_NAME]);
+                else
+                    this->push_pkg(card_ptr->get_package());
+            });
+
+        this->get_content_box()->pack_start(*card->get_widget());
+        this->cards.emplace_back(std::move(card));
     }
 }
 
@@ -234,18 +255,14 @@ Tab::clear_content_box()
     Gtk::Box *content_box { this->get_content_box() };
 
     this->cards.clear();
-    content_box->foreach(
-        [content_box](Gtk::Widget &p_child) -> void
-        {
-            content_box->remove(p_child);
-            delete &p_child;
-        });
+    content_box->foreach([content_box](Gtk::Widget &p_child) -> void
+                         { content_box->remove(p_child); });
 }
 
 
 void
-Tab::search_and_fill(std::string_view p_search_text,
-                     std::string_view p_search_by)
+Tab::search_and_fill_pkgs(std::string_view p_search_text,
+                          std::string_view p_search_by)
 {
     Json::Value result { Tab::search_package(p_search_text, p_search_by) };
     if (result == Json::nullValue) return;

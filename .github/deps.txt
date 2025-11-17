@@ -1,7 +1,8 @@
 pkg-config
-meson
-curl
 clang
+meson
 lld
+
+curl
 gtkmm3
 jsoncpp

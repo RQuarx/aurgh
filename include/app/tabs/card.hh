@@ -42,7 +42,9 @@ namespace app
          *   A JSON representation of a package, see `Package` for information
          *   regarding the package's JSON format.
          */
-        Card(const Json::Value &p_pkg, const Type &p_card_type);
+        Card(const Json::Value &p_pkg,
+             const Type        &p_card_type,
+             bool               p_in_queue);
 
 
         /* Get the card's widget. */
@@ -68,7 +70,7 @@ namespace app
          * Connect to this signal to perform actions when the user wants to
          * queue the package for install/uninstall.
          */
-        auto signal_on_add_to_queue() -> Glib::SignalProxy<void>;
+        auto signal_on_add_to_queue() -> sigc::signal<void(bool)>;
 
 
         /* Get the signal emitted when the "Install" button is clicked. */
@@ -85,5 +87,7 @@ namespace app
         Gtk::ToggleButton *m_install;
         Gtk::ToggleButton *m_add_to_queue;
         Gtk::ToggleButton *m_uninstall;
+
+        sigc::signal<void(bool)> m_add_to_queue_signal;
     };
 }

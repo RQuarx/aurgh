@@ -1,5 +1,5 @@
 #pragma once
-#include <queue>
+#include <map>
 
 #include <gtkmm/box.h>
 
@@ -63,15 +63,15 @@ namespace app
 
 
     /* A base class for tabs shown in the UI. */
-    class BaseTab : public Gtk::Box
+    class Tab : public Gtk::Box
     {
     public:
-        using signal_signature_queue
-            = sigc::signal<void(const std::queue<Package> &)>;
+        using signal_signature_queue = sigc::signal<void(
+            const std::string &, std::map<std::string, Package> &)>;
 
 
-        BaseTab(BaseObjectType                   *p_object,
-                const Glib::RefPtr<Gtk::Builder> &p_builder);
+        Tab(BaseObjectType                   *p_object,
+            const Glib::RefPtr<Gtk::Builder> &p_builder);
 
 
         /**
@@ -93,7 +93,7 @@ namespace app
 
 
         /* Sets the name of the tab. */
-        auto set_name(std::string p_tab_name) -> BaseTab &;
+        auto set_name(std::string p_tab_name) -> Tab &;
 
 
         /* Get the name of the tab */
@@ -114,18 +114,22 @@ namespace app
     private:
         Gtk::Box *m_content_box;
 
-        std::string         m_tab_name;
-        std::queue<Package> m_package_queue;
+        std::string                    m_tab_name;
+        std::map<std::string, Package> m_package_queue;
 
         signal_signature_queue m_queue_signal;
 
     protected:
         /* Push a package to the internal queue, and emit the queue signal. */
-        virtual void push_pkg(Package &&p_pkg);
+        void push_pkg(Package p_pkg);
 
 
         /* Pop a package from the internal queue, and emit the queue signal. */
-        virtual void pop_pkg();
+        void pop_pkg(const std::string &p_name);
+
+
+        /* Checks whether a package exist in thee internal queue. */
+        auto contains_pkg(const std::string &p_name) const -> bool;
 
 
         /* Get the tab's content box. */

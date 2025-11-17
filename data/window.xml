@@ -217,10 +217,41 @@
             <child>
               <object class="GtkBox" id="aurgh_sidebar_box">
 
+                <property name="orientation">vertical</property>
                 <property name="hexpand">true</property>
                 <property name="vexpand">true</property>
                 <property name="halign">fill</property>
                 <property name="valign">fill</property>
+
+                <child>
+
+                  <object class="GtkBox" id="aurgh_sidebar_container">
+
+                    <property name="orientation">vertical</property>
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
+                    <property name="halign">fill</property>
+                    <property name="valign">fill</property>
+                  </object>
+                </child>
+
+                <child>
+
+                  <object class="GtkButton" id="aurgh_sidebar_install_button">
+
+                    <property name="margin-bottom">10</property>
+                    <property name="halign">center</property>
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
+                    <property name="valign">end</property>
+
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">folder-download-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
 

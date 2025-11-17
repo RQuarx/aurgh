@@ -55,9 +55,7 @@ namespace app
         Gtk::Box *m_main_tab;
         Gtk::Box *m_installed_tab;
 
-        std::unique_ptr<app::Sidebar> m_sidebar;
-        Gtk::Box                     *m_sidebar_box;
-
+        app::Sidebar *m_sidebar;
     protected:
         /* Initialize the CURL library. */
         static void init_curl(std::int64_t p_flags);

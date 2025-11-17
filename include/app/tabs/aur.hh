@@ -2,7 +2,7 @@
 #include <glibmm/dispatcher.h>
 #include <json/value.h>
 
-#include "app/base_tab.hh"
+#include "app/tab.hh"
 
 
 namespace app
@@ -22,7 +22,7 @@ namespace app::aur
      * `Card` widgets for each package, and responds to search/sort criteria
      * changes.
      */
-    class Tab : public BaseTab
+    class Tab : public app::Tab
     {
     public:
         Tab(BaseObjectType                   *p_object,
@@ -36,9 +36,9 @@ namespace app::aur
         void close() override;
 
     private:
-        std::vector<Card>        cards;
-        std::vector<Json::Value> pkgs;
-        std::mutex               pkgs_mutex;
+        std::vector<std::unique_ptr<Card>> cards;
+        std::vector<Json::Value>           pkgs;
+        std::mutex                         pkgs_mutex;
 
         Glib::Dispatcher on_search_dispatcher;
 
@@ -98,8 +98,8 @@ namespace app::aur
          * `p_search_by`:
          *   Field to search by.
          */
-        void search_and_fill(std::string_view p_search_text,
-                             std::string_view p_search_by);
+        void search_and_fill_pkgs(std::string_view p_search_text,
+                                  std::string_view p_search_by);
 
 
         /**
