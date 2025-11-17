@@ -38,33 +38,6 @@ namespace
                                  : a_val.asString() < b_val.asString();
             });
     }
-
-
-    void
-    log_and_show(Gtk::Widget       *p_widget,
-                 const std::string &p_message,
-                 bool               p_async = false)
-    {
-        logger.log<ERROR>("{}", p_message);
-
-        std::string result {
-            p_async
-                ? app::ChoiceDialog::show_error_async(p_widget, p_message).get()
-                : app::ChoiceDialog::show_error(p_widget, p_message)
-        };
-
-        if (result == "Quit") std::exit(1);
-    }
-
-
-    auto
-    handle_json_error(Gtk::Widget       *p_widget,
-                      const std::string &p_message,
-                      bool               p_async = false)
-    {
-        log_and_show(p_widget, p_message, p_async);
-        return Json::nullValue;
-    }
 }
 
 
@@ -154,7 +127,12 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
         std::string message { std::format("Failed to search for {} by {}: {}",
                                           p_pkg, p_search_by,
                                           curl_easy_strerror(retval.error())) };
-        return handle_json_error(this, message, true);
+
+        logger.log<ERROR>("{}", message);
+        if (app::ChoiceDialog::show_error_async(this, message).get() == "Quit")
+            std::exit(1);
+
+        return Json::nullValue;
     }
 
     try
@@ -184,6 +162,26 @@ auto
 Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
 {
     logger.log<INFO>("Fetching information for {} packages", p_pkgs.size());
+
+    if (p_pkgs.size() > 100)
+    {
+        Json::Value all_results { Json::arrayValue };
+
+        for (Json::ArrayIndex start { 0 }; start < p_pkgs.size(); start += 100)
+        {
+            Json::Value chunk { Json::arrayValue };
+
+            auto end { std::min<Json::ArrayIndex>(start + 100, p_pkgs.size()) };
+            for (Json::ArrayIndex i { start }; i < end; i++)
+                chunk.append(p_pkgs[i]);
+
+            Json::Value results { get_pkgs_info(chunk) };
+            for (const auto &item : results) all_results.append(item);
+        }
+
+        return all_results;
+    }
+
     std::string url { std::format("{}/info?", AUR_URL) };
 
     for (Json::ArrayIndex i { 0 }; i < p_pkgs.size(); i++)
@@ -197,12 +195,27 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
             "Failed to get informations for {} packages: {}", p_pkgs.size(),
             curl_easy_strerror(retval.error())) };
 
-        return handle_json_error(this, message);
+        logger.log<ERROR>("{}", message);
+        if (app::ChoiceDialog::show_error(this, message) == "Quit")
+            std::exit(1);
+
+        return Json::nullValue;
     }
 
-    auto json { Json::from_string(*retval) };
+    try
+    {
+        return Json::from_string(*retval)["results"];
+    }
+    catch (const std::exception &e)
+    {
+        std::string message { std::format("{}: {}", e.what(), url) };
 
-    return json["results"];
+        logger.log<ERROR>("{}", message);
+        if (app::ChoiceDialog::show_error_async(this, message).get() == "Quit")
+            std::exit(1);
+
+        return Json::nullValue;
+    }
 }
 
 
@@ -229,7 +242,10 @@ Tab::add_cards_to_box()
             std::string message { std::format("Failed to load package {}: {}",
                                               package[PKG_NAME],
                                               package.get_error_message()) };
-            log_and_show(this, message);
+            logger.log<ERROR>("{}", message);
+            if (app::ChoiceDialog::show_error(this, message) == "Quit")
+                std::exit(1);
+
             continue;
         }
 
