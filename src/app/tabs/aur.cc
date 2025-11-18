@@ -46,7 +46,7 @@ Tab::Tab(BaseObjectType *p_object, const Glib::RefPtr<Gtk::Builder> &p_builder)
 {
     this->set_name("AUR");
 
-    this->on_search_dispatcher.connect(
+    m_add_cards_dispatcher.connect(
         sigc::mem_fun(*this, &Tab::add_cards_to_box));
 }
 
@@ -72,23 +72,19 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
             return;
         }
 
-        this->pkgs.clear();
+        m_pkgs.clear();
         clear_content_box();
 
         std::jthread {
             [=, this]() -> void
-            {
-                search_and_fill_pkgs(search_text, search_by);
-                reload_content(sort_by, reverse);
-            }
+            { search_and_fill(search_by, sort_by, search_text, reverse); }
         }.detach();
         return;
     }
 
     if (p_type == CriteriaType::NONE)
     {
-        if (!this->pkgs.empty() && this->cards.empty())
-            this->add_cards_to_box();
+        if (!m_pkgs.empty() && m_cards.empty()) this->add_cards_to_box();
         return;
     }
 
@@ -104,7 +100,7 @@ Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 void
 Tab::close()
 {
-    if (this->cards.empty()) return;
+    if (m_cards.empty()) return;
 
     logger.log<DEBUG>("Clearing cards from tab {}", this->get_name());
 
@@ -161,27 +157,6 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
 auto
 Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
 {
-    logger.log<INFO>("Fetching information for {} packages", p_pkgs.size());
-
-    if (p_pkgs.size() > 100)
-    {
-        Json::Value all_results { Json::arrayValue };
-
-        for (Json::ArrayIndex start { 0 }; start < p_pkgs.size(); start += 100)
-        {
-            Json::Value chunk { Json::arrayValue };
-
-            auto end { std::min<Json::ArrayIndex>(start + 100, p_pkgs.size()) };
-            for (Json::ArrayIndex i { start }; i < end; i++)
-                chunk.append(p_pkgs[i]);
-
-            Json::Value results { get_pkgs_info(chunk) };
-            for (const auto &item : results) all_results.append(item);
-        }
-
-        return all_results;
-    }
-
     std::string url { std::format("{}/info?", AUR_URL) };
 
     for (Json::ArrayIndex i { 0 }; i < p_pkgs.size(); i++)
@@ -225,8 +200,8 @@ Tab::add_cards_to_box()
     std::vector<Json::Value> pkgs_copy;
 
     {
-        std::scoped_lock lock { this->pkgs_mutex };
-        pkgs_copy = this->pkgs;
+        std::scoped_lock lock { m_pkgs_mutex };
+        pkgs_copy = m_pkgs;
     }
 
     for (const auto &pkg : pkgs_copy)
@@ -260,7 +235,7 @@ Tab::add_cards_to_box()
             });
 
         this->get_content_box()->pack_start(*card->get_widget());
-        this->cards.emplace_back(std::move(card));
+        m_cards.emplace_back(std::move(card));
     }
 }
 
@@ -270,7 +245,7 @@ Tab::clear_content_box()
 {
     Gtk::Box *content_box { this->get_content_box() };
 
-    this->cards.clear();
+    m_cards.clear();
     content_box->foreach([content_box](Gtk::Widget &p_child) -> void
                          { content_box->remove(p_child); });
 }
@@ -285,21 +260,60 @@ Tab::search_and_fill_pkgs(std::string_view p_search_text,
 
     Json::Value infos { Tab::get_pkgs_info(result["results"]) };
     if (infos == Json::nullValue) return;
-
-    {
-        std::scoped_lock lock { this->pkgs_mutex };
-
-        this->pkgs.clear();
-        this->pkgs.reserve(infos.size());
-        for (const Json::Value &pkg : infos) this->pkgs.emplace_back(pkg);
-    }
 }
 
 
 void
 Tab::reload_content(const std::string &p_sort_by, bool p_reverse)
 {
-    sort_json(this->pkgs, p_sort_by.empty() ? "NumVotes" : p_sort_by,
-              p_reverse);
-    this->on_search_dispatcher.emit();
+    sort_json(m_pkgs, p_sort_by.empty() ? "NumVotes" : p_sort_by, p_reverse);
+    m_add_cards_dispatcher.emit();
+}
+
+
+void
+Tab::search_and_fill(std::string_view   p_search_by,
+                     const std::string &p_sort_by,
+                     std::string_view   p_search_text,
+                     bool               p_reverse)
+{
+    Json::Value results { Tab::search_package(p_search_text, p_search_by) };
+    if (results == Json::nullValue) return;
+    results = results["results"];
+
+    logger.log<INFO>("Getting information about {} packages", results.size());
+
+    if (results.size() > 100)
+    {
+        Json::Value all_info { Json::arrayValue };
+        Json::Value chunk { Json::arrayValue };
+
+        for (Json::ArrayIndex start { 0 }; start < results.size(); start += 100)
+        {
+            chunk.clear();
+
+            auto end { std::min<Json::ArrayIndex>(start + 100,
+                                                  results.size()) };
+            for (Json::ArrayIndex i { start }; i < end; i++)
+                chunk.append(results[i]);
+
+            Json::Value info { get_pkgs_info(chunk) };
+            if (info == Json::nullValue) return;
+
+            for (const auto &item : info)
+            {
+                if (item == Json::nullValue) return;
+                m_pkgs.emplace_back(item);
+            }
+
+            reload_content(p_sort_by, p_reverse);
+        }
+    }
+    else
+    {
+        for (const auto &item : Tab::get_pkgs_info(results))
+            m_pkgs.emplace_back(item);
+
+        reload_content(p_sort_by, p_reverse);
+    }
 }

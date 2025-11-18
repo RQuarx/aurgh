@@ -2,7 +2,7 @@ project(
     'aurgh',
     'cpp',
     default_options: ['cpp_std=c++23', 'warning_level=3'],
-    version: '1.12.1-alpha',
+    version: '1.12.2-alpha',
     license: 'GPL-3.0-or-later',
     license_files: ['COPYING'],
 )

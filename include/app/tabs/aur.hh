@@ -36,11 +36,11 @@ namespace app::aur
         void close() override;
 
     private:
-        std::vector<std::unique_ptr<Card>> cards;
-        std::vector<Json::Value>           pkgs;
-        std::mutex                         pkgs_mutex;
+        std::vector<std::unique_ptr<Card>> m_cards;
+        std::vector<Json::Value>           m_pkgs;
+        std::mutex                         m_pkgs_mutex;
 
-        Glib::Dispatcher on_search_dispatcher;
+        Glib::Dispatcher m_add_cards_dispatcher;
 
     protected:
         /**
@@ -114,5 +114,11 @@ namespace app::aur
          *   If true, sort in descending order.
          */
         void reload_content(const std::string &p_sort_by, bool p_reverse);
+
+
+        void search_and_fill(std::string_view   p_search_by,
+                             const std::string &p_sort_by,
+                             std::string_view   p_search_text,
+                             bool               p_reverse);
     };
 }
