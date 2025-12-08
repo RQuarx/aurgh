@@ -1,9 +1,8 @@
 #include <gtkmm.h>
 
 #include "app/sidebar.hh"
-#include "log.hh"
+#include "logger.hh"
 
-using enum LogLevel;
 using app::Sidebar;
 
 
@@ -35,7 +34,8 @@ Sidebar::on_button_toggle()
     const char *icon_name { activated ? "pan-start-symbolic"
                                       : "pan-end-symbolic" };
 
-    logger.log<DEBUG>("Sidebar is {}", activated ? "shown" : "hidden");
+    logger[Level::TRACE, "app::sidebar"]("Sidebar is {}",
+                                         activated ? "shown" : "hidden");
 
     m_toggle_icon->set_from_icon_name(icon_name, Gtk::ICON_SIZE_BUTTON);
     this->set_visible(activated);
@@ -48,7 +48,8 @@ Sidebar::on_queue_mutation(const std::string              &p_tab_name,
 {
     if (!m_queue_boxes.contains(p_tab_name))
     {
-        logger.log<INFO>("Adding a new queue box for tab {}", p_tab_name);
+        logger[Level::DEBUG, "app::sidebar"](
+            "Adding a new queue box for tab {}", p_tab_name);
 
         auto *queue_box { Gtk::make_managed<Gtk::Box>(
             Gtk::ORIENTATION_VERTICAL) };

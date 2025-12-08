@@ -2,7 +2,7 @@ subdir('app')
 subdir('cli')
 
 source_files = files(
-    'log.cc',
+    'logger.cc',
     'main.cc',
     'package.cc',
     'utils.cc',

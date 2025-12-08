@@ -1,7 +1,7 @@
 #include <gtkmm.h>
 
 #include "app/tab.hh"
-#include "log.hh"
+#include "logger.hh"
 
 using app::CriteriaWidgets;
 using app::Tab;
@@ -48,7 +48,8 @@ Tab::get_name() const -> std::string
 void
 Tab::push_pkg(Package p_pkg)
 {
-    logger.log<LogLevel::INFO>("Adding package {} to queue", p_pkg[PKG_NAME]);
+    logger[Level::INFO, "app::tab"]("Adding package {} to queue",
+                                    p_pkg[PKG_NAME]);
 
     m_package_queue.emplace(p_pkg[PKG_NAME], std::move(p_pkg));
     m_queue_signal.emit(m_tab_name, m_package_queue);
@@ -60,7 +61,7 @@ Tab::pop_pkg(const std::string &p_name)
 {
     if (m_package_queue.empty()) return;
 
-    logger.log<LogLevel::INFO>("Removing package {} to queue", p_name);
+    logger[Level::INFO, "app::tab"]("Removing package {} to queue", p_name);
 
     m_package_queue.erase(p_name);
     m_queue_signal.emit(m_tab_name, m_package_queue);

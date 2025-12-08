@@ -9,11 +9,12 @@
 #include "app/tabs/card.hh"
 #include "app/utils.hh"
 #include "config.hh"
-#include "log.hh"
+#include "logger.hh"
 #include "utils.hh"
 
-using enum LogLevel;
 using app::aur::Tab;
+
+#define DOMAIN "app::tab::aur"
 
 
 namespace
@@ -54,7 +55,7 @@ Tab::Tab(BaseObjectType *p_object, const Glib::RefPtr<Gtk::Builder> &p_builder)
 void
 Tab::activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
 {
-    logger.log<DEBUG>("AUR tab activated");
+    logger[Level::TRACE, DOMAIN]("AUR tab activated");
 
     if (p_type == CriteriaType::SEARCH_TEXT)
     {
@@ -102,7 +103,8 @@ Tab::close()
 {
     if (m_cards.empty()) return;
 
-    logger.log<DEBUG>("Clearing cards from tab {}", this->get_name());
+    logger[Level::DEBUG, DOMAIN]("Clearing cards from tab {}",
+                                 this->get_name());
 
     clear_content_box();
 }
@@ -112,7 +114,7 @@ auto
 Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
     -> Json::Value
 {
-    logger.log<INFO>("Searching for {} by {}", p_pkg, p_search_by);
+    logger[Level::INFO, DOMAIN]("Searching for {} by {}", p_pkg, p_search_by);
     std::string url { std::format("{}/search/{}?by={}", AUR_URL, p_pkg,
                                   p_search_by) };
 
@@ -124,7 +126,7 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
                                           p_pkg, p_search_by,
                                           curl_easy_strerror(retval.error())) };
 
-        logger.log<ERROR>("{}", message);
+        logger[Level::ERROR, DOMAIN]("{}", message);
         if (app::ChoiceDialog::show_error_async(this, message).get() == "Quit")
             std::exit(1);
 
@@ -137,9 +139,9 @@ Tab::search_package(std::string_view p_pkg, std::string_view p_search_by)
     }
     catch (const std::exception &e)
     {
-        logger.log<ERROR>("Malformed value returned from the "
-                          "AUR: {}, output: {}",
-                          e.what(), *retval);
+        logger[Level::ERROR, DOMAIN]("Malformed value returned from the "
+                                     "AUR: {}, output: {}",
+                                     e.what(), *retval);
 
         std::string result {
             ChoiceDialog::show_error_async(
@@ -170,7 +172,7 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
             "Failed to get informations for {} packages: {}", p_pkgs.size(),
             curl_easy_strerror(retval.error())) };
 
-        logger.log<ERROR>("{}", message);
+        logger[Level::ERROR, DOMAIN]("{}", message);
         if (app::ChoiceDialog::show_error(this, message) == "Quit")
             std::exit(1);
 
@@ -185,7 +187,7 @@ Tab::get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value
     {
         std::string message { std::format("{}: {}", e.what(), url) };
 
-        logger.log<ERROR>("{}", message);
+        logger[Level::ERROR, DOMAIN]("{}", message);
         if (app::ChoiceDialog::show_error_async(this, message).get() == "Quit")
             std::exit(1);
 
@@ -217,7 +219,7 @@ Tab::add_cards_to_box()
             std::string message { std::format("Failed to load package {}: {}",
                                               package[PKG_NAME],
                                               package.get_error_message()) };
-            logger.log<ERROR>("{}", message);
+            logger[Level::ERROR, DOMAIN]("{}", message);
             if (app::ChoiceDialog::show_error(this, message) == "Quit")
                 std::exit(1);
 
@@ -281,7 +283,8 @@ Tab::search_and_fill(std::string_view   p_search_by,
     if (results == Json::nullValue) return;
     results = results["results"];
 
-    logger.log<INFO>("Getting information about {} packages", results.size());
+    logger[Level::DEBUG, DOMAIN]("Getting information about {} packages",
+                                 results.size());
 
     if (results.size() > 100)
     {

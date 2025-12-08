@@ -4,15 +4,14 @@
 
 #include "app/app.hh"
 #include "app/utils.hh"
-#include "log.hh"
+#include "logger.hh"
 
-using enum LogLevel;
 using app::App;
 
 
 App::App() : m_app(Gtk::Application::create("org.kei.aurgh"))
 {
-    logger.log<INFO>("Starting application");
+    logger[Level::INFO, "app"]("Starting application");
 
     /* Silent the 'Fontconfig warning: using without calling FcInit()'
        warning.
@@ -25,7 +24,7 @@ App::App() : m_app(Gtk::Application::create("org.kei.aurgh"))
 
     load_css();
 
-    logger.log<DEBUG>("Creating widgets");
+    logger[Level::DEBUG, "app"]("Creating widgets");
     builder->get_widget("aurgh_window", m_window);
 
     builder->get_widget("sidebar_button", m_sidebar_button);
@@ -70,13 +69,13 @@ App::App() : m_app(Gtk::Application::create("org.kei.aurgh"))
 void
 App::init_curl(std::int64_t flags)
 {
-    logger.log<INFO>("Initializing CURL");
+    logger[Level::DEBUG, "app"]("Initializing CURL");
     CURLcode retval { curl_global_init(flags) };
 
     if (retval == CURLE_OK) return;
 
-    logger.log<ERROR>("CURL failed to initialize: {}",
-                      curl_easy_strerror(retval));
+    logger[Level::FATAL, "app"]("CURL failed to initialize: {}",
+                                curl_easy_strerror(retval));
     std::terminate();
 }
 
@@ -84,7 +83,7 @@ App::init_curl(std::int64_t flags)
 void
 App::load_css()
 {
-    logger.log<INFO>("Loading CSS file");
+    logger[Level::DEBUG, "app"]("Loading CSS file");
     auto css_provider { Gtk::CssProvider::create() };
 
     css_provider->signal_parsing_error().connect(
@@ -93,15 +92,17 @@ App::load_css()
         {
             if (!section)
             {
-                logger.log<ERROR>("Failed to parse CSS file");
-                throw std::runtime_error("");
+                logger[Level::ERROR, "app::css"]("Failed to parse CSS file");
+                throw std::runtime_error { "" };
             }
             std::string   file_name { section->get_file()->get_path() };
             std::uint32_t start_line { section->get_start_line() + 1 };
 
-            logger.log<ERROR>("Failed to parse {} at line {}: {}", file_name,
-                              start_line, error.what().raw());
-            throw std::runtime_error("");
+            logger[Level::ERROR, "app::css"](
+                "Failed to parse {} at line {}: {}", file_name, start_line,
+                error.what().raw());
+
+            throw std::runtime_error { "" };
         });
 
     css_provider->load_from_resource("/org/kei/aurgh/data/style.css");
@@ -122,7 +123,7 @@ App::run() -> int
 void
 App::setup_tabs()
 {
-    logger.log<DEBUG>("Creating tabs");
+    logger[Level::DEBUG, "app"]("Creating tabs");
     auto aur { get_builder("/org/kei/aurgh/data/tabs/aur.xml") };
     aur->get_widget_derived<aur::Tab>("aur_tab", m_aur_tab);
     m_content_box->pack_start(*m_aur_tab);

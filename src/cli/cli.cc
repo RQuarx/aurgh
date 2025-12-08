@@ -3,9 +3,8 @@
 #include <vector>
 
 #include "cli/cli.hh"
-#include "log.hh"
+#include "logger.hh"
 
-using enum LogLevel;
 using cli::Cli;
 
 
@@ -23,7 +22,7 @@ Cli::Cli(const int &p_argc, char **p_argv, bool &p_err)
 {
     if (p_argc < 3)
     {
-        logger.log<ERROR>("Not enough information passed");
+        logger[Level::ERROR, "cli"]("Not enough information passed");
         p_err = true;
         return;
     }

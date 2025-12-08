@@ -2,9 +2,7 @@
 #include <gtkmm/builder.h>
 
 #include "app/utils.hh"
-#include "log.hh"
-
-using enum LogLevel;
+#include "logger.hh"
 
 
 namespace app
@@ -18,8 +16,9 @@ namespace app
         }
         catch (const Glib::Error &e)
         {
-            logger.log<ERROR>("Failed to get builder file {}: {}", p_file_path,
-                              e.what().raw());
+            logger[Level::ERROR, "app::utils"](
+                "Failed to get builder file {}: {}", p_file_path,
+                e.what().raw());
             std::terminate();
         }
     }

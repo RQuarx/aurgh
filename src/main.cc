@@ -3,11 +3,8 @@
 
 #include "app/app.hh"
 #include "cli/cli.hh"
-#include "log.hh"
-#include "utils.hh"
+#include "logger.hh"
 #include "versions.hh"
-
-using enum LogLevel;
 
 
 namespace
@@ -18,9 +15,9 @@ namespace
                 const gchar   *message,
                 gpointer /* unused */)
     {
-        std::string_view domain { log_domain == nullptr ? "GLib" : log_domain };
+        std::string domain { log_domain == nullptr ? "GLib" : log_domain };
 
-        logger.glog(GLogLevel_to_LogLevel(log_level), domain, "{}", message);
+        logger[Logger::GLogLevel_to_Level(log_level), domain]("{}", message);
         if ((log_level & G_LOG_LEVEL_ERROR) != 0) std::terminate();
     }
 
@@ -28,13 +25,13 @@ namespace
     void
     glib_print(const gchar *message)
     {
-        logger.glog(INFO, "stdio", "{}", message);
+        logger[Level::INFO, "stdio"]("{}", message);
     }
 
     void
     glib_printerr(const gchar *message)
     {
-        logger.glog(INFO, "stderr", "{}", message);
+        logger[Level::INFO, "stderr"]("{}", message);
     }
 
 
@@ -64,16 +61,13 @@ main(int p_argc, char **p_argv) -> int
             std::exit(0);
         }
 
-    logger.set_log_level(utils::get_env("LOG_LEVEL"))
-        .set_log_file(utils::get_env("LOG_FILE"));
-
     set_glib_logger();
 
-    logger.log<INFO>("Running {} version {}", APP_NAME,
-                     versions::get(APP_NAME));
+    logger[Level::INFO, "main"]("Running {} version {}", APP_NAME,
+                                versions::get(APP_NAME));
 
 #ifndef NDEBUG
-    logger.log<DEBUG>("Running application in debug mode");
+    logger[Level::INFO, "main"]("Running application in debug mode");
 #endif
 
     if (getuid() == 0)
