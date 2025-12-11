@@ -9,7 +9,7 @@
 using app::App;
 
 
-App::App() : m_app(Gtk::Application::create("org.kei.aurgh"))
+App::App() : m_app(Gtk::Application::create(APP_ID))
 {
     logger[Level::INFO, "app"]("Starting application");
 
@@ -204,8 +204,8 @@ App::on_tab_button_pressed(Gtk::ToggleButton *button)
 void
 App::on_criteria_change(CriteriaType type, TabType tab)
 {
-#define CONDITION(p_tab_type, p_button) \
-     tab == (p_tab_type) || (tab == TabType::NONE && (p_button)->get_active())
+#define CONDITION(tab_type, button) \
+     tab == (tab_type) || (tab == TabType::NONE && (button)->get_active())
 
     if (CONDITION(TabType::AUR, m_aur_button))
         m_aur_tab->activate(m_criteria, type);

@@ -215,9 +215,9 @@
 
 
             <child>
-              <object class="GtkBox" id="aurgh_sidebar_box">
+              <object class="GtkPaned" id="aurgh_paned">
 
-                <property name="orientation">vertical</property>
+                <property name="orientation">horizontal</property>
                 <property name="hexpand">true</property>
                 <property name="vexpand">true</property>
                 <property name="halign">fill</property>
@@ -225,43 +225,82 @@
 
                 <child>
 
-                  <object class="GtkBox" id="aurgh_sidebar_container">
+                  <object class="GtkBox" id="aurgh_sidebar_box">
 
                     <property name="orientation">vertical</property>
                     <property name="hexpand">true</property>
                     <property name="vexpand">true</property>
                     <property name="halign">fill</property>
                     <property name="valign">fill</property>
-                  </object>
-                </child>
-
-                <child>
-
-                  <object class="GtkButton" id="aurgh_sidebar_install_button">
-
-                    <property name="margin-bottom">10</property>
-                    <property name="halign">center</property>
-                    <property name="hexpand">true</property>
-                    <property name="vexpand">true</property>
-                    <property name="valign">end</property>
 
                     <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">folder-download-symbolic</property>
+                      <object class="GtkScrolledWindow">
+
+                        <property name="kinetic-scrolling">true</property>
+                        <property name="vscrollbar-policy">never</property>
+
+                        <child>
+
+                          <object class="GtkBox" id="aurgh_sidebar_container">
+
+                            <property name="orientation">vertical</property>
+                            <property name="hexpand">true</property>
+                            <property name="vexpand">true</property>
+                            <property name="halign">fill</property>
+                            <property name="valign">fill</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+
+                      <object class="GtkBox">
+
+                        <property name="halign">end</property>
+                        <property name="valign">end</property>
+                        <property name="spacing">10</property>
+                        <property name="margin-bottom">10</property>
+
+                        <child>
+
+                          <object class="GtkLabel">
+
+                            <property name="label">perform operations:</property>
+                            <property name="valign">center</property>
+                          </object>
+                        </child>
+                        <child>
+
+                          <object class="GtkButton"
+                            id="aurgh_sidebar_install_button">
+
+                            <property name="halign">center</property>
+                            <property name="hexpand">true</property>
+                            <property name="vexpand">true</property>
+                            <property name="valign">end</property>
+
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">folder-download-symbolic</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
                 </child>
-              </object>
-            </child>
 
-            <child>
-              <object class="GtkBox" id="aurgh_content_box">
+                <child>
+                  <object class="GtkBox" id="aurgh_content_box">
 
-                <property name="hexpand">true</property>
-                <property name="vexpand">true</property>
-                <property name="halign">fill</property>
-                <property name="valign">fill</property>
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
+                    <property name="halign">fill</property>
+                    <property name="valign">fill</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

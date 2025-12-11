@@ -5,8 +5,8 @@
 using app::Card;
 
 
-Card::Card(const Json::Value &p_pkg, const Type &p_card_type, bool p_in_queue)
-    : m_pkg(p_pkg), m_card(Gtk::make_managed<Gtk::Frame>()),
+Card::Card(const Json::Value &pkg, const Type &card_type, bool in_queue)
+    : m_pkg(pkg), m_card(Gtk::make_managed<Gtk::Frame>()),
       m_install(Gtk::make_managed<Gtk::ToggleButton>()),
       m_add_to_queue(Gtk::make_managed<Gtk::ToggleButton>()),
       m_uninstall(Gtk::make_managed<Gtk::ToggleButton>())
@@ -72,7 +72,7 @@ Card::Card(const Json::Value &p_pkg, const Type &p_card_type, bool p_in_queue)
     m_add_to_queue->set_image_from_icon_name("list-add-symbolic");
     m_add_to_queue->set_tooltip_text(
         std::format("Add {} to {} queue", m_pkg[PKG_NAME],
-                    p_card_type == Type::INSTALL ? "install" : "uninstall"));
+                    card_type == Type::INSTALL ? "install" : "uninstall"));
 
     m_install->set_image_from_icon_name("folder-download-symbolic");
     m_install->set_tooltip_text(
@@ -94,7 +94,7 @@ Card::Card(const Json::Value &p_pkg, const Type &p_card_type, bool p_in_queue)
     m_card->show_all_children();
     m_card->set_visible(true);
 
-    if (p_card_type == Card::Type::INSTALL)
+    if (card_type == Card::Type::INSTALL)
     {
         m_uninstall->set_visible(false);
         m_install->set_visible(true);
@@ -105,7 +105,7 @@ Card::Card(const Json::Value &p_pkg, const Type &p_card_type, bool p_in_queue)
         m_install->set_visible(false);
     }
 
-    m_add_to_queue->set_active(p_in_queue);
+    m_add_to_queue->set_active(in_queue);
 
     m_add_to_queue->signal_toggled().connect(
         [this]() -> void

@@ -1,5 +1,6 @@
 #include <gtkmm.h>
 
+#include "app/sidebar/widget.hh"
 #include "app/tab.hh"
 #include "logger.hh"
 
@@ -16,17 +17,29 @@ CriteriaWidgets::get_values() const
 }
 
 
-Tab::Tab(BaseObjectType *p_object, const Glib::RefPtr<Gtk::Builder> &p_builder)
-    : Gtk::Box(p_object)
+Tab::Tab(BaseObjectType                   *object,
+         const Glib::RefPtr<Gtk::Builder> &builder,
+         std::string                       tab_name,
+         std::string                       domain)
+    : Gtk::Box(object), m_domain(std::move(domain)),
+      m_tab_name(std::move(tab_name))
 {
-    p_builder->get_widget("content", m_content_box);
+    builder->get_widget("content", m_content_box);
 }
 
 
 auto
-Tab::set_name(std::string p_tab_name) -> Tab &
+Tab::set_tab_name(std::string tab_name) -> Tab &
 {
-    m_tab_name = std::move(p_tab_name);
+    m_tab_name = std::move(tab_name);
+    return *this;
+}
+
+
+auto
+Tab::set_domain_name(std::string domain) -> Tab &
+{
+    m_domain = std::move(domain);
     return *this;
 }
 
@@ -39,39 +52,40 @@ Tab::signal_queue_update() -> signal_signature_queue
 
 
 auto
-Tab::get_name() const -> std::string
+Tab::get_tab_name() const -> std::string
 {
     return m_tab_name;
 }
 
 
 void
-Tab::push_pkg(Package p_pkg)
+Tab::push_pkg(Package pkg)
 {
-    logger[Level::INFO, "app::tab"]("Adding package {} to queue",
-                                    p_pkg[PKG_NAME]);
+    logger[Level::INFO, m_domain]("Adding package {} to the \"{}\" queue",
+                                  pkg[PKG_NAME], m_tab_name);
 
-    m_package_queue.emplace(p_pkg[PKG_NAME], std::move(p_pkg));
-    m_queue_signal.emit(m_tab_name, m_package_queue);
+    m_queue_signal.emit(m_tab_name, pkg[PKG_NAME], QueueOperation::PUSH);
+    m_package_queue.emplace(pkg[PKG_NAME], std::move(pkg));
 }
 
 
 void
-Tab::pop_pkg(const std::string &p_name)
+Tab::pop_pkg(const std::string &name)
 {
     if (m_package_queue.empty()) return;
 
-    logger[Level::INFO, "app::tab"]("Removing package {} to queue", p_name);
+    logger[Level::INFO, m_domain]("Removing package {} from the \"{}\" queue",
+                                  name, m_tab_name);
 
-    m_package_queue.erase(p_name);
-    m_queue_signal.emit(m_tab_name, m_package_queue);
+    m_queue_signal.emit(m_tab_name, name, QueueOperation::POP);
+    m_package_queue.erase(name);
 }
 
 
 auto
-Tab::contains_pkg(const std::string &p_name) const -> bool
+Tab::contains_pkg(const std::string &name) const -> bool
 {
-    return m_package_queue.contains(p_name);
+    return m_package_queue.contains(name);
 }
 
 

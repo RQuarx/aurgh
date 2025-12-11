@@ -9,28 +9,28 @@ using cli::Cli;
 
 
 auto
-Cli::init(const int &p_argc, char **p_argv) -> std::optional<Cli>
+Cli::init(const int &argc, char **argv) -> std::optional<Cli>
 {
     bool err { false };
-    Cli  cli { p_argc, p_argv, err };
+    Cli  cli { argc, argv, err };
     if (err) return std::nullopt;
     return cli;
 }
 
 
-Cli::Cli(const int &p_argc, char **p_argv, bool &p_err)
+Cli::Cli(const int &argc, char **argv, bool &err)
 {
-    if (p_argc < 3)
+    if (argc < 3)
     {
         logger[Level::ERROR, "cli"]("Not enough information passed");
-        p_err = true;
+        err = true;
         return;
     }
 
-    std::string              job { p_argv[1] };
-    std::vector<std::string> packages { p_argv + 2, p_argv + p_argc };
+    std::string              job { argv[1] };
+    std::vector<std::string> packages { argv + 2, argv + argc };
 
-    std::print("{} {}: ", p_argc, job);
+    std::print("{} {}: ", argc, job);
     for (const std::string &pkg : packages) { std::print("{} ", pkg); }
     std::println("");
 }

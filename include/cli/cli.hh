@@ -8,13 +8,13 @@ namespace cli
     {
     public:
         [[nodiscard]]
-        static auto init(const int &p_argc, char **p_argv)
+        static auto init(const int &argc, char **argv)
             -> std::optional<Cli>;
 
 
         auto run() -> int;
 
     private:
-        Cli(const int &p_argc, char **p_argv, bool &p_err);
+        Cli(const int &argc, char **argv, bool &err);
     };
 }

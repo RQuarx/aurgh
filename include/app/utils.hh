@@ -15,6 +15,6 @@ namespace Gtk
 namespace app
 {
     /* Get a `Gtk::Builder` without the typing. */
-    auto get_builder(const std::string &p_file_path)
+    auto get_builder(const std::string &file_path)
         -> Glib::RefPtr<Gtk::Builder>;
 }

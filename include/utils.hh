@@ -21,25 +21,25 @@ namespace utils
 
     template <typename... T_Args>
     auto
-    unexpected(std::string_view p_fmt, T_Args &&...p_args)
+    unexpected(std::string_view fmt, T_Args &&...args)
         -> std::unexpected<std::string>
     {
-        std::string msg { std::vformat(p_fmt,
-                                       std::make_format_args(p_args...)) };
+        std::string msg { std::vformat(fmt,
+                                       std::make_format_args(args...)) };
         return std::unexpected<std::string>(msg);
     }
 
 
-    auto get_env(const std::string &p_key) -> std::string;
+    auto get_env(const std::string &key) -> std::string;
 
 
     template <typename T_IntType>
     [[nodiscard]]
     auto
-    to_int(std::string_view p_string) -> std::optional<T_IntType>
+    to_int(std::string_view string) -> std::optional<T_IntType>
     {
         T_IntType val;
-        if (std::from_chars(p_string.begin(), p_string.end(), val).ec
+        if (std::from_chars(string.begin(), string.end(), val).ec
             == std::errc {})
             return val;
 
@@ -50,9 +50,9 @@ namespace utils
     auto get_prefix_path() -> std::string;
 
 
-    auto perform_curl(const char *p_url)
+    auto perform_curl(const char *url)
         -> std::expected<std::string, CURLcode>;
 }
 
 
-namespace Json { auto from_string(const std::string &p_str) -> Json::Value; }
+namespace Json { auto from_string(const std::string &str) -> Json::Value; }

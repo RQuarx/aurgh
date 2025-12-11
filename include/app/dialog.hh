@@ -23,11 +23,11 @@ namespace app
         };
 
 
-        ChoiceDialog(Gtk::Window *p_parent);
+        ChoiceDialog(Gtk::Window *parent);
 
 
         /* Sets the message that will be shown on the dialog. */
-        auto set_message(std::string p_message) -> ChoiceDialog &;
+        auto set_message(std::string message) -> ChoiceDialog &;
 
 
         /**
@@ -38,7 +38,7 @@ namespace app
          * The stored responses are cleared once `ChoiceDialog::show_dialog`
          * or `ChoiceDialog::show_dialog_async` is called.
         */
-        auto add_response(std::string p_response) -> ChoiceDialog &;
+        auto add_response(std::string response) -> ChoiceDialog &;
 
 
         /* Clear the responses vector. */
@@ -58,19 +58,19 @@ namespace app
          *
          * [params]----------------------------
          *
-         * `p_widget`:
+         * `widget`:
          *   The provided widget's toplevel widget will be used
          *   as the parent window.
          *
-         * `p_message`:
+         * `message`:
          *   The message to be shown to the user.
          *
-         * `p_responses` (Defaults to `{ "Quit", "Continue" }`):
+         * `responses` (Defaults to `{ "Quit", "Continue" }`):
          *   The possible responses the user can pick.
          */
-        static auto show_error(Gtk::Widget             *p_widget,
-                               std::string              p_message,
-                               std::vector<std::string> p_responses
+        static auto show_error(Gtk::Widget             *widget,
+                               std::string              message,
+                               std::vector<std::string> responses
                                = DEFAULT_RESPONSES) -> std::string;
 
 
@@ -79,19 +79,19 @@ namespace app
          *
          * [params]----------------------------
          *
-         * `p_widget`:
+         * `widget`:
          *   The provided widget's toplevel widget will be used
          *   as the parent window.
          *
-         * `p_message`:
+         * `message`:
          *   The message to be shown to the user.
          *
-         * `p_responses` (Defaults to `{ "Quit", "Continue" }`):
+         * `responses` (Defaults to `{ "Quit", "Continue" }`):
          *   The possible responses the user can pick.
          */
-        static auto show_error_async(Gtk::Widget             *p_widget,
-                                     std::string              p_message,
-                                     std::vector<std::string> p_responses
+        static auto show_error_async(Gtk::Widget             *widget,
+                                     std::string              message,
+                                     std::vector<std::string> responses
                                      = DEFAULT_RESPONSES)
             -> std::future<std::string>;
 

@@ -25,12 +25,12 @@ namespace app::aur
     class Tab : public app::Tab
     {
     public:
-        Tab(BaseObjectType                   *p_object,
-            const Glib::RefPtr<Gtk::Builder> &p_builder);
+        Tab(BaseObjectType                   *object,
+            const Glib::RefPtr<Gtk::Builder> &builder);
 
 
-        void activate(CriteriaWidgets &p_criteria,
-                      CriteriaType     p_type) override;
+        void activate(CriteriaWidgets &criteria,
+                      CriteriaType     type) override;
 
 
         void close() override;
@@ -48,18 +48,18 @@ namespace app::aur
          *
          * [params]-----------------------------
          *
-         * `p_pkg`:
+         * `pkg`:
          *   Package name or search string.
          *
-         * `p_search_by`:
+         * `search_by`:
          *   Field to search by (e.g., "Name", "Maintainer").
          *
          * [returns]----------------------------
          *
          * JSON object containing search results or `Json::nullValue` on failure.
          */
-        auto search_package(std::string_view p_pkg,
-                            std::string_view p_search_by) -> Json::Value;
+        auto search_package(std::string_view pkg,
+                            std::string_view search_by) -> Json::Value;
 
 
         /**
@@ -67,7 +67,7 @@ namespace app::aur
          *
          * [params]---------------------------------------------
          *
-         * `p_pkgs`:
+         * `pkgs`:
          *   JSON array of package names.
          *
          * [returns]--------------------------------------------
@@ -75,7 +75,7 @@ namespace app::aur
          * JSON array containing detailed package info,
          * or `Json::nullValue` on failure.
          */
-        auto get_pkgs_info(const Json::Value &p_pkgs) -> Json::Value;
+        auto get_pkgs_info(const Json::Value &pkgs) -> Json::Value;
 
 
         /* Convert `pkgs` into `Card` widgets and add them to the content box. */
@@ -92,14 +92,14 @@ namespace app::aur
          *
          * [params]--------------------------------------------------
          *
-         * `p_search_text`:
+         * `search_text`:
          *   Text to search for.
          *
-         * `p_search_by`:
+         * `search_by`:
          *   Field to search by.
          */
-        void search_and_fill_pkgs(std::string_view p_search_text,
-                                  std::string_view p_search_by);
+        void search_and_fill_pkgs(std::string_view search_text,
+                                  std::string_view search_by);
 
 
         /**
@@ -107,18 +107,18 @@ namespace app::aur
          *
          * [params]-----------------------------------------------------------
          *
-         * `p_sort_by`:
+         * `sort_by`:
          *   Field to sort packages by (e.g., "NumVotes").
          *
-         * `p_reverse`:
+         * `reverse`:
          *   If true, sort in descending order.
          */
-        void reload_content(const std::string &p_sort_by, bool p_reverse);
+        void reload_content(const std::string &sort_by, bool reverse);
 
 
-        void search_and_fill(std::string_view   p_search_by,
-                             const std::string &p_sort_by,
-                             std::string_view   p_search_text,
-                             bool               p_reverse);
+        void search_and_fill(std::string_view   search_by,
+                             const std::string &sort_by,
+                             std::string_view   search_text,
+                             bool               reverse);
     };
 }

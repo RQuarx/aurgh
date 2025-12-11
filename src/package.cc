@@ -11,10 +11,10 @@
 namespace
 {
     auto
-    escape_pango_markup(const std::string &p_text) -> std::string
+    escape_pango_markup(const std::string &text) -> std::string
     {
         std::ostringstream out;
-        for (char ch : p_text)
+        for (char ch : text)
         {
             switch (ch)
             {
@@ -64,17 +64,17 @@ namespace
 }
 
 
-Package::Package(const Json::Value &p_pkg, bool p_from_aur)
-    : from_aur(p_from_aur)
+Package::Package(const Json::Value &pkg, bool from_aur)
+    : from_aur(from_aur)
 {
-    valid = json_to_pkg(p_pkg);
+    valid = json_to_pkg(pkg);
 }
 
 
 auto
-Package::operator[](PkgInfo p_info) -> std::string &
+Package::operator[](PkgInfo info) -> std::string &
 {
-    return pkg[p_info];
+    return pkg[info];
 }
 
 
@@ -154,37 +154,37 @@ Package::get_installed() -> std::expected<std::vector<Package>, std::string>
 
 
 auto
-Package::json_to_pkg(const Json::Value &p_json) -> bool
+Package::json_to_pkg(const Json::Value &json) -> bool
 {
-    if (!p_json.isObject())
+    if (!json.isObject())
     {
         error_message = "Retrieved JSON is not a Json::objectValue";
         return false;
     }
 
-    pkg[PKG_NAME]    = escape_pango_markup(p_json["Name"].asString());
-    pkg[PKG_VERSION] = escape_pango_markup(p_json["Version"].asString());
+    pkg[PKG_NAME]    = escape_pango_markup(json["Name"].asString());
+    pkg[PKG_VERSION] = escape_pango_markup(json["Version"].asString());
 
-    if (p_json.isMember("Maintainer"))
+    if (json.isMember("Maintainer"))
         pkg[PKG_MAINTAINER]
-            = escape_pango_markup(p_json["Maintainer"].asString());
+            = escape_pango_markup(json["Maintainer"].asString());
 
-    if (p_json.isMember("Description"))
+    if (json.isMember("Description"))
         pkg[PKG_DESC]
-            = escape_pango_markup(p_json["Description"].asString());
+            = escape_pango_markup(json["Description"].asString());
 
-    if (p_json.isMember("NumVotes"))
+    if (json.isMember("NumVotes"))
         pkg[PKG_NUMVOTES]
-            = escape_pango_markup(p_json["NumVotes"].asString());
+            = escape_pango_markup(json["NumVotes"].asString());
 
-    if (p_json.isMember("URL") && !p_json["URL"].isNull())
-        pkg[PKG_URL] = p_json["URL"].asString();
+    if (json.isMember("URL") && !json["URL"].isNull())
+        pkg[PKG_URL] = json["URL"].asString();
     else
         pkg[PKG_URL] = "";
 
-    if (p_json.isMember("Keywords"))
-        for (Json::ArrayIndex i { 0 }; i < p_json["Keywords"].size(); i++)
-            pkg.add_keyword(p_json["Keywords"][i].asString());
+    if (json.isMember("Keywords"))
+        for (Json::ArrayIndex i { 0 }; i < json["Keywords"].size(); i++)
+            pkg.add_keyword(json["Keywords"][i].asString());
 
     return true;
 }

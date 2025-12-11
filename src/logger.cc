@@ -73,7 +73,7 @@ namespace
 
 Logger::Logger(std::string_view             threshold_level,
                const std::filesystem::path &log_file)
-    : m_threshold { Level::WARN }, m_log_file { log_file, std::ios::app } 
+    : m_threshold { Level::WARN }, m_log_file { log_file, std::ios::app }
 {
     if (!threshold_level.empty()) try
         {
@@ -87,6 +87,7 @@ Logger::Logger(std::string_view             threshold_level,
                 (*this)[Level::WARN, "logger"](
                     "Threshold level too large, using default level");
 
+                m_threshold = Level::WARN;
                 goto end;
             }
 
@@ -102,6 +103,7 @@ Logger::Logger(std::string_view             threshold_level,
                     "Invalid threshold level {}, using default level",
                     threshold_level);
 
+                m_threshold = Level::WARN;
                 goto end;
             }
 
@@ -221,10 +223,10 @@ LoggerPrinter::LoggerPrinter(Logger              *parent,
                              Level                level,
                              std::string          domain,
                              std::source_location source)
-    : m_parent { parent }, m_obj { .time    = std::chrono::system_clock::now(),
-                                   .level   = level,
-                                   .domain  = std::move(domain),
-                                   .source  = source,
-                                   .message = "" }
+    : m_parent { parent }, m_obj { .time   = std::chrono::system_clock::now(),
+                                     .level  = level,
+                                     .domain = std::move(domain),
+                                     .source = source,
+                                     .message = "" }
 {
 }

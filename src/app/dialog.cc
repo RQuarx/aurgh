@@ -12,22 +12,22 @@ using app::ChoiceDialog;
 namespace
 {
     [[nodiscard]]
-    auto get_window(Gtk::Widget *p_obj) -> Gtk::Window *
+    auto get_window(Gtk::Widget *obj) -> Gtk::Window *
     {
-        return reinterpret_cast<Gtk::Window *>(p_obj->get_toplevel());
+        return reinterpret_cast<Gtk::Window *>(obj->get_toplevel());
     }
 
 
     [[nodiscard]]
     auto
-    show_error_impl(Gtk::Widget             *p_widget,
-                    std::string              p_message,
-                    std::vector<std::string> p_responses) -> ChoiceDialog
+    show_error_impl(Gtk::Widget             *widget,
+                    std::string              message,
+                    std::vector<std::string> responses) -> ChoiceDialog
     {
-        ChoiceDialog dialog { get_window(p_widget) };
+        ChoiceDialog dialog { get_window(widget) };
 
-        dialog.set_message(std::move(p_message));
-        for (auto &response : p_responses)
+        dialog.set_message(std::move(message));
+        for (auto &response : responses)
             dialog.add_response(std::move(response));
 
         return dialog;
@@ -35,21 +35,21 @@ namespace
 }
 
 
-ChoiceDialog::ChoiceDialog(Gtk::Window *p_parent) : parent(p_parent) {}
+ChoiceDialog::ChoiceDialog(Gtk::Window *parent) : parent(parent) {}
 
 
 auto
-ChoiceDialog::set_message(std::string p_message) -> ChoiceDialog &
+ChoiceDialog::set_message(std::string message) -> ChoiceDialog &
 {
-    this->message = std::move(p_message);
+    this->message = std::move(message);
     return *this;
 }
 
 
 auto
-ChoiceDialog::add_response(std::string p_response) -> ChoiceDialog &
+ChoiceDialog::add_response(std::string response) -> ChoiceDialog &
 {
-    this->responses.emplace_back(std::move(p_response));
+    this->responses.emplace_back(std::move(response));
     return *this;
 }
 
@@ -139,24 +139,24 @@ ChoiceDialog::show_dialog_async() -> std::future<std::string>
 
 
 auto
-ChoiceDialog::show_error(Gtk::Widget             *p_widget,
-                         std::string              p_message,
-                         std::vector<std::string> p_responses) -> std::string
+ChoiceDialog::show_error(Gtk::Widget             *widget,
+                         std::string              message,
+                         std::vector<std::string> responses) -> std::string
 {
-    return show_error_impl(p_widget, std::move(p_message),
-                           std::move(p_responses))
+    return show_error_impl(widget, std::move(message),
+                           std::move(responses))
         .show_dialog();
 }
 
 
 auto
-ChoiceDialog::show_error_async(Gtk::Widget             *p_widget,
-                               std::string              p_message,
-                               std::vector<std::string> p_responses)
+ChoiceDialog::show_error_async(Gtk::Widget             *widget,
+                               std::string              message,
+                               std::vector<std::string> responses)
     -> std::future<std::string>
 {
-    return show_error_impl(p_widget, std::move(p_message),
-                           std::move(p_responses))
+    return show_error_impl(widget, std::move(message),
+                           std::move(responses))
         .show_dialog_async();
 }
 

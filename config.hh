@@ -1,8 +1,8 @@
 #pragma once
 #include <string_view>
 
-#define GLOBAL(p_name, ...) \
-    static constexpr std::string_view p_name { __VA_ARGS__ }
+#define GLOBAL(name, ...) \
+    static constexpr std::string_view name { __VA_ARGS__ }
 
 /* The URL pointing to the AUR RPC */
 GLOBAL(AUR_URL, "https://aur.archlinux.org/rpc/v5");

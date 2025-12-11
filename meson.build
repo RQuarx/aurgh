@@ -2,14 +2,16 @@ project(
     'aurgh',
     'cpp',
     default_options: ['cpp_std=c++23', 'warning_level=3'],
-    version: '1.13.0-alpha',
+    version: '1.14.0-alpha',
     license: 'GPL-3.0-or-later',
     license_files: ['COPYING'],
+    meson_version: '>=1.9.0'
 )
 
 cxx_args = [
     '-DAPP_NAME="' + meson.project_name() + '"',
     '-DAPP_VERSION="' + meson.project_version() + '"',
+    '-DAPP_ID="org.kei.aurgh"'
 ]
 
 add_project_dependencies(

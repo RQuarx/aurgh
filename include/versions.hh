@@ -6,7 +6,7 @@
 namespace versions
 {
     [[nodiscard]]
-    auto get(const std::string &p_name) -> std::string;
+    auto get(const std::string &name) -> std::string;
 
 
     [[nodiscard]]

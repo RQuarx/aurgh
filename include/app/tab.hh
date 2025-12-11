@@ -62,16 +62,28 @@ namespace app
     };
 
 
+    class Sidebar;
     /* A base class for tabs shown in the UI. */
     class Tab : public Gtk::Box
     {
     public:
-        using signal_signature_queue = sigc::signal<void(
-            const std::string &, std::map<std::string, Package> &)>;
+        enum class QueueOperation : std::uint8_t
+        {
+            POP,
+            PUSH,
+        };
 
 
-        Tab(BaseObjectType                   *p_object,
-            const Glib::RefPtr<Gtk::Builder> &p_builder);
+        using signal_signature_queue
+            = sigc::signal<void(const std::string &tab_name,
+                                const std::string &package_name,
+                                QueueOperation)>;
+
+
+        Tab(BaseObjectType                   *object,
+            const Glib::RefPtr<Gtk::Builder> &builder,
+            std::string                       tab_name,
+            std::string                       domain);
 
 
         /**
@@ -79,13 +91,12 @@ namespace app
          *
          * [params]-----------------------------------------------------------
          *
-         * `p_type`:
+         * `type`:
          *   Contains the type of criteria that changed. If it is
          *   `CriteriaType::NONE`, the tab is activated because it has been
          *   shown to the user.
          */
-        virtual void activate(CriteriaWidgets &p_criteria, CriteriaType p_type)
-            = 0;
+        virtual void activate(CriteriaWidgets &criteria, CriteriaType type) = 0;
 
 
         /* Called when the tab is closed. */
@@ -93,12 +104,18 @@ namespace app
 
 
         /* Sets the name of the tab. */
-        auto set_name(std::string p_tab_name) -> Tab &;
+        auto set_tab_name(std::string tab_name) -> Tab &;
 
 
         /* Get the name of the tab */
         [[nodiscard]]
-        auto get_name() const -> std::string;
+        auto get_tab_name() const -> std::string;
+
+
+        auto set_domain_name(std::string domain) -> Tab &;
+
+
+        void insert_pop_pkg_func(Sidebar &sidebar);
 
 
         /**
@@ -114,6 +131,7 @@ namespace app
     private:
         Gtk::Box *m_content_box;
 
+        std::string                    m_domain;
         std::string                    m_tab_name;
         std::map<std::string, Package> m_package_queue;
 
@@ -121,15 +139,15 @@ namespace app
 
     protected:
         /* Push a package to the internal queue, and emit the queue signal. */
-        void push_pkg(Package p_pkg);
+        void push_pkg(Package pkg);
 
 
         /* Pop a package from the internal queue, and emit the queue signal. */
-        void pop_pkg(const std::string &p_name);
+        void pop_pkg(const std::string &name);
 
 
         /* Checks whether a package exist in thee internal queue. */
-        auto contains_pkg(const std::string &p_name) const -> bool;
+        auto contains_pkg(const std::string &name) const -> bool;
 
 
         /* Get the tab's content box. */

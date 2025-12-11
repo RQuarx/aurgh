@@ -12,7 +12,7 @@ namespace { std::unordered_map<std::string, std::string> VERSIONS; }
 
 
 auto
-versions::get(const std::string &p_name) -> std::string
+versions::get(const std::string &name) -> std::string
 {
     if (VERSIONS.empty())
     {
@@ -25,7 +25,7 @@ versions::get(const std::string &p_name) -> std::string
         VERSIONS[APP_NAME]  = APP_VERSION;
     }
 
-    return VERSIONS.at(p_name);
+    return VERSIONS.at(name);
 }
 
 

@@ -28,17 +28,17 @@ struct Pkg
 
 
     void
-    add_keyword(std::string &&p_keyword)
+    add_keyword(std::string &&keyword)
     {
-        keywords.emplace_back(std::move(p_keyword));
+        keywords.emplace_back(std::move(keyword));
     }
 
 
     [[nodiscard]]
     auto
-    operator[](PkgInfo p_type) -> std::string &
+    operator[](PkgInfo type) -> std::string &
     {
-        return info.at(p_type);
+        return info.at(type);
     }
 };
 
@@ -46,11 +46,11 @@ struct Pkg
 class Package
 {
 public:
-    Package(const Json::Value &p_pkg_info, bool p_from_aur = true);
+    Package(const Json::Value &pkg_info, bool from_aur = true);
 
 
     [[nodiscard]]
-    auto operator[](PkgInfo p_info) -> std::string &;
+    auto operator[](PkgInfo info) -> std::string &;
 
 
     [[nodiscard]]
@@ -82,5 +82,5 @@ private:
 
 
     [[nodiscard]]
-    auto json_to_pkg(const Json::Value &p_json) -> bool;
+    auto json_to_pkg(const Json::Value &json) -> bool;
 };

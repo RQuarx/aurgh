@@ -2,7 +2,7 @@
 #include <gtkmm/application.h>
 
 #include "app/dialog.hh"
-#include "app/sidebar.hh"
+#include "app/sidebar/widget.hh"
 #include "app/tabs/aur.hh"
 
 namespace Gtk
@@ -52,13 +52,14 @@ namespace app
         Gtk::Box *m_content_box;
 
         aur::Tab *m_aur_tab;
-        Gtk::Box *m_main_tab;
-        Gtk::Box *m_installed_tab;
+        Tab      *m_main_tab;
+        Tab      *m_installed_tab;
 
         app::Sidebar *m_sidebar;
+
     protected:
         /* Initialize the CURL library. */
-        static void init_curl(std::int64_t p_flags);
+        static void init_curl(std::int64_t flags);
 
 
         /* Load the application CSS from resources. */
@@ -74,7 +75,7 @@ namespace app
 
 
         /* Handle clicks on tab toggle buttons. */
-        void on_tab_button_pressed(Gtk::ToggleButton *p_button);
+        void on_tab_button_pressed(Gtk::ToggleButton *button);
 
 
         /**
@@ -82,14 +83,13 @@ namespace app
          *
          * [params]--------------------------------------
          *
-         * `p_type`:
+         * `type`:
          *   The type of criteria that changed.
          *
-         * `p_tab`:
+         * `tab`:
          *   Which tab this change applies to,
          *   `TabType::NONE` means current tab.
          */
-        void on_criteria_change(CriteriaType p_type,
-                                TabType      p_tab = TabType::NONE);
+        void on_criteria_change(CriteriaType type, TabType tab = TabType::NONE);
     };
 }

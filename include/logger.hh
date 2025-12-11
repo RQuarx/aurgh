@@ -116,5 +116,5 @@ private:
 };
 
 
-inline Logger logger { utils::get_env("LOG_LEVEL"),
-                       utils::get_env("LOG_FILE") };
+inline Logger logger { utils::get_env("AURGH_LOG_LEVEL"),
+                       utils::get_env("AURGH_LOG_FILE") };

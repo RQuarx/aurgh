@@ -46,10 +46,10 @@ namespace
 
 
 auto
-main(int p_argc, char **p_argv) -> int
+main(int argc, char **argv) -> int
 {
-    for (int i { 1 }; i < p_argc; i++)
-        if (std::strcmp(p_argv[i], "version") == 0)
+    for (int i { 1 }; i < argc; i++)
+        if (std::strcmp(argv[i], "version") == 0)
         {
             std::println("{} {}", APP_NAME, versions::get(APP_NAME));
 
@@ -72,7 +72,7 @@ main(int p_argc, char **p_argv) -> int
 
     if (getuid() == 0)
     {
-        auto cli { cli::Cli::init(p_argc, p_argv) };
+        auto cli { cli::Cli::init(argc, argv) };
         return cli->run();
     }
 

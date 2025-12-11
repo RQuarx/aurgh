@@ -38,13 +38,13 @@ namespace app
          *
          * [params]-------------------------------
          *
-         * `p_pkg`:
+         * `pkg`:
          *   A JSON representation of a package, see `Package` for information
          *   regarding the package's JSON format.
          */
-        Card(const Json::Value &p_pkg,
-             const Type        &p_card_type,
-             bool               p_in_queue);
+        Card(const Json::Value &pkg,
+             const Type        &card_type,
+             bool               in_queue);
 
 
         /* Get the card's widget. */
