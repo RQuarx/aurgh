@@ -73,6 +73,7 @@ Tab::activate(CriteriaWidgets &criteria, CriteriaType type)
 
         m_pkgs.clear();
         clear_content_box();
+        toggle_spinner();
 
         std::jthread {
             [=, this]() -> void
@@ -91,6 +92,8 @@ Tab::activate(CriteriaWidgets &criteria, CriteriaType type)
 
     const auto &[search_by, sort_by, search_text,
                  reverse] { criteria.get_values() };
+
+    toggle_spinner();
 
     std::jthread { &Tab::reload_content, this, sort_by, reverse }.detach();
 }
@@ -194,6 +197,8 @@ Tab::get_pkgs_info(const Json::Value &pkgs) -> Json::Value
 void
 Tab::add_cards_to_box()
 {
+    toggle_spinner();
+
     std::vector<Json::Value> pkgs_copy;
 
     {
@@ -281,37 +286,20 @@ Tab::search_and_fill(std::string_view   search_by,
     logger[Level::DEBUG, DOMAIN]("Getting information about {} packages",
                                  results.size());
 
-    if (results.size() > 100)
+    for (Json::ArrayIndex start { 0 }; start < results.size(); start += 100)
     {
-        Json::Value all_info { Json::arrayValue };
         Json::Value chunk { Json::arrayValue };
 
-        for (Json::ArrayIndex start { 0 }; start < results.size(); start += 100)
-        {
-            chunk.clear();
+        auto end { std::min<Json::ArrayIndex>(start + 100, results.size()) };
+        for (Json::ArrayIndex i { start }; i < end; i++)
+            chunk.append(results[i]);
 
-            auto end { std::min<Json::ArrayIndex>(start + 100,
-                                                  results.size()) };
-            for (Json::ArrayIndex i { start }; i < end; i++)
-                chunk.append(results[i]);
+        Json::Value info { get_pkgs_info(chunk) };
+        if (info == Json::nullValue) return;
 
-            Json::Value info { get_pkgs_info(chunk) };
-            if (info == Json::nullValue) return;
-
-            for (const auto &item : info)
-            {
-                if (item == Json::nullValue) return;
-                m_pkgs.emplace_back(item);
-            }
-
-            reload_content(sort_by, reverse);
-        }
-    }
-    else
-    {
-        for (const auto &item : Tab::get_pkgs_info(results))
+        for (const auto &item : info)
             m_pkgs.emplace_back(item);
-
-        reload_content(sort_by, reverse);
     }
+
+    reload_content(sort_by, reverse);
 }

@@ -11,6 +11,7 @@ namespace Gtk
     class CheckButton;
     class SearchEntry;
     class Builder;
+    class Spinner;
 }
 
 
@@ -103,19 +104,9 @@ namespace app
         virtual void close() = 0;
 
 
-        /* Sets the name of the tab. */
-        auto set_tab_name(std::string tab_name) -> Tab &;
-
-
         /* Get the name of the tab */
         [[nodiscard]]
         auto get_tab_name() const -> std::string;
-
-
-        auto set_domain_name(std::string domain) -> Tab &;
-
-
-        void insert_pop_pkg_func(Sidebar &sidebar);
 
 
         /**
@@ -129,10 +120,12 @@ namespace app
         auto signal_queue_update() -> signal_signature_queue;
 
     private:
-        Gtk::Box *m_content_box;
+        Gtk::Box                     *m_content_box;
+        std::unique_ptr<Gtk::Spinner> m_spinner;
+        bool                          m_spinner_running;
 
-        std::string                    m_domain;
-        std::string                    m_tab_name;
+        const std::string              m_domain;
+        const std::string              m_tab_name;
         std::map<std::string, Package> m_package_queue;
 
         signal_signature_queue m_queue_signal;
@@ -153,5 +146,9 @@ namespace app
         /* Get the tab's content box. */
         [[nodiscard]]
         auto get_content_box() -> Gtk::Box *;
+
+
+        /* Clears `m_content_box`, and puts or remove a spinner in there. */
+        void toggle_spinner();
     };
 }

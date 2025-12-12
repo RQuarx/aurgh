@@ -21,26 +21,16 @@ Tab::Tab(BaseObjectType                   *object,
          const Glib::RefPtr<Gtk::Builder> &builder,
          std::string                       tab_name,
          std::string                       domain)
-    : Gtk::Box(object), m_domain(std::move(domain)),
+    : Gtk::Box(object), m_spinner(std::make_unique<Gtk::Spinner>()),
+      m_spinner_running(false), m_domain(std::move(domain)),
       m_tab_name(std::move(tab_name))
 {
     builder->get_widget("content", m_content_box);
-}
 
-
-auto
-Tab::set_tab_name(std::string tab_name) -> Tab &
-{
-    m_tab_name = std::move(tab_name);
-    return *this;
-}
-
-
-auto
-Tab::set_domain_name(std::string domain) -> Tab &
-{
-    m_domain = std::move(domain);
-    return *this;
+    m_spinner->set_halign(Gtk::ALIGN_FILL);
+    m_spinner->set_valign(Gtk::ALIGN_CENTER);
+    m_spinner->set_vexpand();
+    m_spinner->set_visible();
 }
 
 
@@ -93,4 +83,29 @@ auto
 Tab::get_content_box() -> Gtk::Box *
 {
     return m_content_box;
+}
+
+
+void
+Tab::toggle_spinner()
+{
+    logger[Level::TRACE, m_domain]("{} spinner",
+                                   m_spinner_running ? "Hiding" : "Showing");
+
+    if (m_spinner_running)
+    {
+        m_content_box->remove(*m_spinner);
+        m_content_box->set_valign(Gtk::ALIGN_START);
+        m_spinner->stop();
+    }
+    else
+    {
+        m_content_box->set_valign(Gtk::ALIGN_FILL);
+        m_content_box->foreach([this](Gtk::Widget &child) -> void
+                               { m_content_box->remove(child); });
+        m_content_box->pack_start(*m_spinner);
+        m_spinner->start();
+    }
+
+    m_spinner_running = !m_spinner_running;
 }
