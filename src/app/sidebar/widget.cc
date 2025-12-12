@@ -17,8 +17,6 @@ Sidebar::Sidebar(BaseObjectType                   *object,
 
     builder->get_widget("aurgh_sidebar_install_button", m_install_button);
     builder->get_widget("aurgh_sidebar_container", m_container);
-
-    set_size_request(270);
 }
 
 

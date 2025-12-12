@@ -222,6 +222,7 @@
                 <property name="vexpand">true</property>
                 <property name="halign">fill</property>
                 <property name="valign">fill</property>
+                <property name="position">270</property>
 
                 <child>
 
@@ -261,6 +262,7 @@
                         <property name="valign">end</property>
                         <property name="spacing">10</property>
                         <property name="margin-bottom">10</property>
+                        <property name="margin-end">10</property>
 
                         <child>
 
