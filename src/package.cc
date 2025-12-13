@@ -1,15 +1,22 @@
-#include <print>
-
 #include <alpm.h>
 #include <json/value.h>
 
 #include "config.hh"
+#include "logger.hh"
 #include "package.hh"
 #include "utils.hh"
 
 
 namespace
 {
+    enum class PackageLocality : std::uint8_t
+    {
+        NATIVE,
+        FOREIGN,
+        ERROR
+    };
+
+
     auto
     escape_pango_markup(const std::string &text) -> std::string
     {
@@ -29,86 +36,70 @@ namespace
 
 
     auto
-    package_is_native(alpm_handle_t *handle, alpm_pkg_t *pkg) -> bool
+    get_package_locality(alpm_handle_t *handle, alpm_pkg_t *pkg)
+        -> PackageLocality
     {
         const char  *pkgname { alpm_pkg_get_name(pkg) };
         alpm_list_t *sync_dbs { alpm_get_syncdbs(handle) };
 
-        for (alpm_list_t *i { sync_dbs }; i != nullptr; i = alpm_list_next(i))
-        {
-            auto *pkgs { alpm_db_get_pkgcache(
-                static_cast<alpm_db_t *>(i->data)) };
+        if (sync_dbs == nullptr)
+            return PackageLocality::ERROR;
 
-            std::println("{}",
-                         alpm_db_get_name(static_cast<alpm_db_t *>(i->data)));
-
-            for (alpm_list_t *j { pkgs }; j != nullptr; j = alpm_list_next(j))
-            {
-                std::println("  {}", alpm_pkg_get_name(
-                                         static_cast<alpm_pkg_t *>(j->data)));
-            }
-        }
-
-
-        for (alpm_list_t *i { sync_dbs }; i != nullptr; i = alpm_list_next(i))
-        {
-            if (alpm_db_get_pkg(static_cast<alpm_db_t *>(i->data), pkgname)
+        for (alpm_list_t *j { sync_dbs }; j != nullptr; j = alpm_list_next(j))
+            if (alpm_db_get_pkg(static_cast<alpm_db_t *>(j->data), pkgname)
                 != nullptr)
-            {
-                return true;
-            }
-        }
+                return PackageLocality::NATIVE;
 
-        return false;
+        return PackageLocality::FOREIGN;
     }
 }
 
 
-Package::Package(const Json::Value &pkg, bool from_aur)
-    : from_aur(from_aur)
+PackageEntry::PackageEntry(const Json::Value &pkg, bool from_aur)
+    : m_is_from_aur(from_aur)
 {
-    valid = json_to_pkg(pkg);
+    m_is_valid = json_to_pkg(pkg);
 }
 
 
 auto
-Package::operator[](PkgInfo info) -> std::string &
+PackageEntry::operator[](PackageField field) -> std::string &
 {
-    return pkg[info];
+    return m_data[field];
 }
 
 
 auto
-Package::get_keywords() const
-    -> const std::vector<std::string> &
+PackageEntry::get_keywords() const -> const std::vector<std::string> &
 {
-    return pkg.keywords;
+    return m_data.keywords;
 }
 
 
 auto
-Package::is_valid() const -> bool
+PackageEntry::is_valid() const -> bool
 {
-    return valid;
+    return m_is_valid;
 }
 
 
 auto
-Package::is_external() const -> bool
+PackageEntry::is_external() const -> bool
 {
-    return from_aur;
+    return m_is_from_aur;
 }
 
 
 auto
-Package::get_error_message() const -> std::string
+PackageEntry::get_error_message() const -> std::string
 {
-    return error_message;
+    return m_error_message;
 }
 
 
 auto
-Package::get_installed() -> std::expected<std::vector<Package>, std::string>
+PackageEntry::get_installed()
+    -> std::expected<std::vector<PackageEntry>, std::string>
 {
     alpm_errno_t err;
     auto *handle { alpm_initialize(ROOT.data(), DB_PATH.data(), /* NOLINT */
@@ -119,7 +110,7 @@ Package::get_installed() -> std::expected<std::vector<Package>, std::string>
     alpm_db_t   *localdb { alpm_get_localdb(handle) };
     alpm_list_t *pkglist { alpm_db_get_pkgcache(localdb) };
 
-    std::vector<Package> packages;
+    std::vector<PackageEntry> packages;
     packages.reserve(alpm_list_count(pkglist));
 
     for (alpm_list_t *i { pkglist }; i != nullptr; i = alpm_list_next(i))
@@ -132,10 +123,15 @@ Package::get_installed() -> std::expected<std::vector<Package>, std::string>
         std::string maintainer { alpm_pkg_get_packager(pkg) };
         std::string url { alpm_pkg_get_url(pkg) };
 
-        if (package_is_native(handle, pkg))
-            name = std::format("native/{}", name);
-        else
-            name = std::format("foreign/{}", name);
+        switch (get_package_locality(handle, pkg))
+        {
+        case PackageLocality::NATIVE:
+            name = std::format("native/{}", name);break;
+        case PackageLocality::FOREIGN:
+            name = std::format("foreign/{}", name); break;
+        case PackageLocality::ERROR:
+            return utils::unexpected(alpm_strerror(alpm_errno(handle)));
+        }
 
         Json::Value package_json { Json::objectValue };
 
@@ -154,37 +150,36 @@ Package::get_installed() -> std::expected<std::vector<Package>, std::string>
 
 
 auto
-Package::json_to_pkg(const Json::Value &json) -> bool
+PackageEntry::json_to_pkg(const Json::Value &json) -> bool
 {
     if (!json.isObject())
     {
-        error_message = "Retrieved JSON is not a Json::objectValue";
+        m_error_message = "Retrieved JSON is not a Json::objectValue";
         return false;
     }
 
-    pkg[PKG_NAME]    = escape_pango_markup(json["Name"].asString());
-    pkg[PKG_VERSION] = escape_pango_markup(json["Version"].asString());
+    using enum PackageField;
+
+    m_data[NAME]    = escape_pango_markup(json["Name"].asString());
+    m_data[VERSION] = escape_pango_markup(json["Version"].asString());
 
     if (json.isMember("Maintainer"))
-        pkg[PKG_MAINTAINER]
-            = escape_pango_markup(json["Maintainer"].asString());
+        m_data[MAINTAINER] = escape_pango_markup(json["Maintainer"].asString());
 
     if (json.isMember("Description"))
-        pkg[PKG_DESC]
-            = escape_pango_markup(json["Description"].asString());
+        m_data[DESC] = escape_pango_markup(json["Description"].asString());
 
     if (json.isMember("NumVotes"))
-        pkg[PKG_NUMVOTES]
-            = escape_pango_markup(json["NumVotes"].asString());
+        m_data[NUMVOTES] = escape_pango_markup(json["NumVotes"].asString());
 
     if (json.isMember("URL") && !json["URL"].isNull())
-        pkg[PKG_URL] = json["URL"].asString();
+        m_data[URL] = json["URL"].asString();
     else
-        pkg[PKG_URL] = "";
+        m_data[URL] = "";
 
     if (json.isMember("Keywords"))
         for (Json::ArrayIndex i { 0 }; i < json["Keywords"].size(); i++)
-            pkg.add_keyword(json["Keywords"][i].asString());
+            m_data.add_keyword(json["Keywords"][i].asString());
 
     return true;
 }

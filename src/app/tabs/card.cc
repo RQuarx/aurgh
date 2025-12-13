@@ -22,10 +22,10 @@ Card::Card(const Json::Value &pkg, const Type &card_type, bool in_queue)
 
     name_ver->set_markup(
         std::format("<span size='xx-large'><b>{}</b></span>    {}",
-                    m_pkg[PKG_NAME], m_pkg[PKG_VERSION]));
+                    m_pkg[PackageField::NAME], m_pkg[PackageField::VERSION]));
     name_ver->set_halign(Gtk::ALIGN_START);
 
-    desc->set_markup(std::format("<big>{}</big>", m_pkg[PKG_DESC]));
+    desc->set_markup(std::format("<big>{}</big>", m_pkg[PackageField::DESC]));
     desc->set_halign(Gtk::ALIGN_START);
     desc->set_valign(Gtk::ALIGN_START);
     desc->set_line_wrap();
@@ -71,16 +71,16 @@ Card::Card(const Json::Value &pkg, const Type &card_type, bool in_queue)
 
     m_add_to_queue->set_image_from_icon_name("list-add-symbolic");
     m_add_to_queue->set_tooltip_text(
-        std::format("Add {} to {} queue", m_pkg[PKG_NAME],
+        std::format("Add {} to {} queue", m_pkg[PackageField::NAME],
                     card_type == Type::INSTALL ? "install" : "uninstall"));
 
     m_install->set_image_from_icon_name("folder-download-symbolic");
     m_install->set_tooltip_text(
-        std::format("Install {} right now", m_pkg[PKG_NAME]));
+        std::format("Install {} right now", m_pkg[PackageField::NAME]));
 
     m_uninstall->set_image_from_icon_name("list-remove-symbolic");
     m_uninstall->set_tooltip_text(
-        std::format("Uninstall {} right now", m_pkg[PKG_NAME]));
+        std::format("Uninstall {} right now", m_pkg[PackageField::NAME]));
 
     main_box->pack_start(*info_box);
     main_box->pack_start(*button_box);
@@ -121,7 +121,7 @@ Card::is_valid() -> bool
 
 
 auto
-Card::get_package() -> Package &
+Card::get_package() -> PackageEntry &
 {
     return m_pkg;
 }

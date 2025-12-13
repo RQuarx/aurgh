@@ -124,15 +124,15 @@ namespace app
         std::unique_ptr<Gtk::Spinner> m_spinner;
         bool                          m_spinner_running;
 
-        const std::string              m_domain;
-        const std::string              m_tab_name;
-        std::map<std::string, Package> m_package_queue;
+        const std::string                   m_domain;
+        const std::string                   m_tab_name;
+        std::map<std::string, PackageEntry> m_package_queue;
 
         signal_signature_queue m_queue_signal;
 
     protected:
         /* Push a package to the internal queue, and emit the queue signal. */
-        void push_pkg(Package pkg);
+        void push_pkg(PackageEntry pkg);
 
 
         /* Pop a package from the internal queue, and emit the queue signal. */

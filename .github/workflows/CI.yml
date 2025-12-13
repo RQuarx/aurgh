@@ -44,5 +44,5 @@ jobs:
 
       - name: Compile with ${{ matrix.compiler }}
         run: |
-          CXX=${{ matrix.cxx }} CXX_LD=${{ matrix.cxx_ld }} meson setup target
+          CXX=${{ matrix.cxx }} CXX_LD=${{ matrix.cxx_ld }} meson setup target -Dbuildtype=release
           meson compile -C target

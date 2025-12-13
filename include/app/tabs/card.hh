@@ -59,7 +59,7 @@ namespace app
 
         /* Get a reference to the underlying `Package` object. */
         [[nodiscard]]
-        auto get_package() -> Package &;
+        auto get_package() -> PackageEntry &;
 
 
         /**
@@ -81,7 +81,7 @@ namespace app
         auto signal_on_uninstall() -> Glib::SignalProxy<void>;
 
     private:
-        Package m_pkg;
+        PackageEntry m_pkg;
 
         Gtk::Frame        *m_card;
         Gtk::ToggleButton *m_install;

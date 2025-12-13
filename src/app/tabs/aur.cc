@@ -215,10 +215,10 @@ Tab::add_cards_to_box()
 
         if (!card->is_valid())
         {
-            Package    &package { card->get_package() };
-            std::string message { std::format("Failed to load package {}: {}",
-                                              package[PKG_NAME],
-                                              package.get_error_message()) };
+            PackageEntry &package { card->get_package() };
+            std::string   message { std::format("Failed to load package {}: {}",
+                                                package[PackageField::NAME],
+                                                package.get_error_message()) };
             logger[Level::ERROR, DOMAIN]("{}", message);
             if (app::ChoiceDialog::show_error(this, message) == "Quit")
                 std::exit(1);
@@ -231,7 +231,7 @@ Tab::add_cards_to_box()
             [this, card_ptr](bool active) -> void
             {
                 if (!active)
-                    this->pop_pkg(card_ptr->get_package()[PKG_NAME]);
+                    this->pop_pkg(card_ptr->get_package()[PackageField::NAME]);
                 else
                     this->push_pkg(card_ptr->get_package());
             });
@@ -297,8 +297,7 @@ Tab::search_and_fill(std::string_view   search_by,
         Json::Value info { get_pkgs_info(chunk) };
         if (info == Json::nullValue) return;
 
-        for (const auto &item : info)
-            m_pkgs.emplace_back(item);
+        for (const auto &item : info) m_pkgs.emplace_back(item);
     }
 
     reload_content(sort_by, reverse);

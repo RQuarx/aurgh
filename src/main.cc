@@ -58,16 +58,18 @@ main(int argc, char **argv) -> int
                 if (name == APP_NAME) continue;
                 std::println("  {:<10} {}", name, ver);
             }
-            std::exit(0);
+
+            return 0;
         }
 
     set_glib_logger();
 
+#ifdef NDEBUG
     logger[Level::INFO, "main"]("Running {} version {}", APP_NAME,
                                 versions::get(APP_NAME));
-
-#ifndef NDEBUG
-    logger[Level::INFO, "main"]("Running application in debug mode");
+#else
+    logger[Level::INFO, "main"]("Running {}-debug version {}", APP_NAME,
+                                versions::get(APP_NAME));
 #endif
 
     if (getuid() == 0)

@@ -49,13 +49,14 @@ Tab::get_tab_name() const -> std::string
 
 
 void
-Tab::push_pkg(Package pkg)
+Tab::push_pkg(PackageEntry pkg)
 {
     logger[Level::INFO, m_domain]("Adding package {} to the \"{}\" queue",
-                                  pkg[PKG_NAME], m_tab_name);
+                                  pkg[PackageField::NAME], m_tab_name);
 
-    m_queue_signal.emit(m_tab_name, pkg[PKG_NAME], QueueOperation::PUSH);
-    m_package_queue.emplace(pkg[PKG_NAME], std::move(pkg));
+    m_queue_signal.emit(m_tab_name, pkg[PackageField::NAME],
+                        QueueOperation::PUSH);
+    m_package_queue.emplace(pkg[PackageField::NAME], std::move(pkg));
 }
 
 
