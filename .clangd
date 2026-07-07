@@ -1,0 +1,37 @@
+Completion:
+    AllScopes: Yes
+
+InlayHints:
+    ParameterNames: No
+    TypeNameLimit: 10
+    DeducedTypes: No
+    Designators: No
+
+Diagnostics:
+    UnusedIncludes: Strict
+    ClangTidy:
+        Add:
+            - bugprone-*
+            - performance-*
+            - readability-*
+            - modernize-*
+        Remove:
+            - readability-braces-around-statements
+            - readability-identifier-length
+            - readability-magic-numbers
+            - bugprone-easily-swappable-parameters
+            - readability-avoid-nested-conditional-operator
+            - bugprone-narrowing-conversions
+            - modernize-use-trailing-return-type
+            - modernize-use-designated-initializers
+            - modernize-avoid-c-arrays
+            - readability-implicit-bool-conversion
+
+Index:
+    Background: Build
+
+CompileFlags:
+    Add: [ -std=c++23 ]
+
+Documentation:
+    CommentFormat: Doxygen

@@ -1,0 +1,1 @@
+widgets_src = files('searchbar.cc')

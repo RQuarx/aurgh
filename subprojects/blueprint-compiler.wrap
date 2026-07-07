@@ -1,0 +1,10 @@
+[wrap-file]
+directory = blueprint-compiler-0.18.0
+source_url = https://download.gnome.org/sources/blueprint-compiler/0.18/blueprint-compiler-0.18.0.tar.xz
+source_filename = blueprint-compiler-0.18.0.tar.xz
+source_hash = 4142b9017151a347ccdc2907ac033b18508363476b44a76d0420b4af420bd866
+source_fallback_url = https://wrapdb.mesonbuild.com/v2/blueprint-compiler_0.18.0-2/get_source/blueprint-compiler-0.18.0.tar.xz
+wrapdb_version = 0.18.0-2
+
+[provide]
+program_names = blueprint-compiler
