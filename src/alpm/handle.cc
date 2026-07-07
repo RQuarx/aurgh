@@ -1,6 +1,5 @@
 #include <sigc++/sigc++.h>
 
-#include "alpm/config.hh"
 #include "alpm/handle.hh"
 
 using aurgh::alpm::handle;
@@ -25,9 +24,28 @@ namespace
 }
 
 
-handle::handle(const fs::path &config)
+auto
+handle::create(const std::filesystem::path &config) noexcept -> result<handle>
+try
 {
-    
+    handle h;
+
+    if (auto res = config::parse(config); res.has_value())
+    {
+        h.m_config = std::move(res.value());
+        if (auto res = h.m_config.build(); res.has_value())
+            h.m_handle.reset(res.value());
+        else
+            return res.error().unexpected();
+    }
+    else
+        return res.error().unexpected();
+
+    return std::move(h);
+}
+catch (const std::exception &e)
+{
+    return error { "failed to create libalpm handle: {}", e.what() }.unexpected();
 }
 
 
