@@ -37,13 +37,13 @@ namespace aurgh::alpm
         static constexpr std::string_view default_cache_dir = "/var/cache/pacman/pkg/";
         static constexpr std::string_view default_hook_dir  = "/usr/share/libalpm/hooks";
 
-        std::filesystem::path root_dir = "/";
-        std::filesystem::path db_path  = "/var/lib/pacman/";
-        std::filesystem::path gpg_dir  = "/etc/pacman.d/gnupg/";
-        std::filesystem::path log_file = "/var/log/pacman.log";
+        std::filesystem::path root_dir;
+        std::filesystem::path db_path;
+        std::filesystem::path gpg_dir;
+        std::filesystem::path log_file;
 
-        std::vector<std::filesystem::path> cache_dir { "/var/cache/pacman/pkg/" };
-        std::vector<std::filesystem::path> hook_dir { "/usr/share/libalpm/hooks" };
+        std::vector<std::filesystem::path> cache_dir;
+        std::vector<std::filesystem::path> hook_dir;
 
         std::vector<std::string> hold_pkg;
         std::vector<std::string> ignore_pkg;

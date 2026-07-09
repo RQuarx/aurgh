@@ -66,7 +66,7 @@ transfer::on_error(const error_signal::slot_type &slot) -> transfer &
 auto
 transfer::cancel() noexcept -> result<void>
 {
-    if (m_client != nullptr && m_easy) return m_client->cancel(*this);
+    if (m_client != nullptr and m_easy != nullptr) return m_client->cancel(*this);
     return {};
 }
 
@@ -84,6 +84,6 @@ transfer::complete(CURLcode code)
 
     m_signal_on_complete.emit(completion {
         .curl_result = code,
-        .return_code = static_cast<int>(status),
+        .return_code = int(status),
     });
 }

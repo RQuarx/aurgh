@@ -1,4 +1,4 @@
-src = files('main.cc', 'window.cc', 'aur.cc')
+src = files('main.cc', 'window.cc', 'aur.cc', 'git.cc')
 
 subdir('widgets')
 src += widgets_src

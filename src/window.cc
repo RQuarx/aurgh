@@ -13,5 +13,4 @@ window::window()
     this->set_child(*builder->get_widget<Gtk::Box>("main_container"));
 
     if (auto res = m_searchbar.build(builder); !res) { /* TODO: Handle error */ }
-
 }

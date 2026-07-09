@@ -2,4 +2,5 @@
 
 !.gitignore
 !Lyra
+!libgit2
 !*.wrap

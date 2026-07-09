@@ -361,7 +361,8 @@ try
 
     if (data.key == "ParallelDownloads")
     {
-        if (auto res = util::to_integral<unsigned int>(data.value); res.has_value())
+        if (auto res = util::to_integral<unsigned int>(data.value.begin(), data.value.end());
+            res.has_value())
             parallel_downloads = res.value();
         else
         {

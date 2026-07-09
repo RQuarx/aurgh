@@ -5,6 +5,7 @@
 #include <alpm.h>
 
 #include "alpm/config.hh"
+#include "package.hh"
 #include "result.hh"
 #include "utils.hh"
 
@@ -23,6 +24,10 @@ namespace aurgh::alpm
 
         [[nodiscard]]
         auto get_error() const noexcept -> const char *;
+
+
+        [[nodiscard]]
+        auto search(std::string_view name) noexcept -> result<std::vector<package>>;
 
     private:
         std::unique_ptr<alpm_handle_t, alpm_destructor> m_handle;

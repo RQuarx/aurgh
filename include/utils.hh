@@ -30,14 +30,6 @@ namespace aurgh
                 return std::unexpected { res.ec };
             return val;
         }
-
-
-        template <std::integral T>
-        [[nodiscard]]
-        auto to_integral(auto &&range) noexcept -> std::expected<T, std::errc>
-        {
-            return to_integral(std::ranges::begin(range), std::ranges::end(range));
-        }
     }
 
 
