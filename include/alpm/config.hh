@@ -1,6 +1,5 @@
 #pragma once
 #include <filesystem>
-#include <unordered_set>
 #include <vector>
 
 #include <alpm.h>
