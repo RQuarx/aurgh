@@ -26,10 +26,7 @@ namespace
         packages.reserve(response["resultcount"].get<std::size_t>());
 
         for (const auto &pkg : response["results"])
-            packages.emplace_back(package { .name        = pkg["Name"].get<std::string>(),
-                                            .version     = pkg["Version"].get<std::string>(),
-                                            .description = pkg["Description"].get<std::string>(),
-                                            .repo        = "aur" });
+            packages.emplace_back(package::from_json(pkg));
         return packages;
     }
 
@@ -48,28 +45,11 @@ namespace
                            response["error"].get<std::string_view>() }
                 .unexpected();
 
-        auto get_str_vec
-            = [](const nlohmann::json &obj, std::string_view key) -> std::vector<std::string>
-        {
-            if (!obj.contains(key) || obj[key].is_null()) return {};
-            std::vector<std::string> out;
-            out.reserve(obj[key].size());
-            for (const auto &item : obj[key]) out.emplace_back(item.get<std::string>());
-            return out;
-        };
-
         std::vector<package_details> packages;
         packages.reserve(response["resultcount"].get<std::size_t>());
 
         for (const auto &pkg : response["results"])
-            packages.emplace_back(package_details {
-                .licenses     = get_str_vec(pkg, "License"),
-                .depends      = get_str_vec(pkg, "Depends"),
-                .make_depends = get_str_vec(pkg, "MakeDepends"),
-                .opt_depends  = get_str_vec(pkg, "OptDepends"),
-                .url          = pkg.value("URL", ""),
-                .last_updated = std::chrono::seconds { pkg["LastModified"].get<std::size_t>() },
-            });
+            packages.emplace_back(package_details::from_json(pkg));
 
         return packages;
     }

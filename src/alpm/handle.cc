@@ -5,85 +5,6 @@
 using aurgh::alpm::handle;
 namespace fs = std::filesystem;
 
-namespace
-{
-    [[nodiscard]]
-    auto
-    alpm_list_to_strings(alpm_list_t *list) -> std::vector<std::string>
-    {
-        std::vector<std::string> out;
-        out.reserve(alpm_list_count(list));
-
-        for (alpm_list_t *i = list; i != nullptr; i = alpm_list_next(i))
-            out.emplace_back(static_cast<const char *>(i->data));
-
-        return out;
-    }
-
-
-    [[nodiscard]]
-    auto
-    depends_to_strings(alpm_list_t *list) -> std::vector<std::string>
-    {
-        std::vector<std::string> out;
-        out.reserve(alpm_list_count(list));
-
-        for (alpm_list_t *i = list; i != nullptr; i = alpm_list_next(i))
-        {
-            auto *dep = static_cast<alpm_depend_t *>(i->data);
-
-            char *str = alpm_dep_compute_string(dep);
-            if (str == nullptr) continue;
-
-            out.emplace_back(str);
-            free(str);
-        }
-
-        return out;
-    }
-
-
-    [[nodiscard]]
-    auto
-    optdepends_to_strings(alpm_list_t *list) -> std::vector<std::string>
-    {
-        std::vector<std::string> out;
-        out.reserve(alpm_list_count(list));
-
-        for (alpm_list_t *i = list; i != nullptr; i = alpm_list_next(i))
-        {
-            auto *dep = static_cast<alpm_depend_t *>(i->data);
-
-            std::string entry { dep->name != nullptr ? dep->name : "" };
-
-            if (dep->desc != nullptr and *dep->desc != '\0')
-            {
-                entry += ": ";
-                entry += dep->desc;
-            }
-
-            out.push_back(std::move(entry));
-        }
-
-        return out;
-    }
-
-
-    [[nodiscard]]
-    auto
-    to_package_details(alpm_pkg_t *pkg) -> aurgh::package_details
-    {
-        return aurgh::package_details {
-            .licenses     = alpm_list_to_strings(alpm_pkg_get_licenses(pkg)),
-            .depends      = depends_to_strings(alpm_pkg_get_depends(pkg)),
-            .make_depends = alpm_list_to_strings(alpm_pkg_get_makedepends(pkg)),
-            .opt_depends  = optdepends_to_strings(alpm_pkg_get_optdepends(pkg)),
-            .url          = alpm_pkg_get_url(pkg) != nullptr ? alpm_pkg_get_url(pkg) : "",
-            .last_updated = std::chrono::seconds { alpm_pkg_get_builddate(pkg) },
-        };
-    }
-}
-
 
 auto
 handle::create(const std::filesystem::path &config) noexcept -> result<handle>
@@ -143,11 +64,7 @@ handle::search(std::string_view name) noexcept -> result<std::vector<package>>
         for (alpm_list_t *i = res; i != nullptr; i = alpm_list_next(i))
         {
             auto *pkg = static_cast<alpm_pkg_t *>(i->data);
-
-            packages.emplace_back(package { .name        = alpm_pkg_get_name(pkg),
-                                            .version     = alpm_pkg_get_version(pkg),
-                                            .description = alpm_pkg_get_desc(pkg),
-                                            .repo = alpm_db_get_name(alpm_pkg_get_db(pkg)) });
+            if (pkg != nullptr) packages.emplace_back(package::from_alpm(pkg));
         }
 
         alpm_list_free(res);
@@ -172,7 +89,7 @@ handle::info(std::span<const std::string> args) noexcept -> result<std::vector<p
             if (db == nullptr) continue;
 
             if (auto *pkg = alpm_db_get_pkg(db, name.c_str()); pkg != nullptr)
-                details.emplace_back(to_package_details(pkg));
+                details.emplace_back(package_details::from_alpm(pkg));
         }
 
     return details;
