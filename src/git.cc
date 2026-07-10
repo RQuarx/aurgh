@@ -50,7 +50,18 @@ void
 cloning::mf_run(std::stop_token token)
 {
     m_stop_token = std::move(token);
-    libgit2_session session;
+
+    try
+    {
+        libgit2_session session;
+    }
+    catch (error &e)
+    {
+        m_pending_error = std::move(e);
+        m_dispatch_done.emit();
+
+        return;
+    }
 
     git_clone_options opts;
     git_clone_options_init(&opts, GIT_CLONE_OPTIONS_VERSION);
@@ -62,12 +73,9 @@ cloning::mf_run(std::stop_token token)
     int             res  = git_clone(&repo, m_url.c_str(), m_to.c_str(), &opts);
 
     if (repo != nullptr) git_repository_free(repo);
-    if (m_success = (res == 0); !m_success)
-    {
+    if (res != 0)
         m_pending_error = error { R"(failed to clone remote repository "{}" to "{}": {})", m_url,
                                   m_to.c_str(), get_libgit2_error() };
-        m_success       = false;
-    }
 
     m_dispatch_done.emit();
 }
@@ -90,8 +98,10 @@ cloning::mf_on_progress()
 void
 cloning::mf_on_done()
 {
-    if (m_pending_error.has_value()) m_signal_on_error.emit(m_pending_error.value());
-    m_signal_on_completed.emit(m_success);
+    if (m_pending_error.has_value())
+        m_signal_on_error.emit(m_pending_error.value());
+    else
+        m_signal_on_completed.emit();
 }
 
 

@@ -16,7 +16,7 @@ namespace aurgh::git
     class cloning
     {
         using transfer_progress_signal = sigc::signal<void(double)>;
-        using completed_signal         = sigc::signal<void(bool)>;
+        using completed_signal         = sigc::signal<void()>;
         using error_signal             = sigc::signal<void(error)>;
 
     public:
@@ -59,11 +59,11 @@ namespace aurgh::git
         std::mutex m_mutex;
         double     m_latest_progress;
 
-        bool                 m_success = false;
         std::optional<error> m_pending_error;
 
         Glib::Dispatcher m_dispatch_progress;
         Glib::Dispatcher m_dispatch_done;
+        Glib::Dispatcher m_dispatch_error;
 
         transfer_progress_signal m_signal_on_transfer_progress;
         completed_signal         m_signal_on_completed;
