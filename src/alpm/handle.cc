@@ -7,19 +7,80 @@ namespace fs = std::filesystem;
 
 namespace
 {
-    template <typename F>
-    void
-    invoke_on_words(std::string_view value, F &&fn)
+    [[nodiscard]]
+    auto
+    alpm_list_to_strings(alpm_list_t *list) -> std::vector<std::string>
     {
-        std::string_view trimmed { value | aurgh::views::trim };
+        std::vector<std::string> out;
+        out.reserve(alpm_list_count(list));
 
-        for (const auto &word : trimmed | std::views::split(' '))
+        for (alpm_list_t *i = list; i != nullptr; i = alpm_list_next(i))
+            out.emplace_back(static_cast<const char *>(i->data));
+
+        return out;
+    }
+
+
+    [[nodiscard]]
+    auto
+    depends_to_strings(alpm_list_t *list) -> std::vector<std::string>
+    {
+        std::vector<std::string> out;
+        out.reserve(alpm_list_count(list));
+
+        for (alpm_list_t *i = list; i != nullptr; i = alpm_list_next(i))
         {
-            if (std::ranges::empty(word)) continue;
-            std::string_view value { word };
+            auto *dep = static_cast<alpm_depend_t *>(i->data);
 
-            fn(value);
+            char *str = alpm_dep_compute_string(dep);
+            if (str == nullptr) continue;
+
+            out.emplace_back(str);
+            free(str);
         }
+
+        return out;
+    }
+
+
+    [[nodiscard]]
+    auto
+    optdepends_to_strings(alpm_list_t *list) -> std::vector<std::string>
+    {
+        std::vector<std::string> out;
+        out.reserve(alpm_list_count(list));
+
+        for (alpm_list_t *i = list; i != nullptr; i = alpm_list_next(i))
+        {
+            auto *dep = static_cast<alpm_depend_t *>(i->data);
+
+            std::string entry { dep->name != nullptr ? dep->name : "" };
+
+            if (dep->desc != nullptr and *dep->desc != '\0')
+            {
+                entry += ": ";
+                entry += dep->desc;
+            }
+
+            out.push_back(std::move(entry));
+        }
+
+        return out;
+    }
+
+
+    [[nodiscard]]
+    auto
+    to_package_details(alpm_pkg_t *pkg) -> aurgh::package_details
+    {
+        return aurgh::package_details {
+            .licenses     = alpm_list_to_strings(alpm_pkg_get_licenses(pkg)),
+            .depends      = depends_to_strings(alpm_pkg_get_depends(pkg)),
+            .make_depends = alpm_list_to_strings(alpm_pkg_get_makedepends(pkg)),
+            .opt_depends  = optdepends_to_strings(alpm_pkg_get_optdepends(pkg)),
+            .url          = alpm_pkg_get_url(pkg) != nullptr ? alpm_pkg_get_url(pkg) : "",
+            .last_updated = std::chrono::seconds { alpm_pkg_get_builddate(pkg) },
+        };
     }
 }
 
@@ -33,7 +94,8 @@ try
     if (auto res = config::parse(config); res.has_value())
     {
         h.m_config = std::move(res.value());
-        if (auto res = h.m_config.build(); res.has_value())
+
+        if (auto res = h.m_config->build(); res.has_value())
             h.m_handle.reset(res.value());
         else
             return res.error().unexpected();
@@ -52,3 +114,66 @@ catch (const std::exception &e)
 auto
 handle::get_error() const noexcept -> const char *
 { return alpm_strerror(alpm_errno(m_handle.get())); }
+
+
+auto
+handle::search(std::string_view name) noexcept -> result<std::vector<package>>
+{
+    std::string search { name };
+
+    alpm_list_t *syncdbs = alpm_get_syncdbs(m_handle.get());
+    alpm_list_t *needle  = nullptr;
+
+    std::vector<package> packages;
+
+    needle = alpm_list_add(needle, static_cast<void *>(search.data()));
+
+    for (alpm_list_t *i = syncdbs; i != nullptr; i = alpm_list_next(i))
+    {
+        alpm_list_t *res = nullptr;
+        auto        *db  = static_cast<alpm_db_t *>(i->data);
+
+        if (alpm_db_search(db, needle, &res) != 0)
+            return error { "failed to search for a package on syncdb \"{}\": {}",
+                           alpm_db_get_name(db), get_error() }
+                .unexpected();
+
+        packages.reserve(alpm_list_count(res));
+
+        for (alpm_list_t *i = res; i != nullptr; i = alpm_list_next(i))
+        {
+            auto *pkg = static_cast<alpm_pkg_t *>(i->data);
+
+            packages.emplace_back(package { .name        = alpm_pkg_get_name(pkg),
+                                            .version     = alpm_pkg_get_version(pkg),
+                                            .description = alpm_pkg_get_desc(pkg),
+                                            .repo = alpm_db_get_name(alpm_pkg_get_db(pkg)) });
+        }
+
+        alpm_list_free(res);
+    }
+
+    alpm_list_free(needle);
+    return packages;
+}
+
+
+auto
+handle::info(std::span<const std::string> args) noexcept -> result<std::vector<package_details>>
+{
+    alpm_list_t *syncdbs = alpm_get_syncdbs(m_handle.get());
+
+    std::vector<package_details> details;
+
+    for (const auto &name : args)
+        for (alpm_list_t *i = syncdbs; i != nullptr; i = alpm_list_next(i))
+        {
+            auto *db = static_cast<alpm_db_t *>(i->data);
+            if (db == nullptr) continue;
+
+            if (auto *pkg = alpm_db_get_pkg(db, name.c_str()); pkg != nullptr)
+                details.emplace_back(to_package_details(pkg));
+        }
+
+    return details;
+}

@@ -1,5 +1,6 @@
 #pragma once
 #include <filesystem>
+#include <unordered_set>
 #include <vector>
 
 #include <alpm.h>
@@ -89,7 +90,8 @@ namespace aurgh::alpm
 
 
         [[nodiscard]]
-        static auto parse(const std::filesystem::path &pacman_conf) noexcept -> result<config>;
+        static auto parse(const std::filesystem::path &pacman_conf) noexcept
+            -> result<std::unique_ptr<config>>;
 
 
         [[nodiscard]]

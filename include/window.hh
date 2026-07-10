@@ -1,6 +1,6 @@
 #pragma once
-#include <gtkmm/window.h>
 #include <gtkmm/builder.h>
+#include <gtkmm/window.h>
 
 #include "widgets/searchbar.hh"
 

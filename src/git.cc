@@ -82,7 +82,7 @@ cloning::mf_run(std::stop_token token)
 
 
 void
-cloning::mf_on_progress()
+cloning::mf_on_progress() const
 {
     double progress;
 
@@ -96,7 +96,7 @@ cloning::mf_on_progress()
 
 
 void
-cloning::mf_on_done()
+cloning::mf_on_done() const
 {
     if (m_pending_error.has_value())
         m_signal_on_error.emit(m_pending_error.value());

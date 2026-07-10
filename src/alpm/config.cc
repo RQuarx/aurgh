@@ -1,5 +1,8 @@
+#include <print>
+
 #include <glob.h>
 #include <sigc++/sigc++.h>
+#include <sys/utsname.h>
 
 #include "alpm/config.hh"
 
@@ -124,7 +127,7 @@ namespace
 
         for (const auto &original : values)
         {
-            std::string_view value = original;
+            std::string_view value { original | aurgh::views::trim };
 
             bool package  = false;
             bool database = false;
@@ -143,7 +146,7 @@ namespace
                 package = database = true;
 
             const auto *it = std::ranges::find(siglevel_rules, value, &siglevel_rule::name);
-            if (it != siglevel_rules.end())
+            if (it == siglevel_rules.end())
             {
                 if (!bad_values.empty()) bad_values += ", ";
                 bad_values += original;
@@ -258,37 +261,50 @@ namespace
                     .unexpected();
         return {};
     }
+
+
+    auto
+    get_system_arch() -> std::string
+    {
+        struct utsname un;
+        uname(&un);
+        return un.machine;
+    }
 }
 
 
 auto
-config::parse(const std::filesystem::path &pacman_conf) noexcept -> result<config>
+config::parse(const std::filesystem::path &pacman_conf) noexcept -> result<std::unique_ptr<config>>
+try
 {
-    config cfg;
+    auto cfg = std::make_unique<config>();
 
     if (auto res
-        = ini::parse(pacman_conf, [&](ini::callback_data data) { return cfg.mf_parse_cb(data); });
+        = ini::parse(pacman_conf, [&](ini::callback_data data) { return cfg->mf_parse_cb(data); });
         !res)
         return res.error().unexpected();
 
-    if (auto res = cfg.mf_set_defaults(); !res) return res.error().unexpected();
+    if (auto res = cfg->mf_set_defaults(); !res) return res.error().unexpected();
 
     return cfg;
+}
+catch (const std::exception &e)
+{
+    return error { "failed to parse config file \"{}\": {}", pacman_conf.c_str(), e.what() }
+        .unexpected();
 }
 
 
 auto
 config::mf_parse_cb(ini::callback_data data, int depth) noexcept -> result<void>
 {
-    if (data.key.empty() and data.value.empty())
-    {
-        if (data.section != "options") repos.emplace_back(std::string { data.section });
-    }
+    if (data.key.empty() and data.value.empty() and data.section != "options")
+        repos.emplace_back(std::string { data.section });
 
     if (data.key == "Include") return mf_process_include(data, depth);
     if (data.section.empty())
         return error { "parsing error at {}:{}: all directives must belong to a section",
-                       data.file.c_str(), data.line_num }
+                       data.filepath, data.line_num }
             .unexpected();
 
     if (data.section == "options") return mf_parse_options(data);
@@ -301,8 +317,8 @@ config::mf_process_include(ini::callback_data data, int depth) noexcept -> resul
 try
 {
     if (data.value.empty())
-        return error { "parsing error at {}:{}: include directive requires a value",
-                       data.file.c_str(), data.line_num }
+        return error { "parsing error at {}:{}: include directive requires a value", data.filepath,
+                       data.line_num }
             .unexpected();
 
     if (depth >= config::max_include_depth)
@@ -315,13 +331,14 @@ try
     if (auto res = globdir(std::string { data.value }); res.has_value())
         paths = std::move(res.value());
     else
-        return error { "include error at {}:{}: {}", data.file.c_str(), data.line_num,
+        return error { "include error at {}:{}: {}", data.filepath, data.line_num,
                        res.error().message() }
             .unexpected();
 
-    for (const auto &path : paths)
-        if (auto res = ini::parse(path, [&](ini::callback_data data)
-                                  { return mf_parse_cb(data, depth + 1); });
+    for (auto &path : paths)
+        if (auto res = ini::parse(
+                path, [&](ini::callback_data data) { return mf_parse_cb(data, depth + 1); },
+                std::string { data.section });
             !res)
             return res.error().unexpected();
 
@@ -355,6 +372,13 @@ try
     if (data.key == "IgnorePkg") ignore_pkg = split_on_space_to_string(data.value);
     if (data.key == "IgnoreGroup") ignore_group = split_on_space_to_string(data.value);
     if (data.key == "NoExtract") no_extract = split_on_space_to_string(data.value);
+    if (data.key == "Architecture")
+    {
+        architecture = split_on_space_to_string(data.value);
+
+        if (auto it = std::ranges::find(architecture, "auto"); it != architecture.end())
+            *it = get_system_arch();
+    }
 
     if (data.key == "CacheDir") cache_dir = split_on_space_to_path(data.value);
     if (data.key == "HookDir") hook_dir = split_on_space_to_path(data.value);
@@ -376,7 +400,7 @@ try
             default:                  msg = "failed to convert string to integer"; break;
             }
 
-            return error { "parsing error at {}:{}: {}", data.file.c_str(), data.line_num, msg }
+            return error { "parsing error at {}:{}: {}", data.filepath, data.line_num, msg }
                 .unexpected();
         }
     }
@@ -394,7 +418,7 @@ try
 }
 catch (const std::exception &e)
 {
-    return error { "parsing error at {}:{}: {}", data.file.c_str(), data.line_num, e.what() }
+    return error { "parsing error at {}:{}: {}", data.filepath, data.line_num, e.what() }
         .unexpected();
 }
 
@@ -405,7 +429,7 @@ config::mf_parse_siglevels(ini::callback_data data) noexcept -> result<void>
     auto get_siglevel = [&data](int *siglevel, int *mask) noexcept -> result<void>
     {
         auto res = process_siglevel(split_on_space_to_string(data.value), siglevel, mask);
-        return !res ? error { "parsing error at {}:{}: {}", data.file.c_str(), data.line_num,
+        return !res ? error { "parsing error at {}:{}: {}", data.filepath, data.line_num,
                               res.error().message() }
                           .unexpected()
                     : result<void> {};
@@ -437,7 +461,7 @@ try
 
     auto err = [&data](std::string_view name)
     {
-        return error { "parsing error at {}:{}: directive \"{}\" needs a value", data.file.c_str(),
+        return error { "parsing error at {}:{}: directive \"{}\" needs a value", data.filepath,
                        data.line_num, name }
             .unexpected();
     };
@@ -460,7 +484,7 @@ try
         auto res = process_siglevel(split_on_space_to_string(data.value), &repo->siglevel,
                                     &repo->siglevel_mask);
         if (!res)
-            return error { "parsing error at {}:{}: {}", data.file.c_str(), data.line_num,
+            return error { "parsing error at {}:{}: {}", data.filepath, data.line_num,
                            res.error().message() }
                 .unexpected();
     }
@@ -470,7 +494,7 @@ try
         if (data.value.empty()) return err("Usage");
         auto res = process_usage(split_on_space_to_string(data.value));
         if (!res)
-            return error { "parsing error at {}:{}: {}", data.file.c_str(), data.line_num,
+            return error { "parsing error at {}:{}: {}", data.filepath, data.line_num,
                            res.error().message() }
                 .unexpected();
         repo->usage = res.value();
@@ -480,8 +504,8 @@ try
 }
 catch (const std::exception &e)
 {
-    return error { "parse error at {}:{}: failed to parse repo ({})", data.file.c_str(),
-                   data.line_num, e.what() }
+    return error { "parse error at {}:{}: failed to parse repo ({})", data.filepath, data.line_num,
+                   e.what() }
         .unexpected();
 }
 
@@ -597,7 +621,7 @@ config::build() noexcept -> result<alpm_handle_t *>
     alpm_option_set_disable_dl_timeout(handle, disable_download_timeout);
     alpm_option_set_parallel_downloads(handle, parallel_downloads);
 
-    return {};
+    return handle;
 }
 
 

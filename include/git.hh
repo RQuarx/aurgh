@@ -56,7 +56,7 @@ namespace aurgh::git
         std::jthread    m_thread;
         std::stop_token m_stop_token;
 
-        std::mutex m_mutex;
+        mutable std::mutex m_mutex;
         double     m_latest_progress;
 
         std::optional<error> m_pending_error;
@@ -71,8 +71,8 @@ namespace aurgh::git
 
 
         void mf_run(std::stop_token token);
-        void mf_on_progress();
-        void mf_on_done();
+        void mf_on_progress() const;
+        void mf_on_done() const;
 
         static auto transfer_progress_callback(const git_indexer_progress *stats, void *payload)
             -> int;

@@ -29,8 +29,13 @@ namespace aurgh::alpm
         [[nodiscard]]
         auto search(std::string_view name) noexcept -> result<std::vector<package>>;
 
+
+        [[nodiscard]]
+        auto info(std::span<const std::string> args) noexcept
+            -> result<std::vector<package_details>>;
+
     private:
         std::unique_ptr<alpm_handle_t, alpm_destructor> m_handle;
-        config                                          m_config;
+        std::unique_ptr<config>                         m_config;
     };
 }
