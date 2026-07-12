@@ -8,12 +8,16 @@ project('aurgh', 'cpp', 'c',
 compile_args = [ '-DPROJECT_VERSION="@0@"'.format(meson.project_version()),
                  '-DGLIBMM_DISABLE_DEPRECATED' ]
 
+cmake = import('cmake')
+sdbus_cpp = cmake.subproject('sdbus-cpp')
+
 dependencies = [ dependency('libcurl'),
                  dependency('libalpm'),
                  dependency('gtkmm-4.0',     required: true), # Must be provided by the system
                  dependency('nlohmann_json', fallback: [ 'nlohmann_json', 'nlohmann_json_dep' ]),
                  dependency('lyra',          fallback: [ 'Lyra',          'lyra_dep' ]),
-                 dependency('libgit2') ]
+                 dependency('libgit2'), # No idea on how to make libgit2 works with meson subprojects...
+                 sdbus_cpp.dependency('sdbus-c++') ]
 
 subdir('ui')
 blueprints = custom_target(command: [ find_program('blueprint-compiler'),
@@ -33,8 +37,17 @@ res = gnome.compile_resources('aurgh_resources', 'aurgh.gresources.xml',
                               c_name:       'aurgh_resources')
 
 subdir('src')
-executable(meson.project_name(), [ src, res ],
+
+shared_include = include_directories('include/shared')
+
+executable(meson.project_name() + '-daemon', [ backend_src, shared_src ],
            install:             true,
            cpp_args:            compile_args,
            dependencies:        dependencies,
-           include_directories: include_directories('include'))
+           include_directories: [ include_directories('include/backend'), shared_include ])
+
+executable(meson.project_name(), [ frontend_src, shared_src, res ],
+           install:             true,
+           cpp_args:            compile_args,
+           dependencies:        dependencies,
+           include_directories: [ include_directories('include/frontend'), shared_include ])

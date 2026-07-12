@@ -32,6 +32,7 @@ Index:
 
 CompileFlags:
     Add: [ -std=c++23 ]
+    CompilationDatabase: target
 
 Documentation:
     CommentFormat: Doxygen

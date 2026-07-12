@@ -20,6 +20,9 @@ try
             h.m_handle.reset(res.value());
         else
             return res.error().unexpected();
+
+        h.m_repos = h.m_config->repos | std::views::transform(&repo::name)
+                  | std::ranges::to<std::vector<std::string_view>>();
     }
     else
         return res.error().unexpected();
@@ -94,3 +97,8 @@ handle::info(std::span<const std::string> args) noexcept -> result<std::vector<p
 
     return details;
 }
+
+
+auto
+handle::get_repos() const noexcept -> std::span<const std::string_view>
+{ return m_repos; }

@@ -13,6 +13,9 @@ try
     m_searchentry = builder->get_widget<Gtk::SearchEntry>("searchentry");
     m_searchbar->connect_entry(*m_searchentry);
 
+    m_searchentry->signal_search_changed().connect(
+        [this]() { m_signal_on_search.emit(m_searchentry->get_text()); });
+
     return {};
 }
 catch (const Glib::Error &e)
@@ -23,3 +26,8 @@ catch (const std::exception &e)
 {
     return error { "failed to build searchbar widgets: {}", e.what() }.unexpected();
 }
+
+
+auto
+searchbar::signal_on_search() -> sigc::signal<void(Glib::ustring)>
+{ return m_signal_on_search; }

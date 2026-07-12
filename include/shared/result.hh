@@ -48,6 +48,7 @@ namespace aurgh
     }
 
 
+    /** @brief An object describing an error. */
     class error : public _impl::to_unexpected
     {
     public:
@@ -58,12 +59,14 @@ namespace aurgh
         }
 
 
+        /** @brief Returns the message of the error. */
         [[nodiscard]]
         auto
         message() const noexcept -> std::string_view
         { return m_message; }
 
 
+        /** @brief Returns the source location of the error.  */
         [[nodiscard]]
         auto
         source() const noexcept -> std::source_location
@@ -78,3 +81,23 @@ namespace aurgh
     template <typename T>
     using result = std::expected<T, error>;
 }
+
+
+template <>
+struct std::formatter<aurgh::error>
+{
+    constexpr auto
+    parse(std::format_parse_context &ctx) /* NOLINT */
+    { return ctx.begin(); }
+
+
+    template <typename FormatContext>
+    auto
+    format(const aurgh::error &e, FormatContext &ctx) const
+    {
+        const auto &src = e.source();
+
+        return std::format_to(ctx.out(), "error on `{}` at {}[{}:{}]: {}", src.function_name(),
+                              src.file_name(), src.line(), src.column(), e.message());
+    }
+};

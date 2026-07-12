@@ -3,4 +3,5 @@
 !.gitignore
 !Lyra
 !libgit2
+!sdbus-cpp
 !*.wrap

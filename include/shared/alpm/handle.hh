@@ -27,6 +27,10 @@ namespace aurgh::alpm
 
 
         [[nodiscard]]
+        auto get_repos() const noexcept -> std::span<const std::string_view>;
+
+
+        [[nodiscard]]
         auto search(std::string_view name) noexcept -> result<std::vector<package>>;
 
 
@@ -37,5 +41,7 @@ namespace aurgh::alpm
     private:
         std::unique_ptr<alpm_handle_t, alpm_destructor> m_handle;
         std::unique_ptr<config>                         m_config;
+
+        std::vector<std::string_view> m_repos;
     };
 }
