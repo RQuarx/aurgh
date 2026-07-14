@@ -22,18 +22,23 @@ namespace aurgh
 
         public:
             auto
-            on_result(const result_signal::slot_type &slot) -> request &
+            on_result(const typename result_signal::slot_type &slot) -> request &
             {
                 m_signal_on_result.connect(slot);
                 return *this;
             }
 
             auto
-            on_error(const error_signal::slot_type &slot) -> request &
+            on_error(const typename error_signal::slot_type &slot) -> request &
             {
                 m_signal_on_error.connect(slot);
                 return *this;
             }
+
+
+            auto
+            cancel() noexcept -> result<void>
+            { return m_transfer->cancel(); }
 
         private:
             std::shared_ptr<http::transfer> m_transfer;
@@ -96,11 +101,11 @@ namespace aurgh
 
 
         [[nodiscard]]
-        auto search(Glib::UStringView name) noexcept
+        auto search(std::string_view name) noexcept
             -> result<std::shared_ptr<request<std::vector<package>>>>;
 
         [[nodiscard]]
-        auto info(std::span<const std::string> args) noexcept
+        auto info(const std::vector<std::string> &args) noexcept
             -> result<std::shared_ptr<request<std::vector<package_details>>>>;
 
     private:

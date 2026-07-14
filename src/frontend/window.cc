@@ -1,5 +1,3 @@
-#include <print>
-
 #include <gtkmm.h>
 
 #include "window.hh"
@@ -15,6 +13,4 @@ window::window()
     this->set_child(*builder->get_widget<Gtk::Box>("main_container"));
 
     if (auto res = m_searchbar.build(builder); !res) { /* TODO: Handle error */ }
-    m_searchbar.signal_on_search().connect([](const Glib::ustring &text)
-                                           { std::println("{}", text.raw()); });
 }

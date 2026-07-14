@@ -25,8 +25,7 @@ namespace
         std::vector<package> packages;
         packages.reserve(response["resultcount"].get<std::size_t>());
 
-        for (const auto &pkg : response["results"])
-            packages.emplace_back(package::from_json(pkg));
+        for (const auto &pkg : response["results"]) packages.emplace_back(package::from_json(pkg));
         return packages;
     }
 
@@ -60,11 +59,11 @@ aur::aur(const std::shared_ptr<http::client> &client) noexcept : m_client { clie
 
 
 auto
-aur::search(Glib::UStringView name) noexcept
+aur::search(std::string_view name) noexcept
     -> result<std::shared_ptr<request<std::vector<package>>>>
 try
 {
-    std::string url = std::format("{}/search/{}?by=name", URL, name.c_str());
+    std::string url = std::format("{}/search/{}?by=name", URL, name);
 
     if (auto trans = m_client->get(url); trans.has_value())
         return std::shared_ptr<request<std::vector<package>>> {
@@ -75,12 +74,12 @@ try
 }
 catch (const std::exception &e)
 {
-    return error { "failed to search for {}: {}", name.c_str(), e.what() }.unexpected();
+    return error { "failed to search for {}: {}", name, e.what() }.unexpected();
 }
 
 
 auto
-aur::info(std::span<const std::string> args) noexcept
+aur::info(const std::vector<std::string> &args) noexcept
     -> result<std::shared_ptr<request<std::vector<package_details>>>>
 try
 {
