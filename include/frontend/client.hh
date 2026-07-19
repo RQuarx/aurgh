@@ -15,14 +15,51 @@ namespace aurgh
     class client
     {
     public:
+        class clone_process
+        {
+            friend class client;
+
+        public:
+            clone_process(std::shared_ptr<git::cloning> &&cloning);
+
+            clone_process(clone_process &&other) noexcept;
+            auto operator=(clone_process &&other) noexcept -> clone_process &;
+
+            clone_process(const clone_process &)  = delete;
+            auto operator=(const clone_process &) = delete;
+
+
+            [[nodiscard]]
+            auto signal_on_clone_complete() const
+                -> sigc::signal<void(result<std::filesystem::path>)>;
+
+            [[nodiscard]]
+            auto signal_on_clone_progress() const -> sigc::signal<void(double)>;
+
+        private:
+            Glib::Dispatcher m_complete_dispatcher;
+            Glib::Dispatcher m_progress_dispatcher;
+
+            sigc::signal<void(result<std::filesystem::path>)> m_signal_on_complete;
+            sigc::signal<void(double)>                        m_signal_on_progress;
+
+            result<std::filesystem::path> m_dst;
+            std::atomic<double>           m_progress;
+
+            std::shared_ptr<git::cloning> m_cloning;
+        };
+
+
         [[nodiscard]]
         static auto create(const std::shared_ptr<http::client> &http,
+                           std::filesystem::path                clone_dir,
                            const std::filesystem::path &pacman_conf = "/etc/pacman.conf") noexcept
             -> result<std::unique_ptr<client>>;
 
 
         auto search(const std::string &query) noexcept -> result<void>;
         auto info(const std::vector<std::string> &args) noexcept -> result<void>;
+        auto clone(std::string_view url) noexcept -> result<std::reference_wrapper<clone_process>>;
 
 
         [[nodiscard]]
@@ -114,20 +151,23 @@ namespace aurgh
             }
         };
 
-        std::shared_ptr<http::client> m_client;
 
-        Glib::Dispatcher m_clone_dispatcher;
+        std::shared_ptr<http::client> m_client;
+        std::filesystem::path         m_clone_dir;
 
         aur         m_aur;
         alpm::async m_alpm;
 
-        std::vector<std::shared_ptr<git::cloning>> m_clones;
+        std::mutex                 m_clone_mutex;
+        std::vector<clone_process> m_clones;
 
         operation<std::vector<package>>         m_search_operation;
         operation<std::vector<package_details>> m_info_operation;
 
 
-        client(const std::shared_ptr<http::client> &http, alpm::handle &&handle);
+        client(const std::shared_ptr<http::client> &http,
+               std::filesystem::path              &&clone_dir,
+               alpm::handle                       &&handle);
     };
 
 }

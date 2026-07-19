@@ -18,22 +18,29 @@ namespace
     }
 
 
-    struct libgit2_session
+    [[nodiscard]]
+    auto
+    get_name(std::string_view url) -> std::string
     {
-        libgit2_session()
-        {
-            if (git_libgit2_init() < 0)
-                throw aurgh::error { "failed to initialize libgit2: {}", get_libgit2_error() };
-        }
+        while (!url.empty() and url.back() == '/') url.remove_suffix(1);
 
-        ~libgit2_session() noexcept { git_libgit2_shutdown(); }
-    };
+        std::size_t pos = url.find_last_of("/:");
+        std::string name { pos == std::string_view::npos ? url : url.substr(pos + 1) };
+
+        if (name.ends_with(".git")) name.resize(name.size() - 4);
+
+        return name;
+    }
 }
 
 
-cloning::cloning(std::string url, std::filesystem::path to)
-    : m_url { std::move(url) }, m_to { std::move(to) }
+cloning::cloning(std::string_view url, std::filesystem::path base)
+    : m_url { url }, m_base { std::move(base) }, m_dst { m_base / get_name(m_url) }
 {
+    if (!std::filesystem::exists(m_base)) std::filesystem::create_directories(m_base);
+    if (!std::filesystem::is_directory(m_base))
+        throw error { "clone base directory is not a directory" };
+
     m_dispatch_progress.connect(sigc::mem_fun(*this, &cloning::mf_on_progress));
     m_dispatch_done.connect(sigc::mem_fun(*this, &cloning::mf_on_done));
 
@@ -51,16 +58,10 @@ cloning::mf_run(std::stop_token token)
 {
     m_stop_token = std::move(token);
 
-    try
+    if (git_libgit2_init() < 0)
     {
-        libgit2_session session;
-    }
-    catch (error &e)
-    {
-        m_pending_error = std::move(e);
+        m_pending_error = error { "failed to initialize libgit2: {}", get_libgit2_error() };
         m_dispatch_done.emit();
-
-        return;
     }
 
     git_clone_options opts;
@@ -70,13 +71,17 @@ cloning::mf_run(std::stop_token token)
     opts.fetch_opts.callbacks.payload           = this;
 
     git_repository *repo = nullptr;
-    int             res  = git_clone(&repo, m_url.c_str(), m_to.c_str(), &opts);
+
+    if (std::filesystem::exists(m_dst)) std::filesystem::remove_all(m_dst);
+
+    int res = git_clone(&repo, m_url.c_str(), m_dst.c_str(), &opts);
 
     if (repo != nullptr) git_repository_free(repo);
     if (res != 0)
         m_pending_error = error { R"(failed to clone remote repository "{}" to "{}": {})", m_url,
-                                  m_to.c_str(), get_libgit2_error() };
+                                  m_dst.c_str(), get_libgit2_error() };
 
+    git_libgit2_shutdown();
     m_dispatch_done.emit();
 }
 
@@ -101,7 +106,7 @@ cloning::mf_on_done() const
     if (m_pending_error.has_value())
         m_signal_on_error.emit(m_pending_error.value());
     else
-        m_signal_on_completed.emit();
+        m_signal_on_completed.emit(m_dst);
 }
 
 
@@ -123,15 +128,15 @@ cloning::transfer_progress_callback(const git_indexer_progress *stats, void *pay
 
 
 auto
-aurgh::git::clone(std::string url, std::filesystem::path to) noexcept
+aurgh::git::clone(std::string_view url, std::filesystem::path base) noexcept
     -> result<std::shared_ptr<cloning>>
 try
 {
-    return std::make_shared<cloning>(std::move(url), std::move(to));
+    return std::make_shared<cloning>(url, std::move(base));
 }
 catch (const std::exception &e)
 {
-    return error { R"(failed to clone remote repository "{}" to "{}": {})", url, to.c_str(),
+    return error { R"(failed to clone remote repository "{}" to "{}": {})", url, base.c_str(),
                    e.what() }
         .unexpected();
 }
